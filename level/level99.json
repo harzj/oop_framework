@@ -1,9 +1,35 @@
 {
   "tiles": [
     "wwwwwwwwwttttttw",
-    "wwwwwwttttgwdhtw",
+    "wwwwwwttttgwwhtw",
     "wwwttttghwwttttw",
     "ttttghwwttttwwww",
     "bphwwtttwwwwwwww"
-  ]
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Code": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "orientations": {
+      "1,4": "right"
+    }
+  }
 }

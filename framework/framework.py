@@ -247,7 +247,15 @@ class Framework:
 
 
     def starten(self):
+        import os, sys, time
         clock = pygame.time.Clock()
+
+        # Test-Modus: sofort nach Sieg/Timeout den Prozess beenden (damit ein externes Runner-Skript weiter macht)
+        TEST_MODE = os.getenv("OOP_TEST", "") == "1"
+        TEST_TIMEOUT_MS = int(os.getenv("OOP_TEST_TIMEOUT_MS", "8000"))
+
+        start_time = time.time()
+
         while self._running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -258,25 +266,33 @@ class Framework:
                         try:
                             self._aus_tastatur = True
                             fn()  # Tastatur bleibt aktiv, auch wenn blockiert
-                            #self._hinweis = None
                         except Exception as e:
                             print("Fehler in Tastenaktion:", e)
                         finally:
-                            self._aus_tastatur = False     # <-- Rücksetzen
-                            
+                            self._aus_tastatur = False
                 elif event.type == pygame.MOUSEWHEEL:
-                    self.info_scroll += event.y * 20  # Schrittweite anpassen (z. B. 20 px)
+                    self.info_scroll += event.y * 20
                     if self.info_scroll < 0:
                         self.info_scroll = 0
 
-
-
-            # Schüler-Aktionen blockieren: nichts „Automatisches“ mehr ausführen.
-            # (Bei deiner Baseline gibt es keine Autoupdates – das ist okay.
-            #  Wichtig ist nur: Rendering und Tastatur laufen weiter.)
-            # 🧩 Nach Beendigung der Schülerbefehle prüfen, ob Level gewonnen wurde
+            # Sieg erkennen (wie vorher)
             if not self._aktion_blockiert and not self.spielfeld.gibt_noch_herzen():
                 self.sieg()
+
+            # Wenn im Testmodus: beende Prozess bei Sieg oder bei Timeout
+            if TEST_MODE:
+                # Erfolg: sofort exit(0)
+                if self._sieg and not self._aktion_blockiert:
+                    print("[TEST] Level erfolgreich beendet.")
+                    pygame.quit()
+                    sys.exit(0)
+
+                # Timeout
+                elapsed_ms = int((time.time() - start_time) * 1000)
+                if elapsed_ms > TEST_TIMEOUT_MS:
+                    print(f"[TEST] Timeout ({TEST_TIMEOUT_MS}ms): Noch Herzen vorhanden oder blockiert.")
+                    pygame.quit()
+                    sys.exit(2)
 
             self._render_frame()
             clock.tick(60)

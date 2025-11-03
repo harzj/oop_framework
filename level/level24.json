@@ -31,6 +31,9 @@
     },
     "Villager": {
       "public": true
+    },
+    "orientations": {
+      "1,1": "right"
     }
   }
 }

@@ -5,22 +5,22 @@ from framework.grundlage import *
 #held = level.held
 
 # Befehlsliste:
-# geh, links, rechts, nehme_auf (für Herzen), attack, was_ist_vor_mir, gib_objekt_vor_dir, ist_auf_herz
+# geh, links, rechts, nehme_auf(100), attack, was_ist_vor_mir, gib_objekt_vor_dir, ist_auf_herz
 # lese_code, code_eingeben
 
 # Ab hier darfst du programmieren:
-held.links()
+held.links(100)
 for i in range(3):
-    held.geh()
-    held.nehme_auf()
-    held.geh()
-    held.geh()
-    held.links()
-    held.bediene_tor()
-    held.geh()
-    held.rechts()
-held.geh()
-held.nehme_auf()
+    held.geh(100)
+    held.nehme_auf(100)
+    held.geh(100)
+    held.geh(100)
+    held.links(100)
+    held.bediene_tor(100)
+    held.geh(100)
+    held.rechts(100)
+held.geh(100)
+held.nehme_auf(100)
 
     
 

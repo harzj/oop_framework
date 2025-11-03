@@ -5,21 +5,21 @@ from framework.grundlage import *
 #held = level.held
 
 # Befehlsliste:
-# geh, links, rechts, nehme_auf (für Herzen), attack, was_ist_vor_mir, gib_objekt_vor_dir, ist_auf_herz
+# geh, links, rechts, nehme_auf(100), attack, was_ist_vor_mir, gib_objekt_vor_dir, ist_auf_herz
 # lese_code, code_eingeben
 
 # Ab hier darfst du programmieren:
-held.links()
-held.links()
-held.geh()
-held.nehme_auf()
-held.geh()
-held.nehme_auf()
+held.links(100)
+held.links(100)
+held.geh(100)
+held.nehme_auf(100)
+held.geh(100)
+held.nehme_auf(100)
 
-knappe.geh()
-knappe.links()
-knappe.geh()
-knappe.nehme_auf()
+knappe.geh(100)
+knappe.links(100)
+knappe.geh(100)
+knappe.nehme_auf(100)
 
 
 

@@ -3,21 +3,21 @@ level.lade(7)
 from framework.grundlage import *
 
 # Ab hier darfst du programmieren:
-held.bediene_tor()
-held.geh()
-held.geh()
-held.lese_spruch()
+held.bediene_tor(100)
+held.geh(100)
+held.geh(100)
+held.lese_spruch(100)
 for i in range(4):
-    held.geh()
-held.links()
-held.spruch_sagen()
-held.geh()
+    held.geh(100)
+held.links(100)
+held.spruch_sagen(delay_ms=100)
+held.geh(100)
 for i in range(4):
-    held.geh()
-    held.nimm_herz()
-    held.links()
-    held.geh()
-    held.rechts()
+    held.geh(100)
+    held.nimm_herz(100)
+    held.links(100)
+    held.geh(100)
+    held.rechts(100)
 
 
 

@@ -6,27 +6,28 @@ from framework.grundlage import *
 #held = level.held
 
 # Befehlsliste:
-# geh, links, rechts, nehme_auf (für Herzen), attack, was_ist_vor_mir, gib_objekt_vor_dir, ist_auf_herz
+# geh, links, rechts, nehme_auf(100), attack, was_ist_vor_mir, gib_objekt_vor_dir, ist_auf_herz
 # lese_code, code_eingeben
 
 # Ab hier darfst du programmieren:
-held.geh()
-held.geh()
-held.lese_code()
-held.geh()
-held.links()
-held.geh()
-held.bediene_tor()
-held.geh()
-held.geh()
-held.nehme_auf()
-held.geh()
-held.geh()
-held.links()
-held.code_eingeben()
-held.geh()
-held.geh()
-held.nehme_auf()
+s=0
+held.geh(100)
+held.geh(100)
+held.lese_code(100)
+held.geh(100)
+held.links(100)
+held.geh(100)
+held.bediene_tor(100)
+held.geh(100)
+held.geh(100)
+held.nehme_auf(100)
+held.geh(100)
+held.geh(100)
+held.links(100)
+held.code_eingeben(delay_ms=100)
+held.geh(100)
+held.geh(100)
+held.nehme_auf(100)
 
 # Dieser Befehl muss immer am Ende stehen
 framework.starten()

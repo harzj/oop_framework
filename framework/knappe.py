@@ -36,6 +36,9 @@ class Knappe(Objekt):
         
     def spruch_sagen(self, code=None, delay_ms=500):
         self.code_eingeben(code,delay_ms)
+
+    def sage_spruch(self,code=None,delay_ms=500):
+        self.spruch_sagen(code,delay_ms)
         
     def spruch_lesen(self, delay_ms=500):
         self.lese_spruch(delay_ms)

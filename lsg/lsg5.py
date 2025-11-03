@@ -4,10 +4,10 @@ from framework.grundlage import *
 
 # Ab hier darfst du programmieren:
 for i in range(3):
-    held.geh()
-    held.nimm_herz()
-held.links()
-held.geh()
-held.nimm_herz()
+    held.geh(100)
+    held.nimm_herz(100)
+held.links(100)
+held.geh(100)
+held.nimm_herz(100)
 # Dieser Befehl muss immer am Ende stehen
 framework.starten()

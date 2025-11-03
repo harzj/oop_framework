@@ -79,7 +79,7 @@ class Objekt:
 
         # Framework-interner Zugriff bleibt erlaubt
         caller = sys._getframe(1).f_code.co_filename
-        if "framework" in caller.replace("\\", "/"):
+        if "/framework" in caller.replace("\\", "/"):
             return object.__getattribute__(self, name)
 
         if object.__getattribute__(self, "_privatmodus") and name in ("x", "y", "r", "richtung"):
@@ -95,7 +95,7 @@ class Objekt:
         
 
         caller = sys._getframe(1).f_code.co_filename
-        if "framework" in caller.replace("\\", "/"):
+        if "/framework" in caller.replace("\\", "/"):
             return object.__setattr__(self, name, value)
 
         if object.__getattribute__(self, "_privatmodus") and name in ("x", "y", "r", "richtung"):

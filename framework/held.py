@@ -135,6 +135,9 @@ class Held(Objekt):
     def spruch_sagen(self, code=None, delay_ms=500):
         self.code_eingeben(code,delay_ms)
 
+    def sage_spruch(self,code=None,delay_ms=500):
+        self.spruch_sagen(code,delay_ms)
+
     def code_eingeben(self, code=None,delay_ms=500):
         """Versucht, vor der Tür einen Code einzugeben."""
         if not self.framework:
