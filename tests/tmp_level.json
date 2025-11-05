@@ -1,0 +1,18 @@
+{
+  "tiles": [
+    "wwwwww",
+    "wsdwww",
+    "wvwwww",
+    "wwdwww",
+    "wwwwww"
+  ],
+  "settings": {
+    "colors": {
+      "2,1": "green",
+      "4,1": "green"
+    },
+    "villagers": {
+      "1,2": "female"
+    }
+  }
+}

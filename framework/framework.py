@@ -5,6 +5,7 @@ from .spielfeld import Spielfeld
 
 class Framework:
     def __init__(self, levelnummer=1, feldgroesse=64, auto_erzeuge_objekte=True, w = False, splash=False):
+        print("(c) 2025 Johannes Harz\nFachkonferenz Informatik\nCusanus Gymnasium St. Wendel")
         pygame.init()
         self.feldgroesse = feldgroesse
         self._tasten = {}

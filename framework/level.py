@@ -49,7 +49,9 @@ class Level:
     def iter_entity_spawns(self):
         for y, zeile in enumerate(self.tiles):
             for x, code in enumerate(zeile):
-                if code.lower() in ("p", "h", "x", "c", "d","g","k"):
+                # Entities: p=player, h=herz, x=monster, c=code, d=tuer, g=tor, k=knappe,
+                # s=schluessel, v=villager
+                if code.lower() in ("p", "h", "x", "c", "d", "g", "k", "s", "v"):
                     # Unter Entities soll Gras liegen
                     self.tiles[y][x] = "w"
                     # bestimme Typ und Sichtbarkeit (Großbuchstabe = direkt verfügbar)

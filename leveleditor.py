@@ -78,6 +78,18 @@ class LevelEditor:
         self.selected_code = TILES[self.selected_key][0]
         self.tile_cycle_idx = {k: 0 for k in TILE_GROUPS}
         self._toggle_held_knappe = True  # True: 'p' (Held), False: 'k' (Knappe)
+        # Tür/Schlüssel Farbauswahl (mehrfaches Drücken der Taste wechselt Farbe)
+        self.door_colors = ["green", "violet", "blue", "golden", "red"]
+        self.door_color_idx = 0
+        self.selected_door_color = None
+        self.key_colors = ["green", "violet", "blue", "golden", "red"]
+        self.key_color_idx = 0
+        self.selected_key_color = None
+        # Villager gender selection (toggle with key '4')
+        self.selected_villager_weiblich = False
+        # Persisted per-tile settings (colors for doors/keys, villagers genders)
+        self.colors = {}
+        self.villagers = {}
 
         # Sprites
         self.sprites = self._load_all_sprites()
@@ -118,6 +130,11 @@ class LevelEditor:
         for key, group in TILE_GROUPS.items():
             for code, path in group:
                 sprites[code] = self._load_sprite(path)
+        # zusätzliche Sprites: farbige Türen und Schlüssel, weiblicher Villager
+        for col in ("green", "violet", "blue", "golden", "red"):
+            sprites[f"locked_door_{col}"] = self._load_sprite(f"sprites/locked_door_{col}.png")
+            sprites[f"key_{col}"] = self._load_sprite(f"sprites/key_{col}.png")
+        sprites["v_female"] = self._load_sprite("sprites/villager2.png")
         return sprites
 
     def _load_sprite(self, path):
@@ -151,7 +168,11 @@ class LevelEditor:
             return
 
         if right_click:
+            # Entferne ggf. gespeicherte Settings für diese Koordinate
+            key = f"{gx},{gy}"
             self.level[gy][gx] = "w"
+            self.colors.pop(key, None)
+            self.villagers.pop(key, None)
             return
 
         aktueller_code = self.level[gy][gx]
@@ -179,6 +200,25 @@ class LevelEditor:
 
         self.level[gy][gx] = code
 
+        # Falls wir eine Tür, einen Schlüssel oder einen Villager setzen,
+        # dann speichere die gewählte Farbe / das gewählte Geschlecht in den settings.
+        key = f"{gx},{gy}"
+        if code.lower() == "d":
+            # Türfarbe: falls keine ausgewählt, entferne Eintrag (spawn benutzt default)
+            if self.selected_door_color:
+                self.colors[key] = self.selected_door_color
+            else:
+                self.colors.pop(key, None)
+
+        elif code.lower() == "s":
+            # Schlüsselfarbe: falls keine ausgewählt, benutze default 'green'
+            color = self.selected_key_color or "green"
+            self.colors[key] = color
+
+        elif code.lower() == "v":
+            # Villager gender
+            self.villagers[key] = "female" if self.selected_villager_weiblich else "male"
+
     # -----------------------------
     # Rendering
     # -----------------------------
@@ -198,9 +238,29 @@ class LevelEditor:
                 # Basisgras
                 self.screen.blit(self.sprites.get("w"), (gx, gy))
 
-                # Tile
+                # Tile (unterstützt farbige Türen/Schlüssel und weibliche Villager)
                 if code != "w":
-                    sprite = self.sprites.get(code.lower())
+                    low = code.lower()
+                    key_coord = f"{x},{y}"
+                    sprite = None
+                    if low == "d":
+                        col = self.colors.get(key_coord)
+                        if col:
+                            sprite = self.sprites.get(f"locked_door_{col}")
+                        else:
+                            sprite = self.sprites.get("d")
+                    elif low == "s":
+                        col = self.colors.get(key_coord) or "green"
+                        sprite = self.sprites.get(f"key_{col}")
+                    elif low == "v":
+                        gender = self.villagers.get(key_coord)
+                        if isinstance(gender, str) and gender.lower() in ("female", "weiblich", "w"):
+                            sprite = self.sprites.get("v_female")
+                        else:
+                            sprite = self.sprites.get("v")
+                    else:
+                        sprite = self.sprites.get(low)
+
                     if sprite:
                         self.screen.blit(sprite, (gx, gy))
                     else:
@@ -235,7 +295,23 @@ class LevelEditor:
 
         # Aktuelles Tile
         self._text(self.font, "Aktuelles Tile:", (200, 200, 80), x0, y); y += 22
-        sprite = self.sprites.get(self.selected_code)
+        # Sonderfälle: Tür mit Farbe, Schlüssel mit Farbe, weiblicher Villager
+        sprite = None
+        if self.selected_code == "d":
+            if self.selected_door_color:
+                sprite = self.sprites.get(f"locked_door_{self.selected_door_color}")
+            else:
+                sprite = self.sprites.get("d")
+        elif self.selected_code == "s":
+            kc = self.selected_key_color or "green"
+            sprite = self.sprites.get(f"key_{kc}")
+        elif self.selected_code == "v":
+            if self.selected_villager_weiblich:
+                sprite = self.sprites.get("v_female")
+            else:
+                sprite = self.sprites.get("v")
+        if not sprite:
+            sprite = self.sprites.get(self.selected_code)
         if sprite:
             preview = pygame.transform.smoothscale(sprite, (48, 48))
             self.screen.blit(preview, (x0, y))
@@ -312,7 +388,12 @@ class LevelEditor:
             for k in ["Held", "Knappe", "Monster", "Herz", "Tuer", "Code", "Villager"]:
                 self.privacy_flags.setdefault(k, False)
         # Lade Orientierungen, falls vorhanden (Format: {"x,y": "up"})
-        self.orientations = data.get("settings", {}).get("orientations", {})
+        settings = data.get("settings", {})
+        self.orientations = settings.get("orientations", {})
+        # Lade gespeicherte Tür-/Schlüssel-Farben (falls vorhanden)
+        self.colors = settings.get("colors", {}) or {}
+        # Lade Villager-Geschlechter
+        self.villagers = settings.get("villagers", {}) or {}
 
         self._recalc_window()
         self.screen = pygame.display.set_mode((self.win_w, self.win_h))
@@ -325,6 +406,14 @@ class LevelEditor:
         if self.orientations:
             data["settings"].setdefault("orientations", {})
             data["settings"]["orientations"].update(self.orientations)
+        # Farben für Türen/Schlüssel exportieren
+        if self.colors:
+            data["settings"].setdefault("colors", {})
+            data["settings"]["colors"].update(self.colors)
+        # Villager-Geschlechter exportieren
+        if self.villagers:
+            data["settings"].setdefault("villagers", {})
+            data["settings"]["villagers"].update(self.villagers)
         return data
 
 
@@ -413,6 +502,50 @@ class LevelEditor:
             return
 
         # Standardtiles
+        # Tür-Farbwahl (Taste '8' cycle) — inkl. Möglichkeit für 'normale' Tür (None)
+        if key_str == "8":
+            total = len(self.door_colors) + 1
+            self.door_color_idx = (self.door_color_idx + 1) % total
+            if self.door_color_idx == 0:
+                self.selected_door_color = None
+                print("[Info] Normale Tür ausgewählt (keine Farbe)")
+            else:
+                self.selected_door_color = self.door_colors[self.door_color_idx - 1]
+                print(f"[Info] Türfarbe ausgewählt: {self.selected_door_color}")
+            self.selected_code = TILES.get(key_str, ("d",))[0]
+            return
+
+        # Schlüssel-Farbwahl (Taste '0' cycle) -> inkl. 'keine Auswahl' -> wählt 's' als Tile
+        if key_str == "0":
+            total_k = len(self.key_colors) + 1
+            self.key_color_idx = (self.key_color_idx + 1) % total_k
+            if self.key_color_idx == 0:
+                self.selected_key_color = None
+                print("[Info] Schlüssel: keine Farbauswahl (Default green beim Spawn)")
+            else:
+                self.selected_key_color = self.key_colors[self.key_color_idx - 1]
+                print(f"[Info] Schlüssel-Farbe ausgewählt: {self.selected_key_color}")
+            self.selected_code = "s"
+            return
+
+        # Villager gender toggle (Taste '4')
+        if key_str == "4":
+            self.selected_villager_weiblich = not self.selected_villager_weiblich
+            self.selected_code = "v"
+            print(f"[Info] Villager weiblich={self.selected_villager_weiblich}")
+            return
+
+        # Taste '7' toggelt zwischen Code-Zettel ('c') und normaler Tür ('d')
+        if key_str == "7":
+            if self.selected_code == "c":
+                self.selected_code = "d"
+                self.selected_door_color = None
+                print("[Info] Auswahl: Tür (normale Tür)")
+            else:
+                self.selected_code = "c"
+                print("[Info] Auswahl: Code-Zettel ('c')")
+            return
+
         if key_str in TILES:
             self.selected_code = TILES[key_str][0]
 

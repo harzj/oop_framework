@@ -43,9 +43,14 @@ class Spielfeld:
         from .tor import Tor
         from .code import Code
         from .tuer import Tuer
+        from .schluessel import Schluessel
 
         # Orientierungen evtl. in self.settings["orientations"] als {"x,y":"up"}
         orients = self.settings.get("orientations", {}) if isinstance(self.settings, dict) else {}
+        # Tür-/Schlüssel-Farben in self.settings["colors"] (z.B. {"3,4":"golden"})
+        colors = self.settings.get("colors", {}) if isinstance(self.settings, dict) else {}
+        # Villager gender in self.settings["villagers"] as {"x,y": "female"/"male"}
+        villagers = self.settings.get("villagers", {}) if isinstance(self.settings, dict) else {}
 
         for typ, x, y, sichtbar in self.level.iter_entity_spawns():
             t = typ.lower() if isinstance(typ, str) else typ
@@ -94,7 +99,13 @@ class Spielfeld:
                     setattr(grundlage, "zettel", code)
 
             elif t == "d":
-                tuer = Tuer(x, y, code=self.zufallscode)
+                # prüfe, ob für diese Position eine Farbe konfiguriert ist
+                color = colors.get(f"{x},{y}")
+                # Wenn color gesetzt, erstelle farbige, schlüssel-verschlossene Tür
+                if color:
+                    tuer = Tuer(x, y, code=None, color=color)
+                else:
+                    tuer = Tuer(x, y, code=self.zufallscode)
                 tuer.framework = self.framework
                 self.objekte.append(tuer)
                 # setze Richtung falls das Tür-Objekt diese Eigenschaft nutzt
@@ -105,6 +116,35 @@ class Spielfeld:
                 if sichtbar:
                     import framework.grundlage as grundlage
                     setattr(grundlage, "tuer", tuer)
+
+            elif t == "s":
+                # Schlüssel-Spawn: Farbe aus settings oder default 'green'
+                color = colors.get(f"{x},{y}", "green")
+                sch = Schluessel(x, y, color=color)
+                sch.framework = self.framework
+                self.objekte.append(sch)
+                if sichtbar:
+                    import framework.grundlage as grundlage
+                    # früher wurde 'zettel'/'tuer' etc. genutzt; hier verwenden wir 'schluessel' singular
+                    setattr(grundlage, "schluessel", sch)
+
+            elif t == "v":
+                # Villager (Dorfbewohner) – gender kann in settings konfiguriert sein
+                key = f"{x},{y}"
+                weiblich_flag = False
+                val = villagers.get(key)
+                if isinstance(val, str) and val.lower() in ("female", "weiblich", "w"):
+                    weiblich_flag = True
+                try:
+                    from .villager import Villager
+                    vill = Villager(self.framework, x, y, richtung=richt, weiblich=weiblich_flag)
+                    vill.framework = self.framework
+                    self.objekte.append(vill)
+                    if sichtbar:
+                        import framework.grundlage as grundlage
+                        setattr(grundlage, "villager", vill)
+                except Exception:
+                    pass
 
             elif t == "g":
                 tor = Tor(x, y, offen=False)
@@ -134,7 +174,8 @@ class Spielfeld:
     # --- Zeichnen ---
     def zeichne(self, screen):
         # Sortierte Zeichnung: zuerst Boden / Hindernisse, dann Items, dann Lebewesen
-        zeichenreihenfolge = ["Berg", "Baum", "Busch", "Spruch", "Herz", "Tür", "Tor","Monster", "Held","Knappe"]
+        zeichenreihenfolge = ["Berg", "Baum", "Busch", "Spruch", "Herz", "Tür", "Tor", "Schlüssel",
+                              "Monster", "Held", "Knappe", "Dorfbewohner", "Dorfbewohnerin"]
         self.level.zeichne(screen, self.feldgroesse)
         for typ in zeichenreihenfolge:
             #for o in [obj for obj in self.objekte if not obj.tot and obj.typ == typ]:
