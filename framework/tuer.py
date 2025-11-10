@@ -86,6 +86,20 @@ class Tuer(Objekt):
             except Exception:
                 pass
             return True
+
+        # wrong key: treat as invalid action and block/stop as framework does for invalid moves
+        try:
+            # Use the object's _ungueltige_aktion helper (inherited from Objekt)
+            self._ungueltige_aktion("Falscher Schlüssel verwendet!")
+        except Exception:
+            try:
+                if self.framework and hasattr(self.framework, 'stoppe_programm'):
+                    try:
+                        self.framework.stoppe_programm("Falscher Schlüssel verwendet!")
+                    except Exception:
+                        pass
+            except Exception:
+                pass
         return False
         
     def ist_passierbar(self):

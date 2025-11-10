@@ -87,6 +87,8 @@ class LevelEditor:
         self.selected_key_color = None
         # Villager gender selection (toggle with key '4')
         self.selected_villager_weiblich = False
+        # Villager variant index: 0=male villager, 1=female villager, 2=Questgeber
+        self.villager_variant_idx = 0
         # Persisted per-tile settings (colors for doors/keys, villagers genders)
         self.colors = {}
         self.villagers = {}
@@ -148,6 +150,9 @@ class LevelEditor:
         # Bogenschuetze (variant of Monster) — optional sprite, fallbacks handled
         # use code 'y' internally to represent a placed Bogenschuetze
         sprites["y"] = self._load_sprite("sprites/archer.png")
+
+        # Questgeber (villager that gives quests)
+        sprites["q"] = self._load_sprite("sprites/villager_quest.png")
 
         # Knappe & evtl. weitere
         sprites["k"] = self._load_sprite("sprites/knappe.png")
@@ -226,8 +231,8 @@ class LevelEditor:
 
         self.level[gy][gx] = code
 
-        # Falls wir eine Tür, einen Schlüssel oder einen Villager setzen,
-        # dann speichere die gewählte Farbe / das gewählte Geschlecht in den settings.
+    # Falls wir eine Tür, einen Schlüssel oder einen Villager/Questgeber setzen,
+    # dann speichere die gewählte Farbe / das gewählte Geschlecht in den settings.
         key = f"{gx},{gy}"
         if code.lower() == "d":
             # Türfarbe: falls keine ausgewählt, entferne Eintrag (spawn benutzt default)
@@ -241,8 +246,8 @@ class LevelEditor:
             color = self.selected_key_color or "green"
             self.colors[key] = color
 
-        elif code.lower() == "v":
-            # Villager gender
+        elif code.lower() == "v" or code.lower() == "q":
+            # Villager or Questgeber: store gender for spawn-time
             self.villagers[key] = "female" if self.selected_villager_weiblich else "male"
 
     # -----------------------------
@@ -521,6 +526,15 @@ class LevelEditor:
         chk_sub = ttk.Checkbutton(frm, text="Schülerklassen in Unterordner (klassen/)", variable=subfolder_var, command=on_subfolder_changed)
         chk_sub.grid(row=12, column=0, columnspan=2, sticky='w')
 
+        # Randomization options for doors/keys
+        ttk.Label(frm, text="Zufallsoptionen (Doors/Keys):", font=("Consolas", 10, "bold")).grid(row=13, column=0, sticky='w', pady=(8,0))
+        random_doors_var = tk.BooleanVar(value=bool(self.level_settings.get('random_door', False)))
+        random_keys_var = tk.BooleanVar(value=bool(self.level_settings.get('random_keys', False)))
+        chk_rand_doors = ttk.Checkbutton(frm, text="Zufällige Türfarben (random_door)", variable=random_doors_var)
+        chk_rand_doors.grid(row=14, column=0, columnspan=2, sticky='w')
+        chk_rand_keys = ttk.Checkbutton(frm, text="Zufällige Schlüsselfarben (random_keys)", variable=random_keys_var)
+        chk_rand_keys.grid(row=15, column=0, columnspan=2, sticky='w')
+
         def ok():
             try:
                 self.level_settings['initial_gold'] = int(gold_var.get())
@@ -544,6 +558,15 @@ class LevelEditor:
                 self.student_classes_in_subfolder = bool(subfolder_var.get())
             except Exception:
                 self.student_classes_in_subfolder = False
+            # persist randomization flags
+            try:
+                self.level_settings['random_door'] = bool(random_doors_var.get())
+            except Exception:
+                pass
+            try:
+                self.level_settings['random_keys'] = bool(random_keys_var.get())
+            except Exception:
+                pass
             root.destroy()
 
         def cancel():
@@ -876,11 +899,25 @@ class LevelEditor:
             self.selected_code = "s"
             return
 
-        # Villager gender toggle (Taste '4')
+        # Villager variants / Questgeber (Taste '4')
+        # Cycle: 0 = male villager, 1 = female villager, 2 = Questgeber (q)
         if key_str == "4":
-            self.selected_villager_weiblich = not self.selected_villager_weiblich
-            self.selected_code = "v"
-            print(f"[Info] Villager weiblich={self.selected_villager_weiblich}")
+            try:
+                self.villager_variant_idx = (getattr(self, 'villager_variant_idx', 0) + 1) % 3
+            except Exception:
+                self.villager_variant_idx = 0
+            if self.villager_variant_idx == 0:
+                self.selected_villager_weiblich = False
+                self.selected_code = "v"
+                print("[Info] Villager: männlich ('v')")
+            elif self.villager_variant_idx == 1:
+                self.selected_villager_weiblich = True
+                self.selected_code = "v"
+                print("[Info] Villager: weiblich ('v')")
+            else:
+                # Questgeber selected
+                self.selected_code = "q"
+                print("[Info] Questgeber ausgewählt ('q')")
             return
 
         # Taste '7' toggelt zwischen Code-Zettel ('c') und normaler Tür ('d')

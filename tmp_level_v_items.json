@@ -1,0 +1,11 @@
+{
+  "tiles": [
+    "www",
+    "wVw",
+    "www"
+  ],
+  "settings": {
+    "quest_mode": "items",
+    "initial_gold": 50
+  }
+}

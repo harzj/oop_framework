@@ -82,6 +82,85 @@ class Spielfeld:
         orients = self.settings.get("orientations", {}) if isinstance(self.settings, dict) else {}
         # Tür-/Schlüssel-Farben in self.settings["colors"] (z.B. {"3,4":"golden"})
         colors = self.settings.get("colors", {}) if isinstance(self.settings, dict) else {}
+        # Optional randomization settings (default False for backwards compatibility)
+        random_doors = bool(self.settings.get('random_door', False))
+        random_keys = bool(self.settings.get('random_keys', False))
+
+        # If randomization requested, prepare an override mapping for colors
+        colors_override = dict(colors) if isinstance(colors, dict) else {}
+        if random_doors or random_keys:
+            # Collect door and key positions with their original colors
+            door_positions = []  # list of (x,y,color)
+            key_positions = []   # list of (x,y,color)
+            try:
+                for yy, row in enumerate(self.level.tiles):
+                    for xx, code in enumerate(row):
+                        if isinstance(code, str) and code.lower() == 'd':
+                            c = colors.get(f"{xx},{yy}")
+                            if c:
+                                door_positions.append((xx, yy, c))
+                        elif isinstance(code, str) and code.lower() == 's':
+                            # keys default to green if not specified
+                            c = colors.get(f"{xx},{yy}", "green")
+                            key_positions.append((xx, yy, c))
+            except Exception:
+                door_positions = []
+                key_positions = []
+
+            # Shuffle/mutate door colors if requested
+            door_color_map = {}
+            if random_doors and door_positions:
+                try:
+                    orig = [c for (_, _, c) in door_positions]
+                    shuffled = list(orig)
+                    random.shuffle(shuffled)
+                    for (pos, newc) in zip(door_positions, shuffled):
+                        xx, yy, _ = pos
+                        door_color_map[f"{xx},{yy}"] = newc
+                except Exception:
+                    door_color_map = {}
+
+            # Shuffle/mutate key colors if requested
+            key_color_map = {}
+            if random_keys and key_positions:
+                try:
+                    origk = [c for (_, _, c) in key_positions]
+                    shuffledk = list(origk)
+                    random.shuffle(shuffledk)
+                    for (pos, newc) in zip(key_positions, shuffledk):
+                        xx, yy, _ = pos
+                        key_color_map[f"{xx},{yy}"] = newc
+                except Exception:
+                    key_color_map = {}
+
+            # If keys do not cover all door colors, ensure at least one key exists for each door color
+            try:
+                if door_color_map and (key_positions or key_color_map):
+                    door_colors = set(door_color_map.values())
+                    current_key_colors = set(key_color_map.values()) if key_color_map else set(c for (_,_,c) in key_positions)
+                    missing = list(door_colors - current_key_colors)
+                    if missing and key_positions:
+                        # replace some key colors to ensure coverage
+                        kp_iter = iter(key_positions)
+                        for need in missing:
+                            try:
+                                xx, yy, _ = next(kp_iter)
+                            except StopIteration:
+                                # restart iterator
+                                kp_iter = iter(key_positions)
+                                xx, yy, _ = next(kp_iter)
+                            key_color_map[f"{xx},{yy}"] = need
+            except Exception:
+                pass
+
+            # Merge overrides into colors_override
+            try:
+                colors_override.update(door_color_map)
+                colors_override.update(key_color_map)
+            except Exception:
+                pass
+        else:
+            colors_override = dict(colors)
         # Villager gender in self.settings["villagers"] as {"x,y": "female"/"male"}
         villagers = self.settings.get("villagers", {}) if isinstance(self.settings, dict) else {}
         # Quests in settings: self.settings["quests"]["x,y"] -> {"modus":"items"/"raetsel", "wuensche":[...], "anzahl":int}
@@ -438,8 +517,8 @@ class Spielfeld:
                     setattr(grundlage, "zettel", code)
 
             elif t == "d":
-                # prüfe, ob für diese Position eine Farbe konfiguriert ist
-                color = colors.get(f"{x},{y}")
+                # prüfe, ob für diese Position eine Farbe konfiguriert ist (ggf. überschrieben durch random)
+                color = colors_override.get(f"{x},{y}")
                 # Wenn color gesetzt, erstelle farbige, schlüssel-verschlossene Tür
                 cls = self._get_entity_class("Tuer", Tuer)
                 if student_mode_enabled and cls is None:
@@ -466,8 +545,8 @@ class Spielfeld:
                     setattr(grundlage, "tuer", tuer)
 
             elif t == "s":
-                # Schlüssel-Spawn: Farbe aus settings oder default 'green'
-                color = colors.get(f"{x},{y}", "green")
+                # Schlüssel-Spawn: Farbe aus settings oder default 'green' (ggf. überschrieben durch random)
+                color = colors_override.get(f"{x},{y}", "green")
                 cls = self._get_entity_class("Schluessel", Schluessel)
                 if student_mode_enabled and cls is None:
                     continue
