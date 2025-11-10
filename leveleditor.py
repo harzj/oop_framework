@@ -691,6 +691,17 @@ class LevelEditor:
         for k in ("initial_gold", "quest_max_kosten", "quest_mode", "quest_items_needed"):
             if k in settings:
                 self.level_settings[k] = settings.get(k)
+        # Load randomization flags if present
+        try:
+            if 'random_door' in settings:
+                self.level_settings['random_door'] = bool(settings.get('random_door', False))
+        except Exception:
+            pass
+        try:
+            if 'random_keys' in settings:
+                self.level_settings['random_keys'] = bool(settings.get('random_keys', False))
+        except Exception:
+            pass
 
         # Load victory settings if present (backwards compatible: default to collect_hearts)
         try:

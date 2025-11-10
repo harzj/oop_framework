@@ -1,46 +1,50 @@
 {
   "tiles": [
-    "wwww",
-    "wpww",
-    "wwww",
-    "wwww"
+    "wbwhwb",
+    "tbbqbb",
+    "wwwpww",
+    "tttwtt"
   ],
   "settings": {
     "Held": {
-      "public": true
+      "public": false
     },
     "Knappe": {
-      "public": true
+      "public": false
     },
     "Monster": {
-      "public": true
+      "public": false
     },
     "Herz": {
-      "public": true
+      "public": false
     },
     "Tuer": {
-      "public": true
+      "public": false
     },
     "Code": {
-      "public": true
+      "public": false
     },
     "Villager": {
-      "public": true
+      "public": false
+    },
+    "Hindernis": {
+      "public": false
+    },
+    "villagers": {
+      "3,1": "female"
     },
     "victory": {
-      "collect_hearts": false,
-      "move_to": {
-        "enabled": true,
-        "x": 0,
-        "y": 0
-      },
+      "collect_hearts": true,
+      "move_to": null,
       "classes_present": false
     },
     "initial_gold": 0,
-    "quest_mode": "items",
+    "quest_mode": "raetsel",
     "quest_max_kosten": 0,
     "quest_items_needed": 1,
-    "use_student_module": true,
+    "random_door": false,
+    "random_keys": false,
+    "use_student_module": false,
     "student_classes_in_subfolder": false
   }
 }

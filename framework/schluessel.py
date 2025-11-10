@@ -2,6 +2,7 @@ import pygame
 from .objekt import Objekt
 from .utils import lade_sprite
 
+
 class Schluessel(Objekt):
     def __init__(self, x, y, color="green", sprite_pfad=None, name=None):
         # default name: Schlüssel
@@ -9,13 +10,17 @@ class Schluessel(Objekt):
             name = "Schlüssel"
         if sprite_pfad is None:
             sprite_pfad = f"sprites/key_{color}.png"
-        super().__init__(typ="Schlüssel", x=x, y=y, richtung="down", sprite_pfad=sprite_pfad, name=name)
-        # englisches Attribut 'color' und deutsches Alias 'farbe'
+        # Use ASCII 'Schluessel' as canonical typ so rendering keymap matches
+        super().__init__(typ="Schluessel", x=x, y=y, richtung="down", sprite_pfad=sprite_pfad, name=name)
+        # english attribute 'color' and german alias 'farbe'
         self.color = color
         self.farbe = color
 
+    def gib_farbe(self):
+        return self.farbe
+
     def benutzen(self, ziel):
-        """Versuche, diesen Schlüssel an einem Ziel (z.B. Tuer) zu benutzen."""
+        """Try to use this key on a target (e.g. a Tuer)."""
         if ziel is None:
             return False
         try:
@@ -24,9 +29,9 @@ class Schluessel(Objekt):
             return False
 
     def oeffne_tuer(self, tuer) -> bool:
-        """Versuche die übergebene Tür mit diesem Schlüssel zu öffnen.
-        Versucht zuerst, tuer.verwende_schluessel(self) aufzurufen; wenn nicht vorhanden,
-        fällt es auf tuer.schluessel_einsetzen(self) zurück.
+        """Attempt to open the given door with this key.
+        Calls tuer.verwende_schluessel(self) if present; otherwise falls back
+        to tuer.schluessel_einsetzen(self).
         """
         if tuer is None:
             return False

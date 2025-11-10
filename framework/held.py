@@ -346,11 +346,18 @@ class Held(Objekt):
         except Exception:
             pass
 
-        # then keys (Schluessel-like objects)
+        # then keys (Schluessel-like objects) -- only on the current tile
         try:
             for o in list(sp.objekte):
                 try:
+                    # only consider objects that are on the same tile as the hero
+                    if getattr(o, 'x', None) != self.x or getattr(o, 'y', None) != self.y:
+                        continue
                     if (getattr(o, 'typ', '') and 'schluessel' in str(getattr(o, 'typ', '')).lower()) or getattr(o, 'farbe', None) or getattr(o, 'color', None) or getattr(o, 'key_color', None):
+                        try:
+                            print(f"[DEBUG] Held.nehm_auf_einfach found key-like object at ({getattr(o,'x',None)},{getattr(o,'y',None)}) typ={getattr(o,'typ',None)} farbe={getattr(o,'farbe',None) or getattr(o,'color',None) or getattr(o,'key_color',None)}")
+                        except Exception:
+                            pass
                         # create key item similar to nehm_auf_alle behaviour
                         try:
                             from .gegenstand import Schluessel as ItemSchluessel

@@ -1,0 +1,15 @@
+{
+  "tiles": [
+    "www",
+    "wds",
+    "www"
+  ],
+  "settings": {
+    "random_door": true,
+    "random_keys": true,
+    "colors": {
+      "1,1": "violet",
+      "2,1": "blue"
+    }
+  }
+}

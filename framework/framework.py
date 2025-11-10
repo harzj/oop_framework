@@ -572,7 +572,13 @@ class Framework:
                                             pass
                             except Exception:
                                 pass
-                            # continue to allow other handlers to run too
+                            # do not fall through to the registered handler for RETURN
+                            # (avoid invoking accidental or duplicate actions such as using the key immediately)
+                            try:
+                                print("[DEBUG] Framework: handled K_RETURN explicitly (pickup). Skipping registered handler.")
+                            except Exception:
+                                pass
+                            continue
                     except Exception:
                         pass
 

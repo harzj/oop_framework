@@ -107,7 +107,11 @@ class Objekt:
         if '/framework/' in caller_file:
             return object.__getattribute__(self, name)
 
-        if object.__getattribute__(self, "_privatmodus"):
+        try:
+            privat = object.__getattribute__(self, "_privatmodus")
+        except Exception:
+            privat = False
+        if privat:
             # Block movement-related attributes for students when privat mode is active
             if name in ("x", "y", "r", "richtung"):
                 raise AttributeError(f"Attribut '{name}' ist privat – Zugriff nicht erlaubt")

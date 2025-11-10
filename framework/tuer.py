@@ -61,6 +61,9 @@ class Tuer(Objekt):
         Wenn self.farbe is None, akzeptiere jeden Schlüssel (universell).
         Setzt self.offen = True und lädt das offene Sprite. Rückgabe True bei Erfolg.
         """
+        import traceback
+        print(f"[DEBUG] Tuer.verwende_schluessel called on door at ({getattr(self,'x',None)},{getattr(self,'y',None)}) with key={getattr(key,'farbe', getattr(key,'color', getattr(key,'key_color', None)))}")
+        traceback.print_stack(limit=5)
         if key is None:
             return False
         # Ermittle Schlüssel-Farbe (prüfe deutsch/englisch Alias)
@@ -69,6 +72,29 @@ class Tuer(Objekt):
             kfarbe = getattr(key, 'color', None)
         if kfarbe is None:
             kfarbe = getattr(key, 'key_color', None)
+
+        # If the passed key looks like a world object (has x/y) but is not
+        # an inventory item (no _inventar), treat this as misuse: the door
+        # should only be opened with an inventory key (or via explicit
+        # Held.oeffne_tuer_vor which passes inventory items). This prevents
+        # accidental auto-opening when a ground-key object is picked up.
+        if hasattr(key, 'x') and hasattr(key, 'y') and getattr(key, '_inventar', None) is None:
+            # only reject ground-object keys when the call originates from
+            # a pickup routine (so Enter pickup doesn't auto-open a door).
+            try:
+                import traceback as _tb
+                stack = _tb.extract_stack()
+                callers = [f.name for f in stack]
+            except Exception:
+                callers = []
+            pickup_names = ('nehm_auf_einfach', 'nehm_auf_alle', 'nehme_auf_alle')
+            if any(n in callers for n in pickup_names):
+                try:
+                    print(f"[DEBUG] Tuer: refusing to use ground key object at ({getattr(key,'x',None)},{getattr(key,'y',None)}) to open door during pickup call")
+                except Exception:
+                    pass
+                return False
+            # otherwise allow entity keys (legacy tests/scripts expect this)
 
         # Türfarbe (None = universell)
         tfarbe = getattr(self, 'farbe', None) or getattr(self, 'key_color', None)

@@ -96,9 +96,9 @@ class Spielfeld:
                 for yy, row in enumerate(self.level.tiles):
                     for xx, code in enumerate(row):
                         if isinstance(code, str) and code.lower() == 'd':
-                            c = colors.get(f"{xx},{yy}")
-                            if c:
-                                door_positions.append((xx, yy, c))
+                            # Doors default to 'green' when no explicit color configured
+                            c = colors.get(f"{xx},{yy}", "green")
+                            door_positions.append((xx, yy, c))
                         elif isinstance(code, str) and code.lower() == 's':
                             # keys default to green if not specified
                             c = colors.get(f"{xx},{yy}", "green")
@@ -107,20 +107,7 @@ class Spielfeld:
                 door_positions = []
                 key_positions = []
 
-            # Shuffle/mutate door colors if requested
-            door_color_map = {}
-            if random_doors and door_positions:
-                try:
-                    orig = [c for (_, _, c) in door_positions]
-                    shuffled = list(orig)
-                    random.shuffle(shuffled)
-                    for (pos, newc) in zip(door_positions, shuffled):
-                        xx, yy, _ = pos
-                        door_color_map[f"{xx},{yy}"] = newc
-                except Exception:
-                    door_color_map = {}
-
-            # Shuffle/mutate key colors if requested
+            # Shuffle/mutate key colors if requested (compute keys first)
             key_color_map = {}
             if random_keys and key_positions:
                 try:
@@ -132,6 +119,48 @@ class Spielfeld:
                         key_color_map[f"{xx},{yy}"] = newc
                 except Exception:
                     key_color_map = {}
+
+            # Shuffle/mutate door colors if requested
+            # Doors should be mapped to colors that actually exist among keys
+            # (after any key-randomization above). If there are at least as many
+            # distinct key colors as doors, choose a subset without replacement
+            # so doors do not duplicate; otherwise recycle key colors as needed.
+            door_color_map = {}
+            if random_doors and door_positions:
+                try:
+                    # determine final set of key colors available
+                    if key_color_map:
+                        key_colors_final = list(set(key_color_map.values()))
+                    else:
+                        key_colors_final = list(set([c for (_, _, c) in key_positions]))
+
+                    # fallback: if no keys at all, behave like previous door-shuffle
+                    if not key_colors_final:
+                        orig = [c for (_, _, c) in door_positions]
+                        shuffled = list(orig)
+                        random.shuffle(shuffled)
+                        for (pos, newc) in zip(door_positions, shuffled):
+                            xx, yy, _ = pos
+                            door_color_map[f"{xx},{yy}"] = newc
+                    else:
+                        n_doors = len(door_positions)
+                        n_keys = len(key_colors_final)
+                        # create list of colors to assign to doors
+                        if n_doors <= n_keys:
+                            # sample a subset of key colors without replacement
+                            chosen = random.sample(key_colors_final, n_doors)
+                        else:
+                            # need to reuse some key colors; build a list by
+                            # repeating and then shuffling
+                            repeats = (n_doors // n_keys) + 1
+                            pool = (key_colors_final * repeats)[:n_doors]
+                            chosen = list(pool)
+                        random.shuffle(chosen)
+                        for (pos, newc) in zip(door_positions, chosen):
+                            xx, yy, _ = pos
+                            door_color_map[f"{xx},{yy}"] = newc
+                except Exception:
+                    door_color_map = {}
 
             # If keys do not cover all door colors, ensure at least one key exists for each door color
             try:
@@ -645,6 +674,20 @@ class Spielfeld:
                         quest = cls(self.framework, x, y, richtung=richt, modus=modus, wuensche=wuensche, anzahl_items=anzahl, weiblich=weiblich_flag)
                     except Exception:
                         quest = Questgeber(self.framework, x, y, richtung=richt, modus=modus, wuensche=wuensche, anzahl_items=anzahl, weiblich=weiblich_flag)
+                    # Ensure the Questgeber uses the dedicated quest sprite if available
+                    try:
+                        quest.sprite_pfad = "sprites/villager_quest.png"
+                        # preload the image into .bild to make drawing deterministic
+                        try:
+                            quest.bild = lade_sprite(quest.sprite_pfad, self.feldgroesse)
+                        except Exception:
+                            # fallback: try without size
+                            try:
+                                quest.bild = lade_sprite(quest.sprite_pfad)
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
                     # attach generated puzzle if present
                     if initial_raetsel is not None:
                         try:
@@ -1350,7 +1393,7 @@ class Spielfeld:
             pass
         # Sortierte Zeichnung: zuerst Boden / Hindernisse, dann Items, dann Lebewesen
         # Use canonical type names (matching Objekt.typ) so objects are drawn.
-        zeichenreihenfolge = ["Berg", "Baum", "Busch", "Hindernis", "Spruch", "Herz", "Tuer", "Tor", "Schluessel", "Monster", "Held", "Knappe", "Dorfbewohner", "Dorfbewohnerin"]
+        zeichenreihenfolge = ["Berg", "Baum", "Busch", "Hindernis", "Spruch", "Herz", "Tuer", "Tor", "Schluessel", "Monster", "Held", "Knappe", "Questgeber", "Dorfbewohner", "Dorfbewohnerin"]
 
         # Determine whether student mode requests are active and whether a student
         # Hindernis class exists. If the level requests student classes but the

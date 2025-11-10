@@ -197,6 +197,8 @@ class Villager(Objekt):
         except Exception:
             pass
         return out
+    
+    #def get_items(self):
 
 
 class Questgeber(Villager):
@@ -306,23 +308,51 @@ class Questgeber(Villager):
         return True
 
     def weiche_aus(self) -> None:
-        """Bewegt den Questgeber einen Schritt nach rechts, falls möglich."""
+        """Bewegt den Questgeber diagonal nach links-unten (x-1, y+1), falls möglich.
+
+        Falls das Ziel nicht begehbar ist, versucht es als Fallback mit dem alten
+        Verhalten (ein Schritt nach rechts)."""
         try:
-            self.setze_position(self.x + 1, self.y)
-            # kleines visuelles Feedback
-            try:
-                self._render_and_delay(120)
-            except Exception:
-                pass
+            # preferred move: diagonal left-down
+            if self.setze_position(self.x - 1, self.y + 1):
+                try:
+                    self._render_and_delay(120)
+                except Exception:
+                    pass
+                return
         except Exception:
-            # setze_position kann False zurückgeben oder Exceptions werfen
-            try:
-                # alternativ: fallback prüfen mit spielfeld
-                sp = getattr(self.framework, 'spielfeld', None)
-                if sp and sp.kann_betreten(self, self.x + 1, self.y):
-                    self.x += 1
-            except Exception:
-                pass
+            pass
+
+        # Fallback: step right (legacy behavior)
+        try:
+            if self.setze_position(self.x + 1, self.y):
+                try:
+                    self._render_and_delay(120)
+                except Exception:
+                    pass
+                return
+        except Exception:
+            pass
+
+        # Last-resort: directly adjust coordinates if spielfeld says it's passable
+        try:
+            sp = getattr(self.framework, 'spielfeld', None)
+            if sp:
+                try:
+                    if sp.kann_betreten(self, self.x - 1, self.y + 1):
+                        self.x -= 1
+                        self.y += 1
+                        return
+                except Exception:
+                    pass
+                try:
+                    if sp.kann_betreten(self, self.x + 1, self.y):
+                        self.x += 1
+                        return
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     def raetsel_geben(self) -> str:
         """Generiert ein einfaches arithmetisches Rätsel wie '7*4=' und speichert die Lösung."""
