@@ -50,7 +50,10 @@ class Schluessel(Gegenstand):
     """
 
     def __init__(self, name: str, wert: int, farbe: str):
-        super().__init__(name=name, wert=wert, typ="Schlüssel")
+        # Use ASCII-only typ string for compatibility with other framework
+        # components (avoid umlaut mismatch). Historically code expected
+        # "Schluessel" (no umlaut).
+        super().__init__(name=name, wert=wert, typ="Schluessel")
         self.farbe = farbe
 
     def oeffne_tuer(self, tuer: Any) -> bool:
@@ -75,12 +78,9 @@ class Schluessel(Gegenstand):
                     erfolg = True
 
             if erfolg:
-                inv = getattr(self, "_inventar", None)
-                if inv is not None:
-                    try:
-                        inv.entfernen(self)
-                    except Exception:
-                        pass
+                # Do NOT remove the key from its inventory on successful use.
+                # Keys are persistent in the student's tasks and should not be
+                # consumed by opening a door.
                 return True
             return False
         except Exception:

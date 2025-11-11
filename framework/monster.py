@@ -28,8 +28,9 @@ class Monster(Objekt):
 
         dx, dy = richtung_offset(self.richtung)
         ziel_x, ziel_y = self.x + dx, self.y + dy
-        held = getattr(self.framework.spielfeld, "held", None)
-        knappe = getattr(self.framework.spielfeld, "knappe", None)
+
+        # Try to attack any valid victim in the adjacent cell (Held, Knappe, Monster)
+        sp = getattr(self.framework, 'spielfeld', None)
 
         def starte_angriff(opfer):
             base = self.sprite_pfad.split(".png")[0]
@@ -54,27 +55,62 @@ class Monster(Objekt):
                 except Exception:
                     self.bild_normal = None
             opfer.tot = True
-            opfer._update_sprite_richtung()
-            # KO-Sprite für das Opfer laden
+            try:
+                opfer._update_sprite_richtung()
+            except Exception:
+                pass
+            # KO-Sprite für das Opfer laden (best-effort)
             try:
                 base = opfer.sprite_pfad.split(".png")[0]
                 ko_pfad = f"{base}_ko.png"
                 if os.path.exists(ko_pfad):
                     opfer.bild = pygame.image.load(ko_pfad).convert_alpha()
-            except Exception as e:
-                print("[Warnung] KO-Sprite Opfer:", e)
+            except Exception:
+                pass
 
+            # Only block the framework (and show a hint) when a player-controlled
+            # entity is hit (Held or Knappe). When monsters hit other monsters,
+            # do not block the action queue.
+            try:
+                vtyp = (getattr(opfer, 'typ', '') or '').lower()
+                if vtyp in ('held', 'knappe'):
+                    try:
+                        self.framework._hinweis = f"{opfer.name} wurde von {self.name} überrascht!"
+                    except Exception:
+                        try:
+                            self.framework._hinweis = "Ein Monster hat getroffen!"
+                        except Exception:
+                            pass
+                    try:
+                        self.framework._aktion_blockiert = True
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
-            self.framework._hinweis = f"{opfer.name} wurde von {self.name} überrascht!"
-            self.framework._aktion_blockiert = True
+        try:
+            if sp is not None:
+                o = sp.objekt_an(ziel_x, ziel_y)
+            else:
+                o = None
+        except Exception:
+            o = None
 
-        if held and not held.tot and (held.x, held.y) == (ziel_x, ziel_y):
-            starte_angriff(held)
-            return
+        if o is not None and o is not self:
+            try:
+                if getattr(o, 'tot', False):
+                    o = None
+            except Exception:
+                pass
 
-        if knappe and not knappe.tot and (knappe.x, knappe.y) == (ziel_x, ziel_y):
-            starte_angriff(knappe)
-            return
+        if o is not None:
+            try:
+                ttyp = (getattr(o, 'typ', '') or '').lower()
+            except Exception:
+                ttyp = ''
+            if ttyp in ('held', 'knappe', 'monster'):
+                starte_angriff(o)
+                return
 
 
         

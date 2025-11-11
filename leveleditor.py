@@ -129,7 +129,10 @@ class LevelEditor:
             "Held": False, "Knappe": False, "Monster": False,
             "Herz": False, "Tuer": False, "Code": False, "Villager": False,
             # Hindernisse (Baum/Busch/Berg) können privat gesetzt werden
-            "Hindernis": False
+            "Hindernis": False,
+            # Schlüssel und Bogenschütze (separate von generischem Monster)
+            "Schluessel": False,
+            "Bogenschuetze": False
         }
         # Orientierungen pro Koordinate als dict "x,y" -> "up|right|down|left"
         self.orientations = {}
@@ -676,7 +679,7 @@ class LevelEditor:
                 self.privacy_flags = {}
 
             # Ensure expected keys exist
-        for k in ["Held", "Knappe", "Monster", "Herz", "Tuer", "Code", "Villager", "Hindernis"]:
+        for k in ["Held", "Knappe", "Monster", "Herz", "Tuer", "Code", "Villager", "Hindernis", "Schluessel", "Bogenschuetze"]:
             self.privacy_flags.setdefault(k, False)
         # Lade Orientierungen, falls vorhanden (Format: {"x,y": "up"})
         settings = data.get("settings", {})

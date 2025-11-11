@@ -1,9 +1,10 @@
 {
   "tiles": [
-    "wbwhwb",
-    "tbbqbb",
-    "wwwpww",
-    "tttwtt"
+    "ttwtwtwt",
+    "ttytytyt",
+    "ttwtwtwt",
+    "pwhwhwhw",
+    "tttttttt"
   ],
   "settings": {
     "Held": {
@@ -30,8 +31,15 @@
     "Hindernis": {
       "public": false
     },
-    "villagers": {
-      "3,1": "female"
+    "Schluessel": {
+      "public": false
+    },
+    "Bogenschuetze": {
+      "public": false
+    },
+    "orientations": {
+      "0,2": "right",
+      "0,3": "right"
     },
     "victory": {
       "collect_hearts": true,
@@ -39,8 +47,8 @@
       "classes_present": false
     },
     "initial_gold": 0,
-    "quest_mode": "raetsel",
     "quest_max_kosten": 0,
+    "quest_mode": "items",
     "quest_items_needed": 1,
     "random_door": false,
     "random_keys": false,

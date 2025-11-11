@@ -30,6 +30,12 @@
     "Hindernis": {
       "public": false
     },
+    "Schluessel": {
+      "public": false
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
     "orientations": {
       "1,1": "right"
     },

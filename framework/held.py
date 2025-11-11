@@ -397,10 +397,7 @@ class Held(Objekt):
                     if getattr(o, 'x', None) != self.x or getattr(o, 'y', None) != self.y:
                         continue
                     if (getattr(o, 'typ', '') and 'schluessel' in str(getattr(o, 'typ', '')).lower()) or getattr(o, 'farbe', None) or getattr(o, 'color', None) or getattr(o, 'key_color', None):
-                        try:
-                            print(f"[DEBUG] Held.nehm_auf_einfach found key-like object at ({getattr(o,'x',None)},{getattr(o,'y',None)}) typ={getattr(o,'typ',None)} farbe={getattr(o,'farbe',None) or getattr(o,'color',None) or getattr(o,'key_color',None)}")
-                        except Exception:
-                            pass
+                        # debug message removed: don't flood student console when picking up keys
                         # create key item similar to nehm_auf_alle behaviour
                         try:
                             from .gegenstand import Schluessel as ItemSchluessel
@@ -516,10 +513,8 @@ class Held(Objekt):
                         elif hasattr(tuer, 'schluessel_einsetzen'):
                             ok = tuer.schluessel_einsetzen(it)
                         if ok:
-                            try:
-                                inv.entfernen(it)
-                            except Exception:
-                                pass
+                            # Do NOT remove the key from the inventory when it opens a door.
+                            # Keys are persistent and should remain available after use.
                             self._render_and_delay(150)
                             return True
                     except Exception:

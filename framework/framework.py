@@ -224,6 +224,70 @@ class Framework:
                             self.screen.blit(r_txt, (panel_x, y)); y += 20
                     except Exception:
                         pass
+                    # After showing richtung, draw Held-Inventar (if any) below it
+                    try:
+                        inv = getattr(stud, 'inventar', None) or getattr(held, 'inventar', None)
+                        if inv:
+                            item_x = panel_x
+                            item_y = y
+                            icon_size = 16
+                            spacing = icon_size + 4
+                            lbl = self.font.render("Inventar:", True, (220,220,160))
+                            self.screen.blit(lbl, (item_x, item_y))
+                            item_y += 18
+                            ix = 0
+                            for it in list(inv):
+                                try:
+                                    color = getattr(it, 'farbe', None) or getattr(it, 'color', None) or getattr(it, 'key_color', None)
+                                    surf = None
+                                    try:
+                                        if hasattr(it, 'bild') and getattr(it, 'bild', None) is not None:
+                                            surf = it.bild
+                                        else:
+                                            import os, pygame as _pg
+                                            cand = None
+                                            if color:
+                                                bases = [
+                                                    os.getcwd(),
+                                                    os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                                                    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')),
+                                                ]
+                                                for b in bases:
+                                                    p = os.path.join(b, 'sprites', f'key_{color}.png')
+                                                    if os.path.exists(p):
+                                                        cand = p
+                                                        break
+                                            if cand:
+                                                try:
+                                                    surf = _pg.image.load(cand).convert_alpha()
+                                                except Exception:
+                                                    surf = None
+                                    except Exception:
+                                        surf = None
+
+                                    if surf:
+                                        try:
+                                            surf_small = pygame.transform.smoothscale(surf, (icon_size, icon_size))
+                                            self.screen.blit(surf_small, (item_x + ix * spacing, item_y))
+                                        except Exception:
+                                            pygame.draw.rect(self.screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
+                                    else:
+                                        if color:
+                                            pygame.draw.rect(self.screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
+                                        else:
+                                            nm = getattr(it, 'name', str(it))[:10]
+                                            s = self.font.render(nm, True, (200,200,200))
+                                            self.screen.blit(s, (item_x + ix * spacing, item_y))
+
+                                    ix += 1
+                                    if ix >= 5:
+                                        ix = 0
+                                        item_y += icon_size + 6
+                                except Exception:
+                                    continue
+                            y = item_y + icon_size + 6
+                    except Exception:
+                        pass
                     y += 4
                 # separator after Held (visual separation)
                 try:
@@ -258,6 +322,70 @@ class Framework:
                         self.screen.blit(y_txt, (panel_x, y)); y += 20
                         r_txt = self.font.render(f"richtung={rdisp}", True, (200,200,200))
                         self.screen.blit(r_txt, (panel_x, y)); y += 20
+                    except Exception:
+                        pass
+                    # After showing richtung, draw Held-Inventar (if any) below it
+                    try:
+                        inv = getattr(held, 'inventar', None)
+                        if inv:
+                            item_x = panel_x
+                            item_y = y
+                            icon_size = 16
+                            spacing = icon_size + 4
+                            lbl = self.font.render("Inventar:", True, (220,220,160))
+                            self.screen.blit(lbl, (item_x, item_y))
+                            item_y += 18
+                            ix = 0
+                            for it in list(inv):
+                                try:
+                                    color = getattr(it, 'farbe', None) or getattr(it, 'color', None) or getattr(it, 'key_color', None)
+                                    surf = None
+                                    try:
+                                        if hasattr(it, 'bild') and getattr(it, 'bild', None) is not None:
+                                            surf = it.bild
+                                        else:
+                                            import os, pygame as _pg
+                                            cand = None
+                                            if color:
+                                                bases = [
+                                                    os.getcwd(),
+                                                    os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                                                    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')),
+                                                ]
+                                                for b in bases:
+                                                    p = os.path.join(b, 'sprites', f'key_{color}.png')
+                                                    if os.path.exists(p):
+                                                        cand = p
+                                                        break
+                                            if cand:
+                                                try:
+                                                    surf = _pg.image.load(cand).convert_alpha()
+                                                except Exception:
+                                                    surf = None
+                                    except Exception:
+                                        surf = None
+
+                                    if surf:
+                                        try:
+                                            surf_small = pygame.transform.smoothscale(surf, (icon_size, icon_size))
+                                            self.screen.blit(surf_small, (item_x + ix * spacing, item_y))
+                                        except Exception:
+                                            pygame.draw.rect(self.screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
+                                    else:
+                                        if color:
+                                            pygame.draw.rect(self.screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
+                                        else:
+                                            nm = getattr(it, 'name', str(it))[:10]
+                                            s = self.font.render(nm, True, (200,200,200))
+                                            self.screen.blit(s, (item_x + ix * spacing, item_y))
+
+                                    ix += 1
+                                    if ix >= 5:
+                                        ix = 0
+                                        item_y += icon_size + 6
+                                except Exception:
+                                    continue
+                            y = item_y + icon_size + 6
                     except Exception:
                         pass
                     y += 4
@@ -574,10 +702,8 @@ class Framework:
                                 pass
                             # do not fall through to the registered handler for RETURN
                             # (avoid invoking accidental or duplicate actions such as using the key immediately)
-                            try:
-                                print("[DEBUG] Framework: handled K_RETURN explicitly (pickup). Skipping registered handler.")
-                            except Exception:
-                                pass
+                            # handled pickup explicitly; don't print debug to avoid noisy output
+                            pass
                             continue
                     except Exception:
                         pass
@@ -684,63 +810,88 @@ class Framework:
                                     screen.blit(srf, (x0, y0))
                                     y0 += line_h
 
-                                # Inventar: falls vorhanden, zeichne sehr kleine Icons für Schlüssel (einmal pro Farbe)
+                                # Inventar: falls vorhanden, zeichne kleine Icons für Schlüssel
                                 inv = getattr(ent, "inventar", None)
                                 if inv is not None:
-                                    # collect unique key colors and generic item names
-                                    keys_seen = {}
                                     item_x = x0
                                     item_y = y0
-                                    icon_size = 16  # very small
+                                    # compute area available for icons (right panel width minus small margin)
+                                    max_area = max(100, screen.get_width() - x0 - 20)
+                                    # target: show up to 5 icons in a row; compute icon size accordingly
+                                    # reserve ~4px spacing between icons
+                                    per_icon_space = max_area // 5
+                                    icon_size = max(12, min(32, per_icon_space - 4))
                                     spacing = icon_size + 4
                                     # draw small label
                                     lbl = font.render("Inventar:", True, (220,220,160))
                                     screen.blit(lbl, (item_x, item_y))
                                     item_y += line_h
-                                    # draw icons in a row
+                                    # draw icons in rows, show all collected keys (including duplicates)
                                     ix = 0
-                                    for it in inv:
+                                    for it in list(inv):
                                         try:
-                                            # if it's a key item (has attribute 'farbe' or class name Schluessel)
-                                            color = getattr(it, "farbe", None) or getattr(it, "color", None)
-                                            if color:
-                                                if color in keys_seen:
-                                                    continue
-                                                keys_seen[color] = True
-                                                # try to load sprite path or construct key sprite filename
-                                                surf = None
+                                            color = getattr(it, "farbe", None) or getattr(it, "color", None) or getattr(it, "key_color", None)
+                                            # If color missing, try to guess from the item name (best-effort)
+                                            if not color:
                                                 try:
-                                                    # if item has 'bild' surface use it
-                                                    if hasattr(it, "bild") and getattr(it, "bild", None) is not None:
-                                                        surf = it.bild
-                                                    else:
-                                                        # try to locate sprite on disk
-                                                        import os, pygame as _pg
-                                                        cand = os.path.join("sprites", f"key_{color}.png")
-                                                        if os.path.exists(cand):
-                                                            surf = _pg.image.load(cand).convert_alpha()
+                                                    nm = str(getattr(it, 'name', '')).lower()
+                                                    if 'gold' in nm:
+                                                        color = 'golden'
+                                                    elif 'green' in nm or 'gruen' in nm or 'grün' in nm:
+                                                        color = 'green'
+                                                    elif 'blue' in nm or 'blau' in nm:
+                                                        color = 'blue'
+                                                    elif 'red' in nm or 'rot' in nm:
+                                                        color = 'red'
+                                                    elif 'violet' in nm or 'violett' in nm or 'purple' in nm:
+                                                        color = 'violet'
                                                 except Exception:
-                                                    surf = None
-                                                # if we have a surface, scale and blit
-                                                if surf:
-                                                    try:
-                                                        surf_small = pygame.transform.smoothscale(surf, (icon_size, icon_size))
-                                                        screen.blit(surf_small, (x0 + ix * spacing, item_y))
-                                                    except Exception:
-                                                        # fallback draw small rect
-                                                        pygame.draw.rect(screen, (200,200,0), (x0 + ix * spacing, item_y, icon_size, icon_size))
+                                                    color = None
+                                            surf = None
+                                            try:
+                                                if hasattr(it, "bild") and getattr(it, "bild", None) is not None:
+                                                    surf = it.bild
                                                 else:
-                                                    pygame.draw.rect(screen, (200,200,0), (x0 + ix * spacing, item_y, icon_size, icon_size))
-                                                ix += 1
+                                                    import os, pygame as _pg
+                                                    cand = None
+                                                    if color:
+                                                        # try several likely base paths so sprite loading
+                                                        # works regardless of current working dir (Thonny etc.)
+                                                        bases = [
+                                                            os.getcwd(),
+                                                            os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                                                            os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')),
+                                                        ]
+                                                        for b in bases:
+                                                            p = os.path.join(b, 'sprites', f'key_{color}.png')
+                                                            if os.path.exists(p):
+                                                                cand = p
+                                                                break
+                                                    if cand:
+                                                        try:
+                                                            surf = _pg.image.load(cand).convert_alpha()
+                                                        except Exception:
+                                                            surf = None
+                                            except Exception:
+                                                surf = None
+
+                                            if surf:
+                                                try:
+                                                    surf_small = pygame.transform.smoothscale(surf, (icon_size, icon_size))
+                                                    screen.blit(surf_small, (item_x + ix * spacing, item_y))
+                                                except Exception:
+                                                    pygame.draw.rect(screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
                                             else:
-                                                # non-key item: draw short name
-                                                nm = getattr(it, "name", str(it))
-                                                s = font.render(nm, True, (200,200,200))
-                                                screen.blit(s, (x0 + ix * spacing, item_y))
-                                                ix += 1
-                                            # keep row compact
-                                            if ix >= 10:
-                                                # move to next row
+                                                # fallback colored rect for keys or text for generic items
+                                                if color:
+                                                    pygame.draw.rect(screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
+                                                else:
+                                                    nm = getattr(it, 'name', str(it))[:10]
+                                                    s = font.render(nm, True, (200,200,200))
+                                                    screen.blit(s, (item_x + ix * spacing, item_y))
+
+                                            ix += 1
+                                            if ix >= 5:
                                                 ix = 0
                                                 item_y += icon_size + 6
                                         except Exception:
@@ -754,4 +905,10 @@ class Framework:
 
             self._render_frame()
             clock.tick(60)
+        # Main loop exited: ensure SDL/pygame is cleanly shut down so IDEs (Thonny)
+        # regain control and the window closes. Do not raise SystemExit here.
+        try:
+            pygame.quit()
+        except Exception:
+            pass
 

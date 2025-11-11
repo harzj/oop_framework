@@ -1,0 +1,53 @@
+{
+  "tiles": [
+    "wwbww",
+    "mwxww",
+    "tphkw",
+    "wwwhw",
+    "wwwwt",
+    "swwdh"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Code": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "colors": {
+      "0,5": "blue",
+      "3,5": "blue"
+    },
+    "victory": {
+      "collect_hearts": true,
+      "move_to": null,
+      "classes_present": false
+    },
+    "use_student_module": false,
+    "student_classes_in_subfolder": false
+  }
+}

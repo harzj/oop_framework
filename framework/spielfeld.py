@@ -16,6 +16,7 @@ from tkinter import messagebox as _tk_messagebox
 import os
 import ast
 import types
+import math
  
 class Spielfeld:
     def __init__(self, levelfile, framework, feldgroesse=64, auto_erzeuge_objekte=True):
@@ -1592,17 +1593,79 @@ class Spielfeld:
                             # projectile finished; don't re-add
                             continue
 
-                        # draw partial line from start to current position
+                        # draw partial projectile from start to current position
                         sx, sy = p.get('start', (0, 0))
                         ex, ey = p.get('end', (0, 0))
-                        cx = int(sx + (ex - sx) * t)
-                        cy = int(sy + (ey - sy) * t)
-                        color = (139, 69, 19)  # brown
+                        # compute partial travel point (cap visible arrow length to half a tile)
+                        color = (139, 69, 19)  # brown (shaft)
                         width = max(2, self.feldgroesse // 12)
                         try:
-                            pygame.draw.line(screen, color, (sx, sy), (cx, cy), width)
+                            vx = ex - sx
+                            vy = ey - sy
+                            dist = math.hypot(vx, vy)
+                            if dist <= 0.001:
+                                ux, uy = 0.0, 0.0
+                            else:
+                                ux, uy = vx / dist, vy / dist
+
+                            # limit visible projectile length to ~half a tile
+                            max_vis_len = max(8, self.feldgroesse * 0.5)
+                            travel_len = min(dist * t, max_vis_len)
+
+                            # tip length small relative to tile
+                            tip_len = max(4, int(self.feldgroesse * 0.12))
+
+                            # tip position (capped)
+                            tip_x = sx + ux * travel_len
+                            tip_y = sy + uy * travel_len
+
+                            # base point for triangle (a bit behind the tip)
+                            base_x = tip_x - ux * tip_len
+                            base_y = tip_y - uy * tip_len
+
+                            # perpendicular vector for triangle base width
+                            px, py = -uy, ux
+                            half_w = max(2, int(tip_len // 2))
+
+                            p1 = (int(tip_x), int(tip_y))
+                            p2 = (int(base_x + px * half_w), int(base_y + py * half_w))
+                            p3 = (int(base_x - px * half_w), int(base_y - py * half_w))
+
+                            # draw shaft from start to base of triangle
+                            try:
+                                pygame.draw.line(screen, color, (int(sx), int(sy)), (int(base_x), int(base_y)), width)
+                            except Exception:
+                                pass
+
+                            # draw triangular silver tip
+                            try:
+                                silver = (200, 200, 200)
+                                pygame.draw.polygon(screen, silver, [p1, p2, p3])
+                                pygame.draw.polygon(screen, (120,120,120), [p1, p2, p3], 1)
+                            except Exception:
+                                pass
+
+                            # trailing white lines (two thin lines slightly behind the tip)
+                            try:
+                                trail_a = max(3, tip_len // 2)
+                                trail_b = max(6, tip_len)
+                                off = max(2, half_w)
+                                ta_start = (int(tip_x - ux * trail_a + px * off), int(tip_y - uy * trail_a + py * off))
+                                ta_end   = (int(tip_x - ux * trail_b + px * off), int(tip_y - uy * trail_b + py * off))
+                                tb_start = (int(tip_x - ux * trail_a - px * off), int(tip_y - uy * trail_a - py * off))
+                                tb_end   = (int(tip_x - ux * trail_b - px * off), int(tip_y - uy * trail_b - py * off))
+                                pygame.draw.line(screen, (255,255,255), ta_start, ta_end, max(1, width//2))
+                                pygame.draw.line(screen, (255,255,255), tb_start, tb_end, max(1, width//2))
+                            except Exception:
+                                pass
                         except Exception:
-                            pass
+                            # fallback: simple brown line using previous calculation
+                            try:
+                                cx = float(sx + (ex - sx) * t)
+                                cy = float(sy + (ey - sy) * t)
+                                pygame.draw.line(screen, color, (sx, sy), (int(cx), int(cy)), width)
+                            except Exception:
+                                pass
                         remaining.append(p)
                     except Exception:
                         continue

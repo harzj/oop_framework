@@ -5,6 +5,27 @@ import os
 import inspect
 import sys
 
+# Central, editable privacy rules: map class/typ name -> set of attribute names
+# that should be blocked when an object's _privatmodus is active. You can
+# customize this dictionary at runtime (e.g. in a small setup script) to
+# change which attributes are considered private for each class.
+#
+# By default we preserve legacy behavior: protect positional/orientation
+# attributes for most entities and 'offen' for doors; additionally we add
+# entries for keys and the archer (Bogenschuetze).
+PRIVACY_RULES = {
+    "Held": {"x", "y", "r", "richtung"},
+    "Knappe": {"x", "y", "r", "richtung"},
+    "Monster": {"x", "y", "r", "richtung"},
+    "Bogenschuetze": {"x", "y", "r", "richtung"},
+    "Herz": {"x", "y" },
+    "Tuer": {"x", "y", "offen", "farbe", "color","richtiger_code", "key_color"},
+    "Code": {"x", "y","code"},
+    "Villager": {"x", "y", "r", "richtung"},
+    "Hindernis": {"x", "y","typ"},
+    "Schluessel": {"x", "y", "farbe", "color","farbe"},
+}
+
 
 class Objekt:
     def __init__(self, typ, x=0, y=0, richtung="down", sprite_pfad=None, name=None):
@@ -113,15 +134,25 @@ class Objekt:
         except Exception:
             privat = False
         if privat:
-            # Block movement-related attributes for students when privat mode is active
-            if name in ("x", "y", "r", "richtung"):
-                raise AttributeError(f"Attribut '{name}' ist privat – Zugriff nicht erlaubt")
-            # Additionally, if this is a Tür, block 'offen' when privat
+            # Determine which attributes are considered private for this object's
+            # type. The global PRIVACY_RULES dict is editable at runtime; if no
+            # explicit rule is present we fall back to legacy defaults.
             try:
                 typ = object.__getattribute__(self, 'typ')
             except Exception:
                 typ = None
-            if typ == 'Tuer' and name == 'offen':
+
+            # choose rule set: explicit mapping if present, otherwise fallback
+            if typ in PRIVACY_RULES:
+                priv_attrs = PRIVACY_RULES.get(typ, set()) or set()
+            else:
+                # legacy default: block position/orientation for most entities
+                priv_attrs = {"x", "y", "r", "richtung"}
+                # doors additionally block 'offen'
+                if typ == 'Tuer':
+                    priv_attrs.add('offen')
+
+            if name in priv_attrs:
                 raise AttributeError(f"Attribut '{name}' ist privat – Zugriff nicht erlaubt")
 
         return object.__getattribute__(self, name)
@@ -147,13 +178,19 @@ class Objekt:
             return object.__setattr__(self, name, value)
 
         if object.__getattribute__(self, "_privatmodus"):
-            if name in ("x", "y", "r", "richtung"):
-                raise AttributeError(f"Attribut '{name}' ist privat – Schreiben nicht erlaubt")
             try:
                 typ = object.__getattribute__(self, 'typ')
             except Exception:
                 typ = None
-            if typ == 'Tuer' and name == 'offen':
+
+            if typ in PRIVACY_RULES:
+                priv_attrs = PRIVACY_RULES.get(typ, set()) or set()
+            else:
+                priv_attrs = {"x", "y", "r", "richtung"}
+                if typ == 'Tuer':
+                    priv_attrs.add('offen')
+
+            if name in priv_attrs:
                 raise AttributeError(f"Attribut '{name}' ist privat – Schreiben nicht erlaubt")
 
         object.__setattr__(self, name, value)
@@ -225,7 +262,14 @@ class Objekt:
             while pygame.time.get_ticks() - start < ms:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        pygame.quit(); raise SystemExit
+                        # Avoid calling pygame.quit() here (can hang in some IDEs).
+                        # Signal the framework main loop to stop and return to the caller.
+                        try:
+                            if fw and hasattr(fw, '_running'):
+                                fw._running = False
+                        except Exception:
+                            pass
+                        return
                 try:
                     fw._render_frame()
                 except Exception:

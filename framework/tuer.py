@@ -7,7 +7,8 @@ class Tuer(Objekt):
     Kann entweder per Code (Spruch) geöffnet werden oder per farbigem Schlüssel.
     Wenn color gesetzt ist, erwartet die Tür einen Schlüssel dieser Farbe (z.B. 'green','golden').
     """
-    def __init__(self, x, y, code=None, color=None, sprite_pfad=None):
+    #def __init__(self, x, y, code=None, color=None, sprite_pfad=None):
+    def __init__(self, x, y,  color=None, code=None, sprite_pfad=None):
         # Wenn color gesetzt, nutze das farbige locked_door Sprite, sonst Standard
         if sprite_pfad is None:
             if color:
@@ -53,6 +54,9 @@ class Tuer(Objekt):
         """
         # Behalte bestehendes Verhalten über eine neue zentrale Methode
         return self.verwende_schluessel(schluessel)
+    
+    def schluessel_verwenden(self,key):
+        return self.verwende_schluessel(key)
 
     def verwende_schluessel(self, key) -> bool:
         """
@@ -61,10 +65,14 @@ class Tuer(Objekt):
         Wenn self.farbe is None, akzeptiere jeden Schlüssel (universell).
         Setzt self.offen = True und lädt das offene Sprite. Rückgabe True bei Erfolg.
         """
-        import traceback
-        print(f"[DEBUG] Tuer.verwende_schluessel called on door at ({getattr(self,'x',None)},{getattr(self,'y',None)}) with key={getattr(key,'farbe', getattr(key,'color', getattr(key,'key_color', None)))}")
-        traceback.print_stack(limit=5)
+    # Remove noisy debug output; keep behavior quiet for normal runs.
         if key is None:
+            return False
+        # Accept common variants for the item type (with or without umlaut)
+        ktyp = getattr(key, 'typ', None)
+        if ktyp not in ("Schluessel", "Schlüssel", "SchluesselItem", "Schluessel"):
+            # if it is an inventory-style key object, the Gegenstand.Schluessel
+            # class should set typ to "Schluessel"; accept also the umlaut form.
             return False
         # Ermittle Schlüssel-Farbe (prüfe deutsch/englisch Alias)
         kfarbe = getattr(key, 'farbe', None)
@@ -89,10 +97,7 @@ class Tuer(Objekt):
                 callers = []
             pickup_names = ('nehm_auf_einfach', 'nehm_auf_alle', 'nehme_auf_alle')
             if any(n in callers for n in pickup_names):
-                try:
-                    print(f"[DEBUG] Tuer: refusing to use ground key object at ({getattr(key,'x',None)},{getattr(key,'y',None)}) to open door during pickup call")
-                except Exception:
-                    pass
+                # refuse using a ground key during pickup; keep quiet about it
                 return False
             # otherwise allow entity keys (legacy tests/scripts expect this)
 
@@ -143,6 +148,9 @@ class Tuer(Objekt):
     def get_offen(self) -> bool:
         """Gibt zurück, ob die Tür offen ist (True) oder geschlossen (False)."""
         return bool(getattr(self, 'offen', False))
+    
+    def setze_position(self, x, y):
+        return
     
     def update(self):
         # Sprite abhängig vom Zustand der Tür wechseln
