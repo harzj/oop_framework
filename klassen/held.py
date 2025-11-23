@@ -1,199 +1,65 @@
-"""Demo-Implementierung einer Schüler-Klasse für 'Held' in klassen/held.py"""
+
 class Held:
-    def __init__(self, level, x, y, richt, weiblich=False):
-        # student-held receives only the level
-        self.level = level
-        self.x = x
-        self.y = y
-        self.richtung = richt
-        self.weiblich = weiblich
-        self.gold = 0
-        self.typ = "Held"
-        self.name = "Namenloser Held"
-        self.knappe = None
-        self.spruch = ""
-        #self.inventar = Inventar() TODO (nicht von agent implementieren lassen!)
-
-    def ist_passierbar(self):
-        return False
-
+    def __init__(self, x, y, richtung, weiblich):
+        self.__x = x
+        self.__y = y
+        self.__richtung = richtung
+        self.__weiblich = weiblich
+        self.name = "Test Held"
+        self.__typ = "Held"
+    
     def geh(self):
-        if self.richtung == "right":
-            self.x += 1
-        elif self.richtung == "left":
-            self.x -= 1
-        elif self.richtung == "up":
-            self.y -= 1
-        elif self.richtung == "down":
-            self.y += 1
-
+        if self.__richtung == "up":
+            self.__y -= 1
+        elif self.__richtung == "down":
+            self.__y += 1
+        elif self.__richtung == "left":
+            self.__x -= 1
+        elif self.__richtung == "right":
+            self.__x += 1
+    
     def links(self):
-        if self.richtung == "down":
-            self.richtung = "right"
-        elif self.richtung == "right":
-            self.richtung = "up"
-        elif self.richtung == "up":
-            self.richtung = "left"
-        elif self.richtung == "left":
-            self.richtung = "down"
-
+        if self.__richtung == "up":
+            self.__richtung = "left"
+        elif self.__richtung == "down":
+            self.__richtung = "right"
+        elif self.__richtung == "left":
+            self.__richtung = "down"
+        elif self.__richtung == "right":
+            self.__richtung = "up"
+    
     def rechts(self):
-        if self.richtung == "down":
-            self.richtung = "left"
-        elif self.richtung == "left":
-            self.richtung = "up"
-        elif self.richtung == "up":
-            self.richtung = "right"
-        elif self.richtung == "right":
-            self.richtung = "down"
-
-    def zurueck(self):
-        if self.richtung == "right":
-            self.x -= 1
-        elif self.richtung == "left":
-            self.x += 1
-        elif self.richtung == "up":
-            self.y += 1
-        elif self.richtung == "down":
-            self.y -= 1
-
-    def setze_richtung(self, richt):
-        if richt == "up" or richt == "N" or richt == "Norden" or richt == "oben":
-            self.richtung = "up"
-        elif richt == "down" or richt == "S" or richt == "Sueden" or richt == "unten":
-            self.richtung = "down"
-        elif richt == "left" or richt == "W" or richt == "Westen" or richt == "links":
-            self.richtung = "left"
-        elif richt == "right" or richt == "O" or richt == "Osten" or richt == "rechts":
-            self.richtung = "right"
-
-    def setze_knappe(self, knappe):
-        if knappe.typ == "Knappe":
-            self.knappe = knappe
+        if self.__richtung == "up":
+            self.__richtung = "right"
+        elif self.__richtung == "down":
+            self.__richtung = "left"
+        elif self.__richtung == "left":
+            self.__richtung = "up"
+        elif self.__richtung == "right":
+            self.__richtung = "down"
     
-    def gib_knappe(self):
-        return self.knappe
+    # Getter methods for private attributes
+    def get_x(self):
+        return self.__x
     
+    def get_y(self):
+        return self.__y
     
-
-    # Die folgende Methode wird später die ursprüngliche Basis-Methode ersetzen und dabei das level verwenden
-    # Analog für zurueck
-    """def geh(self):
-        max_right = self.level.gib_breite() - 1
-        max_down = self.level.gib_hoehe() - 1
-        if self.richtung == "right" and self.x < max_right:
-            self.x += 1
-        elif self.richtung == "left" and self.x > 0:
-            self.x -= 1
-        elif self.richtung == "up" and self.y > 0:
-            self.y -= 1
-        elif self.richtung == "down" and self.y < max_down:
-            self.y += 1
-    """
-    def gib_objekt_vor_dir(self):
-        if self.richtung == "right":
-            return self.level.gib_objekt_an(self.x + 1, self.y)
-        elif self.richtung == "left":
-            return self.level.gib_objekt_an(self.x - 1, self.y)
-        elif self.richtung == "up":
-            return self.level.gib_objekt_an(self.x, self.y - 1)
-        elif self.richtung == "down":
-            return self.level.gib_objekt_an(self.x, self.y + 1)
-
-    def ist_auf_herz(self):
-        obj = self.level.gib_objekt_bei(self.x,self.y)
-        if obj == None:
-            return False
-        if obj.typ == "Herz":
-            return True
-
-    def nimm_herz(self):
-        obj = self.gib_objekt_vor_dir()
-        if obj == None:
-            return False
-        if obj.typ == "Herz":
-            self.level.entferne_objekt(obj)
-            return True
-        
-    def verbleibende_herzen(self):
-        return self.level.gib_anzahl_herzen()
+    def get_richtung(self):
+        return self.__richtung
     
-    def herzen_vor_mir(self):
-        if self.richtung == "up":
-            dx = 0
-            dy = -1
-        elif self.richtung == "down":
-            dx = 0
-            dy = 1
-        elif self.richtung == "left":
-            dx = -1
-            dy = 0
-        elif self.richtung == "right":
-            dx = 1
-            dy = 0
-
-        px = self.x + dx
-        py = self.y + dy
-        current = self.level.gib_objekt_bei(px,py)
-        amount = 0
-        while current != None and current.ist_passierbar():
-            try:
-                if getattr(current, 'typ', '') and str(getattr(current, 'typ')).lower() in ('herz', 'heart'):
-                    amount += 1
-            except Exception:
-                pass
-            px += dx
-            py += dy
-            current = self.level.gib_objekt_bei(px,py)
-
-        return amount
+    def get_weiblich(self):
+        return self.__weiblich
     
-    def was_ist_vorn(self):
-        obj = self.gib_objekt_vor_dir()
-        if obj == None:
-            return "None"
-        else:
-            return obj.typ
-        
-    def was_ist_links(self):
-        self.links()
-        obj = self.gib_objekt_vor_dir()
-        self.rechts()
-        if obj == None:
-            return "None"
-        else:
-            return obj.typ
-        
-    def was_ist_rechts(self):
-        self.rechts()
-        obj = self.gib_objekt_vor_dir()
-        self.links()
-        if obj == None:
-            return "None"
-        else:
-            return obj.typ
-
-    def spruch_sagen(self):
-        obj = self.gib_objekt_vor_dir()
-        if obj == None:
-            return False
-        if obj.typ != "Tuer":
-            return False
-        if self.spruch == "":
-            return False
-        obj.spruch_anwenden(self.spruch)
-        return True
+    def get_typ(self):
+        return self.__typ
     
-    def sage_spruch(self):
-        self.spruch_sagen()
+    # Setter methods for private attributes
+    def set_x(self, value):
+        self.__x = value
     
-    def spruch_lesen(self):
-        obj = self.level.gib_objekt_bei(self.x, self.y)
-        if obj == None:
-            return False
-        if obj.typ != "Spruch":
-            return False
-        self.spruch = obj.gib_spruch()
-
-    # TODOS (Agent: Diese nicht implementieren)
-    # def schluessel_nehmen() und def schluessel_verwenden
+    def set_y(self, value):
+        self.__y = value
+    
+    def set_richtung(self, value):
+        self.__richtung = value

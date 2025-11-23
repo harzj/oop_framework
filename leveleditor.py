@@ -103,13 +103,10 @@ class LevelEditor:
         # is to require collecting all hearts.
         self.level_settings.setdefault('victory', {"collect_hearts": True, "move_to": None, "classes_present": False})
 
-        # Student-class loader flags (F2 toggles)
-        # If True the exported level will indicate student classes should be used
-        # If student_classes_in_subfolder is True, the editor will mark that
-        # student classes are expected under the `klassen/` package instead of
-        # the repo root `schueler.py`.
-        self.use_student_module = False
-        self.student_classes_in_subfolder = False
+        # Class requirements (F4 menu)
+        # Stores per-class configuration: methods, attributes, inheritance, use_student toggle
+        # Format: {"Held": {"methods": ["geh", "links"], "attributes": ["hp"], "inherits": "Charakter", "use_student": True}, ...}
+        self.class_requirements = {}
 
         # Sprites
         self.sprites = self._load_all_sprites()
@@ -127,7 +124,7 @@ class LevelEditor:
         # Privatisierungs-Flags (F1-Menü)
         self.privacy_flags = {
             "Held": False, "Knappe": False, "Monster": False,
-            "Herz": False, "Tuer": False, "Code": False, "Villager": False,
+            "Herz": False, "Tuer": False, "Zettel": False, "Villager": False,
             # Hindernisse (Baum/Busch/Berg) können privat gesetzt werden
             "Hindernis": False,
             # Schlüssel und Bogenschütze (separate von generischem Monster)
@@ -497,38 +494,6 @@ class LevelEditor:
         qin_var = tk.StringVar(value=str(self.level_settings.get('quest_items_needed', 1)))
         ttk.Entry(frm, textvariable=qin_var, width=12).grid(row=3, column=1, sticky='w')
 
-        # Schüler-Klassen Optionen
-        ttk.Label(frm, text="Schüler-Klassen:", font=("Consolas", 10, "bold")).grid(row=10, column=0, sticky='w', pady=(8,0))
-        use_student_var = tk.BooleanVar(value=bool(getattr(self, 'use_student_module', False)))
-        subfolder_var = tk.BooleanVar(value=bool(getattr(self, 'student_classes_in_subfolder', False)))
-        # Make the two options mutually exclusive: if one is checked the other is unchecked
-        def on_use_changed():
-            try:
-                if use_student_var.get():
-                    subfolder_var.set(False)
-            except Exception:
-                pass
-
-        def on_subfolder_changed():
-            try:
-                if subfolder_var.get():
-                    use_student_var.set(False)
-            except Exception:
-                pass
-
-        # Ensure initial state is not contradictory
-        try:
-            if use_student_var.get() and subfolder_var.get():
-                # prefer the explicit subfolder flag to be false in case both were set
-                subfolder_var.set(False)
-        except Exception:
-            pass
-
-        chk_use = ttk.Checkbutton(frm, text="Schülerklassen verwenden (schueler.py)", variable=use_student_var, command=on_use_changed)
-        chk_use.grid(row=11, column=0, columnspan=2, sticky='w')
-        chk_sub = ttk.Checkbutton(frm, text="Schülerklassen in Unterordner (klassen/)", variable=subfolder_var, command=on_subfolder_changed)
-        chk_sub.grid(row=12, column=0, columnspan=2, sticky='w')
-
         # Randomization options for doors/keys
         ttk.Label(frm, text="Zufallsoptionen (Doors/Keys):", font=("Consolas", 10, "bold")).grid(row=13, column=0, sticky='w', pady=(8,0))
         random_doors_var = tk.BooleanVar(value=bool(self.level_settings.get('random_door', False)))
@@ -552,15 +517,6 @@ class LevelEditor:
                 self.level_settings['quest_items_needed'] = int(qin_var.get())
             except Exception:
                 self.level_settings['quest_items_needed'] = 1
-            # Persist the student-class flags on the editor instance
-            try:
-                self.use_student_module = bool(use_student_var.get())
-            except Exception:
-                self.use_student_module = False
-            try:
-                self.student_classes_in_subfolder = bool(subfolder_var.get())
-            except Exception:
-                self.student_classes_in_subfolder = False
             # persist randomization flags
             try:
                 self.level_settings['random_door'] = bool(random_doors_var.get())
@@ -646,6 +602,266 @@ class LevelEditor:
         root.mainloop()
 
     # -----------------------------
+    # Class Requirements (F4)
+    # -----------------------------
+    def open_class_requirements_dialog(self):
+        """Dialog (F4) to configure per-class requirements for student implementation.
+        Each class gets:
+        - List of required methods (checkboxes + text field)
+        - List of required attributes (checkboxes + text field)
+        - Inheritance dropdown (which framework class this should inherit from)
+        - Toggle: Use student class for this entity type
+        """
+        # Define all classes that can be implemented by students (Code renamed to Zettel)
+        CLASSES = ["Held", "Herz", "Tuer", "Tor", "Hindernis", "Knappe", "Monster", "Bogenschuetze", "Schluessel", "Zettel", "Villager"]
+        
+        # Define core attributes as checkboxes (only x, y, typ, richtung, name)
+        CORE_ATTRIBUTES = {
+            "Held": ["x", "y", "richtung", "name"],
+            "Knappe": ["x", "y", "richtung", "name"],
+            "Monster": ["x", "y", "richtung", "name"],
+            "Bogenschuetze": ["x", "y", "richtung", "name"],
+            "Herz": ["x", "y"],
+            "Tuer": ["x", "y"],
+            "Tor": ["x", "y"],
+            "Schluessel": ["x", "y"],
+            "Hindernis": ["x", "y", "typ"],
+            "Zettel": ["x", "y"],
+            "Villager": ["x", "y", "name"],
+        }
+        
+        # Define standard methods as checkboxes
+        STANDARD_METHODS = {
+            "Held": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck", 
+                    "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
+                    "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung", 
+                    "get_name", "set_name", "nimm_herz", "spruch_lesen", "spruch_sagen", 
+                    "bediene_tor", "verwende_schluessel"],
+            "Knappe": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
+                      "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
+                      "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
+                      "get_name", "set_name", "nimm_herz", "spruch_lesen", "spruch_sagen",
+                      "bediene_tor", "verwende_schluessel"],
+            "Monster": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
+                       "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
+                       "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
+                       "get_name", "set_name", "angriff"],
+            "Bogenschuetze": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
+                             "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
+                             "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
+                             "get_name", "set_name", "angriff"],
+            "Herz": ["set_position", "get_x", "get_y"],
+            "Tuer": ["set_position", "get_x", "get_y"],
+            "Tor": ["set_position", "get_x", "get_y"],
+            "Schluessel": ["set_position", "get_x", "get_y"],
+            "Hindernis": ["set_position", "get_x", "get_y"],
+            "Zettel": ["set_position", "get_x", "get_y"],
+            "Villager": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
+                        "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
+                        "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
+                        "get_name", "set_name"],
+        }
+        
+        # Define inheritance options per class (framework base classes)
+        INHERITANCE_OPTIONS = {
+            "Held": ["Objekt", "Charakter", "None"],
+            "Knappe": ["Objekt", "Charakter", "None"],
+            "Monster": ["Objekt", "Charakter", "None"],
+            "Bogenschuetze": ["Objekt", "Charakter", "Monster", "None"],
+            "Herz": ["Objekt", "Gegenstand", "None"],
+            "Tuer": ["Objekt", "None"],
+            "Tor": ["Objekt", "None"],
+            "Schluessel": ["Objekt", "Gegenstand", "None"],
+            "Hindernis": ["Objekt", "None"],
+            "Zettel": ["Objekt", "Gegenstand", "None"],
+            "Villager": ["Objekt", "None"],
+        }
+        
+        root = tk.Tk()
+        root.title("Schülerklassen-Anforderungen (F4)")
+        root.geometry("700x600")
+        
+        # Create notebook with tabs
+        notebook = ttk.Notebook(root)
+        notebook.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # Store UI variables for each class
+        class_vars = {}
+        
+        for class_name in CLASSES:
+            # Create a frame for this class tab
+            tab_frame = ttk.Frame(notebook)
+            notebook.add(tab_frame, text=class_name)
+            
+            # Create scrollable frame for content
+            canvas = tk.Canvas(tab_frame)
+            scrollbar = ttk.Scrollbar(tab_frame, orient="vertical", command=canvas.yview)
+            scrollable_frame = ttk.Frame(canvas)
+            
+            scrollable_frame.bind(
+                "<Configure>",
+                lambda e, c=canvas: c.configure(scrollregion=c.bbox("all"))
+            )
+            
+            canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+            
+            # Get existing config or use defaults
+            existing = self.class_requirements.get(class_name, {})
+            
+            # Special case for Held: Two mutually exclusive checkboxes for source location
+            load_schueler_var = None
+            load_klassen_var = None
+            
+            if class_name == "Held":
+                ttk.Label(scrollable_frame, text="Lade Held-Klasse aus:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(10,2))
+                
+                # Create variables first
+                load_schueler_var = tk.BooleanVar(value=existing.get("load_from_schueler", False))
+                load_klassen_var = tk.BooleanVar(value=existing.get("load_from_klassen", False))
+                
+                # Mutual exclusion callbacks - capture variables in closure properly
+                def make_schueler_toggle(schueler_var, klassen_var):
+                    def toggle():
+                        if schueler_var.get():
+                            klassen_var.set(False)
+                    return toggle
+                
+                def make_klassen_toggle(schueler_var, klassen_var):
+                    def toggle():
+                        if klassen_var.get():
+                            schueler_var.set(False)
+                    return toggle
+                
+                ttk.Checkbutton(scrollable_frame, text="Aus schueler.py laden (alte Einzeldatei)", 
+                              variable=load_schueler_var, 
+                              command=make_schueler_toggle(load_schueler_var, load_klassen_var)).pack(anchor='w', padx=10)
+                ttk.Checkbutton(scrollable_frame, text="Aus klassen/held.py laden (Unterordner)", 
+                              variable=load_klassen_var, 
+                              command=make_klassen_toggle(load_schueler_var, load_klassen_var)).pack(anchor='w', padx=10)
+                ttk.Label(scrollable_frame, text="(Keine Checkbox = integrierte Framework-Klasse)", 
+                         font=("Consolas", 8)).pack(anchor='w', padx=10, pady=(0,5))
+            
+            # Inheritance selection
+            ttk.Label(scrollable_frame, text="Erbt von:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(10,2))
+            inherits_var = tk.StringVar(value=existing.get("inherits", "None"))
+            inherits_combo = ttk.Combobox(scrollable_frame, textvariable=inherits_var, 
+                                        values=INHERITANCE_OPTIONS.get(class_name, ["None"]), 
+                                        state="readonly", width=20)
+            inherits_combo.pack(anchor='w', padx=10)
+            
+            # Required attributes
+            ttk.Label(scrollable_frame, text="Erforderliche Attribute:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(15,2))
+            attr_vars = {}
+            existing_attrs = existing.get("attributes", [])
+            
+            # Core attributes as checkboxes
+            for attr in CORE_ATTRIBUTES.get(class_name, []):
+                var = tk.BooleanVar(value=(attr in existing_attrs))
+                ttk.Checkbutton(scrollable_frame, text=attr, variable=var).pack(anchor='w', padx=20)
+                attr_vars[attr] = var
+            
+            # Additional attributes as comma-separated text field
+            ttk.Label(scrollable_frame, text="Weitere Attribute (kommagetrennt):", font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(5,0))
+            # Extract extra attributes not in core list
+            core_attrs = set(CORE_ATTRIBUTES.get(class_name, []))
+            extra_attrs = [a for a in existing_attrs if a not in core_attrs]
+            extra_attrs_var = tk.StringVar(value=", ".join(extra_attrs))
+            extra_attrs_entry = ttk.Entry(scrollable_frame, textvariable=extra_attrs_var, width=40)
+            extra_attrs_entry.pack(anchor='w', padx=20, pady=(2,5))
+            
+            # Required methods
+            ttk.Label(scrollable_frame, text="Erforderliche Methoden:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(15,2))
+            method_vars = {}
+            existing_methods = existing.get("methods", [])
+            
+            # Standard methods as checkboxes
+            for method in STANDARD_METHODS.get(class_name, []):
+                var = tk.BooleanVar(value=(method in existing_methods))
+                ttk.Checkbutton(scrollable_frame, text=method, variable=var).pack(anchor='w', padx=20)
+                method_vars[method] = var
+            
+            # Additional methods as comma-separated text field
+            ttk.Label(scrollable_frame, text="Weitere Methoden (kommagetrennt):", font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(5,0))
+            # Extract extra methods not in standard list
+            standard_methods = set(STANDARD_METHODS.get(class_name, []))
+            extra_methods = [m for m in existing_methods if m not in standard_methods]
+            extra_methods_var = tk.StringVar(value=", ".join(extra_methods))
+            extra_methods_entry = ttk.Entry(scrollable_frame, textvariable=extra_methods_var, width=40)
+            extra_methods_entry.pack(anchor='w', padx=20, pady=(2,5))
+            
+            # Store all variables for this class
+            class_vars[class_name] = {
+                "inherits": inherits_var,
+                "methods": method_vars,
+                "attributes": attr_vars,
+                "extra_methods": extra_methods_var,
+                "extra_attributes": extra_attrs_var,
+                "load_from_schueler": load_schueler_var,
+                "load_from_klassen": load_klassen_var
+            }
+        
+        # OK and Cancel buttons at bottom
+        button_frame = ttk.Frame(root)
+        button_frame.pack(side='bottom', pady=10)
+        
+        def save_and_close():
+            # Collect all configurations
+            new_requirements = {}
+            for class_name, vars_dict in class_vars.items():
+                config = {}
+                config["inherits"] = vars_dict["inherits"].get()
+                
+                # Special handling for Held class source location
+                if class_name == "Held" and vars_dict["load_from_schueler"] and vars_dict["load_from_klassen"]:
+                    config["load_from_schueler"] = vars_dict["load_from_schueler"].get()
+                    config["load_from_klassen"] = vars_dict["load_from_klassen"].get()
+                
+                # Collect selected methods from checkboxes
+                selected_methods = [m for m, v in vars_dict["methods"].items() if v.get()]
+                
+                # Add extra methods from text field
+                extra_methods_str = vars_dict["extra_methods"].get().strip()
+                if extra_methods_str:
+                    extra_methods = [m.strip() for m in extra_methods_str.split(",") if m.strip()]
+                    selected_methods.extend(extra_methods)
+                
+                config["methods"] = selected_methods
+                
+                # Collect selected attributes from checkboxes
+                selected_attrs = [a for a, v in vars_dict["attributes"].items() if v.get()]
+                
+                # Add extra attributes from text field
+                extra_attrs_str = vars_dict["extra_attributes"].get().strip()
+                if extra_attrs_str:
+                    extra_attrs = [a.strip() for a in extra_attrs_str.split(",") if a.strip()]
+                    selected_attrs.extend(extra_attrs)
+                
+                config["attributes"] = selected_attrs
+                
+                # Store if anything is configured
+                if selected_methods or selected_attrs or config["inherits"] != "None":
+                    new_requirements[class_name] = config
+                # For Held, also store if load flags are set
+                elif class_name == "Held" and (config.get("load_from_schueler") or config.get("load_from_klassen")):
+                    new_requirements[class_name] = config
+            
+            self.class_requirements = new_requirements
+            print(f"[Info] Klassen-Anforderungen gespeichert: {len(new_requirements)} Klassen konfiguriert")
+            root.destroy()
+        
+        def cancel():
+            root.destroy()
+        
+        ttk.Button(button_frame, text="OK", command=save_and_close).pack(side='left', padx=5)
+        ttk.Button(button_frame, text="Abbrechen", command=cancel).pack(side='left', padx=5)
+        
+        root.mainloop()
+
+    # -----------------------------
     # JSON I/O
     # -----------------------------
     def from_json(self, data):
@@ -679,7 +895,7 @@ class LevelEditor:
                 self.privacy_flags = {}
 
             # Ensure expected keys exist
-        for k in ["Held", "Knappe", "Monster", "Herz", "Tuer", "Code", "Villager", "Hindernis", "Schluessel", "Bogenschuetze"]:
+        for k in ["Held", "Knappe", "Monster", "Herz", "Tuer", "Zettel", "Villager", "Hindernis", "Schluessel", "Bogenschuetze"]:
             self.privacy_flags.setdefault(k, False)
         # Lade Orientierungen, falls vorhanden (Format: {"x,y": "up"})
         settings = data.get("settings", {})
@@ -720,15 +936,15 @@ class LevelEditor:
         except Exception:
             self.level_settings['victory'] = {"collect_hearts": True, "move_to": None, "classes_present": False}
 
-        # Lade Flags für Schülerklassen (falls vorhanden)
+        # Old use_student_module/student_classes_in_subfolder flags deprecated (now using class_requirements from F4)
+
+        # Load class requirements (F4 menu configuration)
         try:
-            self.use_student_module = bool(settings.get('use_student_module', False))
+            self.class_requirements = settings.get('class_requirements', {})
+            if not isinstance(self.class_requirements, dict):
+                self.class_requirements = {}
         except Exception:
-            self.use_student_module = False
-        try:
-            self.student_classes_in_subfolder = bool(settings.get('student_classes_in_subfolder', False))
-        except Exception:
-            self.student_classes_in_subfolder = False
+            self.class_requirements = {}
 
         # Ensure victory settings present (backwards compatibility)
         self.level_settings.setdefault('victory', {"collect_hearts": True, "move_to": None, "classes_present": False})
@@ -766,13 +982,10 @@ class LevelEditor:
                     data["settings"][k] = v
                 except Exception:
                     continue
-        # Export student-class flags so the framework can decide whether to load them
+        # Export class requirements (F4 configuration)
         try:
-            data["settings"]["use_student_module"] = bool(getattr(self, 'use_student_module', False))
-        except Exception:
-            pass
-        try:
-            data["settings"]["student_classes_in_subfolder"] = bool(getattr(self, 'student_classes_in_subfolder', False))
+            if hasattr(self, 'class_requirements') and self.class_requirements:
+                data["settings"]["class_requirements"] = self.class_requirements
         except Exception:
             pass
         return data
@@ -824,6 +1037,8 @@ class LevelEditor:
                         self.open_settings_dialog()
                     elif event.key == pygame.K_F3:
                         self.open_victory_dialog()
+                    elif event.key == pygame.K_F4:
+                        self.open_class_requirements_dialog()
                     elif event.key == pygame.K_s:
                         self.speicher_dialog()
                     elif event.key == pygame.K_o:

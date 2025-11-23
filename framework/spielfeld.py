@@ -43,6 +43,11 @@ class Spielfeld:
         except Exception:
             self.victory_settings = {}
         try:
+            # class_requirements from F4 menu (Phase 2 implementation)
+            self.class_requirements = self.settings.get('class_requirements', {}) if isinstance(self.settings, dict) else {}
+        except Exception:
+            self.class_requirements = {}
+        try:
             self._required_spawn_classes = self._compute_required_classes()
         except Exception:
             self._required_spawn_classes = set()
@@ -381,83 +386,88 @@ class Spielfeld:
             richt = orients.get(f"{x},{y}", "down")
 
             if t == "p":
-                # try instantiating student-provided Held (student classes receive the Level),
-                # wrap with MetaHeld so framework features (rendering, controls) remain available.
+                # Phase 2: Check if student Held class is requested via class_requirements
                 FrameworkHeld = Held
                 cls = self._get_entity_class("Held", FrameworkHeld)
-                # Determine whether the level requested student classes
-                student_mode_enabled = bool(self.settings.get('import_pfad') or self.settings.get('use_student_module') or self.settings.get('student_classes_in_subfolder'))
-                if cls is None and student_mode_enabled:
-                    # Student mode requested but no student Held class found -> do not spawn a hero
-                    print("Hinweis: Level verlangt Schülerklassen, aber keine Held-Klasse gefunden; Held wird nicht gespawnt.")
-                    self.held = None
-                    # do not append to objekte
-                    continue
-                if cls is not FrameworkHeld and cls is not None:
+                
+                # Check if student mode is enabled for Held via class_requirements
+                req = self.class_requirements.get("Held", {})
+                student_mode_for_held = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                
+                if student_mode_for_held:
+                    # Student mode enabled for Held - different behavior required
+                    if cls is None or cls == FrameworkHeld:
+                        # Student class not found or couldn't be loaded
+                        print("[FEHLER] Helden Klasse fehlt")
+                        self.held = None
+                        # Don't render anything, don't add to objekte
+                        continue
+                    
+                    # Try to instantiate student Held with signature: (x, y, richtung, weiblich)
+                    # Note: Level is NOT passed in constructor, will be added later via setze_level()
                     student_inst = None
                     try:
-                        # prefer signature (level, x, y, richt, weiblich=...)
-                        student_inst = cls(self.level, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
-                    except TypeError:
+                        weiblich = getattr(self.framework, "weiblich", False)
+                        student_inst = cls(x, y, richt, weiblich)
+                    except TypeError as e:
+                        # Wrong constructor signature
+                        print(f"[FEHLER] Helden Klasse: Parameterliste nicht korrekt ({e})")
+                        self.held = None
+                        continue
+                    except Exception as e:
+                        # Other instantiation error
+                        print(f"[FEHLER] Helden Klasse kann nicht instanziert werden: {e}")
+                        self.held = None
+                        continue
+                    
+                    if student_inst is None:
+                        print("[FEHLER] Helden Klasse: Instanzierung fehlgeschlagen")
+                        self.held = None
+                        continue
+                    
+                    # Check which attributes the student set
+                    has_x = hasattr(student_inst, 'x')
+                    has_y = hasattr(student_inst, 'y')
+                    has_richtung = hasattr(student_inst, 'richtung')
+                    has_weiblich = hasattr(student_inst, 'weiblich')
+                    
+                    # Store student instance wrapped in MetaHeld for framework integration
+                    from .held import MetaHeld
+                    self.held = MetaHeld(self.framework, student_inst, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
+                    
+                    # Mark the held with information about what's missing/present
+                    # This will be used for rendering and victory checking
+                    setattr(self.held, '_student_mode', True)
+                    setattr(self.held, '_level_expected_x', x)
+                    setattr(self.held, '_level_expected_y', y)
+                    setattr(self.held, '_level_expected_richtung', richt)
+                    setattr(self.held, '_class_requirements', req)
+                    
+                    # Check if student's position matches level expectation and warn if not
+                    if has_x and has_y:
+                        student_x = getattr(student_inst, 'x', None)
+                        student_y = getattr(student_inst, 'y', None)
+                        if student_x != x or student_y != y:
+                            print(f"[WARNUNG] Held ist an Position ({student_x}, {student_y}), "
+                                  f"aber Level erwartet ({x}, {y}). Level kann nicht abgeschlossen werden.")
+                    
+                    # Check if critical attributes are present for rendering
+                    if has_x and has_y and has_richtung and not has_weiblich:
+                        # Show red question mark sprite instead of hero
+                        setattr(self.held, '_show_error_sprite', True)
+                    elif not (has_x and has_y and has_richtung):
+                        # Some critical attributes missing - don't render at all, but keep in inspector
+                        setattr(self.held, '_dont_render', True)
+                    
+                    # Add Level reference later via setze_level()
+                    if hasattr(student_inst, 'setze_level'):
                         try:
-                            student_inst = cls(self.level, x, y, richt)
+                            student_inst.setze_level(self)
                         except Exception:
-                            student_inst = None
-                    except Exception:
-                        student_inst = None
-
-                    if student_inst is not None:
-                        try:
-                            from .held import MetaHeld
-                            self.held = MetaHeld(self.framework, student_inst, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
-                            # Check whether the student instance actually provided the required attributes.
-                            required = ['level', 'x', 'y', 'richtung', 'weiblich', 'typ', 'name']
-                            missing = [a for a in required if not hasattr(student_inst, a)]
-                            if missing:
-                                # user-visible console message listing missing attributes
-                                try:
-                                    short = [ ('r' if m=='richtung' else m) for m in missing ]
-                                    print(f"Helden Klasse gefunden, aber unvollständig. Fehlend: {', '.join(short)}")
-                                except Exception:
-                                    print("Helden Klasse gefunden, aber unvollständig.")
-                                # mark MetaHeld so rendering can skip it
-                                try:
-                                    setattr(self.held, '_student_incomplete', missing)
-                                except Exception:
-                                    pass
-                        except Exception:
-                            # Could not wrap or use the student instance. If the level
-                            # explicitly requested student classes, do NOT silently
-                            # fall back to the internal Framework Held; instead skip
-                            # spawning the hero so the exercise cannot be bypassed.
-                            if student_mode_enabled:
-                                try:
-                                    print("Hinweis: Student-Held gefunden, aber kann nicht instanziert/verwunden werden; Held wird nicht gespawnt.")
-                                except Exception:
-                                    pass
-                                self.held = None
-                                # do not append; continue to next spawn
-                                continue
-                            # otherwise fall back to framework Held (legacy behavior)
-                            try:
-                                self.held = FrameworkHeld(self.framework, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
-                            except Exception:
-                                raise
-                    else:
-                        # couldn't instantiate student class
-                        if student_mode_enabled:
-                            try:
-                                print("Hinweis: Level verlangt Schülerklassen, aber keine Held-Instanz erzeugbar; Held wird nicht gespawnt.")
-                            except Exception:
-                                pass
-                            self.held = None
-                            continue
-                        # fallback to framework Held when student mode is not active
-                        try:
-                            self.held = FrameworkHeld(self.framework, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
-                        except Exception:
-                            raise
+                            pass
+                    
                 else:
+                    # Legacy mode: Use framework Held
                     try:
                         self.held = FrameworkHeld(self.framework, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
                     except Exception:
@@ -868,22 +878,45 @@ class Spielfeld:
     def _get_entity_class(self, canonical_name: str, framework_cls):
         """Try to load a student-provided class according to level settings.
 
-        Behavior:
-        - If no student flags are present (nor explicit 'import_pfad'), return the framework class.
-        - If 'import_pfad' is provided (string), try to import that module and return the mapped class
-          if present. If module/class not found, return None to indicate "no student class".
-        - If 'use_student_module' is True, use the editor flags to attempt to find student classes:
-            * if 'student_classes_in_subfolder' is False: prefer repo-root 'schueler' module first,
-              then fall back to 'klassen.<canonical_lower>' if present.
-            * if 'student_classes_in_subfolder' is True: prefer 'klassen.<canonical_lower>' first.
-          If a student class is found, return it. If not found, return None.
-
+        Behavior (Phase 2 with class_requirements support):
+        - If class_requirements exists for this canonical_name:
+            * For Held: check load_from_schueler/load_from_klassen flags
+            * For other classes: check if any methods/attributes configured (indicates student class)
+        - If no class_requirements or no student class requested, fall back to old logic:
+            * If 'import_pfad' provided, try that
+            * If 'use_student_module' is True, use editor flags
+        - If no student flags are present, return the framework class.
+        
         Returning None signals the caller that student classes were enabled but none found; callers
         can decide whether to fall back to framework classes (we will for most entities) or to
         omit the entity (special-case: Held when student mode is on should not fall back).
         """
         try:
             settings = self.settings or {}
+            
+            # Phase 2: Check class_requirements first (new F4 menu configuration)
+            class_reqs = getattr(self, 'class_requirements', {}) or {}
+            req = class_reqs.get(canonical_name, {})
+            
+            # Determine if student class should be loaded based on class_requirements
+            load_student_from_requirements = False
+            prefer_schueler = False
+            prefer_klassen = False
+            
+            if req:
+                # For Held: explicit load flags
+                if canonical_name == "Held":
+                    prefer_schueler = bool(req.get('load_from_schueler', False))
+                    prefer_klassen = bool(req.get('load_from_klassen', False))
+                    load_student_from_requirements = prefer_schueler or prefer_klassen
+                else:
+                    # For other classes: if methods or attributes configured, assume student class
+                    has_methods = bool(req.get('methods', []))
+                    has_attrs = bool(req.get('attributes', []))
+                    load_student_from_requirements = has_methods or has_attrs
+                    # Other classes always load from klassen/<name>.py when configured
+                    if load_student_from_requirements:
+                        prefer_klassen = True
 
             # If an explicit import path is provided, prefer it (backwards-compatible)
             import_pfad = None
@@ -896,8 +929,8 @@ class Spielfeld:
             subfolder_flag = bool(settings.get('student_classes_in_subfolder', False))
 
             # If nothing requests student classes (neither explicit import path nor
-            # the student flags), return the framework class.
-            if not import_pfad and not (use_student_flag or subfolder_flag):
+            # the student flags nor class_requirements), return the framework class.
+            if not import_pfad and not (use_student_flag or subfolder_flag) and not load_student_from_requirements:
                 return framework_cls
 
             # Helper: import module with caching per module name
@@ -1029,7 +1062,28 @@ class Spielfeld:
 
             # Build candidate modules depending on provided settings
             candidates = []
-            if import_pfad:
+            
+            # Phase 2: class_requirements takes precedence over old flags
+            if load_student_from_requirements:
+                cname = canonical_name.lower()
+                spath = os.path.join(repo_root, 'schueler.py')
+                kpath = os.path.join(repo_root, 'klassen', f"{cname}.py")
+                
+                if prefer_schueler:
+                    # Explicitly requested from schueler.py
+                    if os.path.exists(spath):
+                        candidates.append('schueler')
+                    else:
+                        # File doesn't exist, still try to import (might be installed package)
+                        candidates.append('schueler')
+                elif prefer_klassen:
+                    # Explicitly requested from klassen/<name>.py
+                    if os.path.exists(kpath):
+                        candidates.append(f"klassen.{cname}")
+                    else:
+                        # File doesn't exist, still try to import
+                        candidates.append(f"klassen.{cname}")
+            elif import_pfad:
                 # import_pfad may be a dotted module path or a simple module name
                 if isinstance(import_pfad, str) and '.' in import_pfad:
                     candidates.append(import_pfad)
@@ -1114,18 +1168,30 @@ class Spielfeld:
                         return False
                     src = open(path, 'r', encoding='utf-8').read()
                     tree = ast.parse(src, path)
+                    
                     # helper: check whether the class __init__ sets required attributes
+                    # Also checks for getter methods (get_<attr>) if attribute is private
                     def _class_has_required_attrs(class_node, required):
                         found = set()
+                        getters = set()
+                        
+                        # First pass: find all attributes set in __init__
                         for item in class_node.body:
-                            # look for assignments like self.x = ...
                             if isinstance(item, ast.FunctionDef) and item.name == '__init__':
                                 for stmt in ast.walk(item):
-                                    # self.x = ...
+                                    # self.x = ... or self.__x = ...
                                     if isinstance(stmt, ast.Assign):
                                         for t in stmt.targets:
                                             if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == 'self':
-                                                found.add(t.attr)
+                                                attr_name = t.attr
+                                                # Handle private attributes: __x -> x
+                                                if attr_name.startswith('_' + class_node.name + '__'):
+                                                    # Double underscore name mangling
+                                                    attr_name = attr_name[len('_' + class_node.name + '__'):]
+                                                elif attr_name.startswith('__'):
+                                                    # Private attribute __x -> x
+                                                    attr_name = attr_name[2:]
+                                                found.add(attr_name)
                                     # setattr(self, 'x', ...)
                                     if isinstance(stmt, ast.Call) and isinstance(stmt.func, ast.Name) and stmt.func.id == 'setattr':
                                         args = stmt.args
@@ -1137,18 +1203,49 @@ class Spielfeld:
                                                     found.add(a1.value)
                                                 elif isinstance(a1, ast.Str):
                                                     found.add(a1.s)
-                        return set(required).issubset(found)
+                        
+                        # Second pass: find getter methods
+                        for item in class_node.body:
+                            if isinstance(item, ast.FunctionDef):
+                                if item.name.startswith('get_'):
+                                    attr_name = item.name[4:]  # Remove 'get_' prefix
+                                    getters.add(attr_name)
+                        
+                        # An attribute is considered present if it's set in __init__ OR has a getter
+                        available = found | getters
+                        return set(required).issubset(available)
+                    
+                    # helper: check whether the class has required methods
+                    def _class_has_required_methods(class_node, required_methods):
+                        found_methods = set()
+                        for item in class_node.body:
+                            if isinstance(item, ast.FunctionDef):
+                                found_methods.add(item.name)
+                        return set(required_methods).issubset(found_methods)
 
                     for node in tree.body:
                         if isinstance(node, ast.ClassDef) and node.name == cls_name:
-                            # For Held classes require that __init__ assigns a minimal set
+                            # For Held classes, use class_requirements if available
                             if cls_name == 'Held':
-                                required = ['level', 'x', 'y', 'richtung', 'weiblich', 'typ']
+                                # Get required attributes and methods from class_requirements
+                                req = self.class_requirements.get("Held", {})
+                                required_attrs = req.get('attributes', [])
+                                required_methods = req.get('methods', [])
+                                
+                                # If no class_requirements, use legacy minimal set for attributes
+                                if not required_attrs:
+                                    required_attrs = ['x', 'y', 'richtung', 'weiblich', 'typ']
+                                
                                 try:
-                                    if _class_has_required_attrs(node, required):
-                                        return True
-                                    else:
+                                    # Check attributes
+                                    if required_attrs and not _class_has_required_attrs(node, required_attrs):
                                         return False
+                                    
+                                    # Check methods
+                                    if required_methods and not _class_has_required_methods(node, required_methods):
+                                        return False
+                                    
+                                    return True
                                 except Exception:
                                     return False
                             return True
@@ -1177,15 +1274,31 @@ class Spielfeld:
                         return True
 
             # Align presence-check with the editor/level preference flags:
-            # If student_classes_in_subfolder is requested, prefer/check
-            # klassen/<name>.py first and only fall back to schueler.py if the
-            # file does not exist. If the subfolder flag is False and
-            # schueler.py exists, check only schueler.py and do not treat a
-            # class found in klassen/* as satisfying the requirement.
+            # First check class_requirements for load_from_klassen / load_from_schueler
+            # Otherwise fall back to student_classes_in_subfolder setting
             lower = canonical_name.lower()
             kp = os.path.join(repo_root, 'klassen', f"{lower}.py")
             sp = os.path.join(repo_root, 'schueler.py')
 
+            # Check class_requirements for this specific class
+            req = self.class_requirements.get(canonical_name, {})
+            load_from_klassen = req.get('load_from_klassen', False)
+            load_from_schueler = req.get('load_from_schueler', False)
+
+            # If class_requirements explicitly sets load location, use that
+            if load_from_klassen or load_from_schueler:
+                if load_from_klassen:
+                    # Must load from klassen/<name>.py
+                    if os.path.exists(kp):
+                        return _file_has_class(kp, canonical_name)
+                    return False
+                elif load_from_schueler:
+                    # Must load from schueler.py
+                    if os.path.exists(sp):
+                        return _file_has_class(sp, canonical_name)
+                    return False
+            
+            # Fall back to student_classes_in_subfolder setting
             subfolder_flag = bool((self.settings or {}).get('student_classes_in_subfolder', False))
 
             if subfolder_flag:
@@ -2220,6 +2333,62 @@ class Spielfeld:
                     for cn in needed:
                         if not self._student_has_class(cn):
                             return False
+                    
+                    # Additional validation for student Held: check required attributes and values
+                    if 'Held' in needed:
+                        held = getattr(self, 'held', None)
+                        if held is None:
+                            return False
+                        
+                        # Check if this is student mode with requirements
+                        req = self.class_requirements.get("Held", {})
+                        student_mode_for_held = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        
+                        if student_mode_for_held:
+                            # Check all required attributes exist
+                            # Use held (MetaHeld wrapper) to access attributes, which will
+                            # try direct access first, then fall back to getter methods
+                            required_attrs = req.get('attributes', [])
+                            for attr in required_attrs:
+                                try:
+                                    # Access through held (MetaHeld) to trigger __getattr__ with getter fallback
+                                    getattr(held, attr)
+                                except AttributeError:
+                                    return False
+                            
+                            # Check that position/direction values match level expectations
+                            # ONLY if move_to victory is NOT enabled (if move_to is enabled,
+                            # the student is supposed to move from initial to target position)
+                            mv_enabled = mv and isinstance(mv, dict) and mv.get('enabled')
+                            if not mv_enabled:
+                                expected_x = getattr(held, '_level_expected_x', None)
+                                expected_y = getattr(held, '_level_expected_y', None)
+                                expected_richtung = getattr(held, '_level_expected_richtung', None)
+                                
+                                if expected_x is not None:
+                                    try:
+                                        actual_x = getattr(held, 'x')
+                                    except AttributeError:
+                                        return False
+                                    if actual_x != expected_x:
+                                        return False
+                                
+                                if expected_y is not None:
+                                    try:
+                                        actual_y = getattr(held, 'y')
+                                    except AttributeError:
+                                        return False
+                                    if actual_y != expected_y:
+                                        return False
+                                
+                                if expected_richtung is not None:
+                                    try:
+                                        actual_richtung = getattr(held, 'richtung')
+                                    except AttributeError:
+                                        return False
+                                    if actual_richtung != expected_richtung:
+                                        return False
+                
                 except Exception:
                     return False
 

@@ -618,6 +618,22 @@ class Objekt:
 
     # ---- Zeichnen + Attributanzeige ----
     def zeichne(self, screen, feldgroesse):
+        # Check if this object should not be rendered at all
+        if getattr(self, '_dont_render', False):
+            return
+        
+        # Check if we should show an error sprite instead
+        if getattr(self, '_show_error_sprite', False):
+            # Create a red question mark sprite programmatically
+            error_surface = pygame.Surface((feldgroesse, feldgroesse))
+            error_surface.fill((200, 0, 0))  # Red background
+            font = pygame.font.Font(None, int(feldgroesse * 0.8))
+            text = font.render('?', True, (255, 255, 255))  # White question mark
+            text_rect = text.get_rect(center=(feldgroesse // 2, feldgroesse // 2))
+            error_surface.blit(text, text_rect)
+            screen.blit(error_surface, (self.x * feldgroesse, self.y * feldgroesse))
+            return
+        
         img = pygame.transform.scale(self.bild, (feldgroesse, feldgroesse))
         screen.blit(img, (self.x * feldgroesse, self.y * feldgroesse))
 

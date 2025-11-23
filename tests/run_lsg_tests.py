@@ -13,8 +13,9 @@ pyexe = sys.executable
 results = []
 
 # Wenn RUN_LSG_TIMEOUT_SECS > 0 gesetzt ist, wird dieser Timeout pro Level verwendet (Sekunden).
-# Setze nicht oder auf 0, um unbegrenzt zu warten (empfohlen, wenn Framework im Test-Modus selbst endet).
-TIMEOUT_SECS = int(os.getenv("RUN_LSG_TIMEOUT_SECS", "0"))
+# Standard ist 3 Sekunden - genug für erfolgreiche Levels (~1s), aber kurz genug für Timeout-Tests.
+# Setze auf 0, um unbegrenzt zu warten.
+TIMEOUT_SECS = int(os.getenv("RUN_LSG_TIMEOUT_SECS", "3"))
 
 paths = sorted(glob.glob(os.path.join(LSG_DIR, "lsg*.py")))
 if not paths:
@@ -67,7 +68,8 @@ for path in paths:
         except Exception:
             pass
         print("=> TIMEOUT")
-        results.append((name, False, 124))
+        expected_ok = ("_expected_fail" not in name)
+        results.append((name, False, 124, expected_ok))
         continue
 
     rc = proc.returncode

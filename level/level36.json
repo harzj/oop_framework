@@ -1,10 +1,9 @@
 {
   "tiles": [
-    "wyywyyyy",
-    "wtmwdgwh",
-    "pwwkwwww",
-    "wwwwwwcw",
-    "wwwcwwxw"
+    "wwww",
+    "wpww",
+    "wwww",
+    "wwww"
   ],
   "settings": {
     "Held": {
@@ -22,7 +21,7 @@
     "Tuer": {
       "public": true
     },
-    "Code": {
+    "Zettel": {
       "public": true
     },
     "Villager": {
@@ -31,16 +30,46 @@
     "Hindernis": {
       "public": true
     },
-    "orientations": {
-      "3,2": "right",
-      "0,2": "right"
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
     },
     "victory": {
-      "collect_hearts": true,
-      "move_to": null,
-      "classes_present": false
+      "collect_hearts": false,
+      "move_to": {
+        "enabled": true,
+        "x": 2,
+        "y": 3
+      },
+      "classes_present": true
     },
-    "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "initial_gold": 0,
+    "quest_max_kosten": 0,
+    "quest_mode": "items",
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Held": {
+        "inherits": "None",
+        "load_from_schueler": true,
+        "load_from_klassen": false,
+        "methods": [
+          "geh",
+          "links",
+          "rechts"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "richtung",
+          "name",
+          "weiblich",
+          "typ"
+        ]
+      }
+    }
   }
 }

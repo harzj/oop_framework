@@ -68,6 +68,11 @@ class RunLsgGui:
         self.delay_entry = ttk.Entry(right, textvariable=self.delay_var, width=12)
         self.delay_entry.pack(anchor='w')
 
+        ttk.Label(right, text="Timeout (secs, 0=unlimited):").pack(anchor='w', pady=(8,2))
+        self.timeout_var = tk.StringVar(value=os.getenv("RUN_LSG_TIMEOUT_SECS", "3"))
+        self.timeout_entry = ttk.Entry(right, textvariable=self.timeout_var, width=12)
+        self.timeout_entry.pack(anchor='w')
+
         btn_frame = ttk.Frame(right)
         btn_frame.pack(anchor='w', pady=8)
 
@@ -119,6 +124,13 @@ class RunLsgGui:
         except Exception:
             self._append_text("Ungültiger Delay-Wert, bitte Ganzzahl eingeben.\n")
             return
+        
+        # parse timeout
+        try:
+            timeout = int(self.timeout_var.get())
+        except Exception:
+            self._append_text("Ungültiger Timeout-Wert, bitte Ganzzahl eingeben.\n")
+            return
 
         # disable UI controls while running
         self.run_btn.config(state=tk.DISABLED)
@@ -130,7 +142,7 @@ class RunLsgGui:
         self._stop_event.clear()
 
         # start background thread
-        self.worker_thread = threading.Thread(target=self._run_worker, args=(selected_files, delay), daemon=True)
+        self.worker_thread = threading.Thread(target=self._run_worker, args=(selected_files, delay, timeout), daemon=True)
         self.worker_thread.start()
 
     def stop_run(self):
@@ -138,13 +150,90 @@ class RunLsgGui:
         self._stop_event.set()
         self._append_text("Stop requested. Trying to terminate running tests...\n")
 
-    def _run_worker(self, files, delay_ms):
+    def _run_worker(self, files, delay_ms, timeout_secs):
         results = []
         for path in files:
             if self._stop_event.is_set():
                 break
             name = os.path.basename(path)
             self.queue.put(f"\n=== Running {name} ===\n")
+            
+            # For lsg35.py and lsg36.py: backup schueler.py and extract class from lsg file
+            # For lsg37.py: backup klassen/held.py and replace with held_lsg_37.py
+            # For lsg31.py: backup framework/held.py and activate setze_position (if False -> if True)
+            schueler_path = os.path.join(ROOT, "schueler.py")
+            held_klassen_path = os.path.join(ROOT, "klassen", "held.py")
+            held_framework_path = os.path.join(ROOT, "framework", "held.py")
+            schueler_backup = None
+            held_backup = None
+            framework_held_backup = None
+            needs_schueler_replacement = name in ["lsg35.py", "lsg36.py"]
+            needs_held_replacement = name == "lsg37.py"
+            needs_framework_held_modification = name == "lsg31.py"
+            
+            if needs_schueler_replacement:
+                try:
+                    # Backup existing schueler.py
+                    if os.path.exists(schueler_path):
+                        with open(schueler_path, 'r', encoding='utf-8') as f:
+                            schueler_backup = f.read()
+                    
+                    # Extract Held class from lsg file
+                    with open(path, 'r', encoding='utf-8') as f:
+                        lsg_content = f.read()
+                    
+                    # Find the class definition in lsg file (between imports and framework.starten())
+                    import_end = lsg_content.find("# Ab hier darfst du programmieren:")
+                    starten_start = lsg_content.find("# Dieser Befehl muss immer am Ende stehen")
+                    
+                    if import_end != -1 and starten_start != -1:
+                        class_code = lsg_content[import_end:starten_start].strip()
+                        # Write to schueler.py
+                        with open(schueler_path, 'w', encoding='utf-8') as f:
+                            f.write(class_code + "\n")
+                        self.queue.put(f"[info] Extracted Held class to schueler.py for {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not extract class for {name}: {e}\n")
+            
+            if needs_held_replacement:
+                try:
+                    # Backup existing klassen/held.py
+                    if os.path.exists(held_klassen_path):
+                        with open(held_klassen_path, 'r', encoding='utf-8') as f:
+                            held_backup = f.read()
+                    
+                    # Copy held_lsg_37.py to klassen/held.py
+                    held_lsg_path = os.path.join(ROOT, "lsg", "held_lsg_37.py")
+                    if os.path.exists(held_lsg_path):
+                        with open(held_lsg_path, 'r', encoding='utf-8') as f:
+                            held_lsg_content = f.read()
+                        with open(held_klassen_path, 'w', encoding='utf-8') as f:
+                            f.write(held_lsg_content)
+                        self.queue.put(f"[info] Copied held_lsg_37.py to klassen/held.py for {name}\n")
+                    else:
+                        self.queue.put(f"[warning] held_lsg_37.py not found\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not replace klassen/held.py for {name}: {e}\n")
+            
+            if needs_framework_held_modification:
+                try:
+                    import re
+                    # Backup existing framework/held.py
+                    if os.path.exists(held_framework_path):
+                        with open(held_framework_path, 'r', encoding='utf-8') as f:
+                            framework_held_backup = f.read()
+                        
+                        # Modify setze_position: if False -> if True
+                        pattern = r'(def setze_position\s*\([^)]*\):\s*[^\n]*\n(?:[^\n]*\n)*?\s*)if False:'
+                        modified_content = re.sub(pattern, r'\1if True:', framework_held_backup)
+                        
+                        # Write modified content
+                        with open(held_framework_path, 'w', encoding='utf-8') as f:
+                            f.write(modified_content)
+                        self.queue.put(f"[info] Activated setze_position in framework/held.py for {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not modify framework/held.py for {name}: {e}\n")
+            
             env = os.environ.copy()
             env["OOP_TEST"] = "1"
             env["PYTHONPATH"] = ROOT
@@ -160,17 +249,36 @@ class RunLsgGui:
             self._current_proc = proc
 
             try:
-                with proc.stdout:
-                    for line in proc.stdout:
-                        # forward line to main thread
+                if timeout_secs and timeout_secs > 0:
+                    # Use timeout
+                    out, _ = proc.communicate(timeout=timeout_secs)
+                    for line in out.splitlines(True):
                         self.queue.put(line)
-                        if self._stop_event.is_set():
-                            try:
-                                proc.kill()
-                            except Exception:
-                                pass
-                            break
-                proc.wait()
+                else:
+                    # No timeout - stream output
+                    with proc.stdout:
+                        for line in proc.stdout:
+                            # forward line to main thread
+                            self.queue.put(line)
+                            if self._stop_event.is_set():
+                                try:
+                                    proc.kill()
+                                except Exception:
+                                    pass
+                                break
+                    proc.wait()
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                try:
+                    rest = proc.stdout.read() if proc.stdout else ""
+                    if rest:
+                        self.queue.put(rest)
+                except Exception:
+                    pass
+                self.queue.put("=> TIMEOUT\n")
+                results.append((name, False, 124))
+                self._current_proc = None
+                continue
             except Exception as e:
                 self.queue.put(f"[runner] Exception: {e}\n")
                 try:
@@ -182,6 +290,33 @@ class RunLsgGui:
             ok = (rc == 0)
             results.append((name, ok, rc))
             self.queue.put(f"=> {'OK' if ok else f'FAIL (code {rc})'}\n")
+            
+            # Restore schueler.py if it was replaced
+            if needs_schueler_replacement and schueler_backup is not None:
+                try:
+                    with open(schueler_path, 'w', encoding='utf-8') as f:
+                        f.write(schueler_backup)
+                    self.queue.put(f"[info] Restored schueler.py after {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not restore schueler.py: {e}\n")
+            
+            # Restore klassen/held.py if it was replaced
+            if needs_held_replacement and held_backup is not None:
+                try:
+                    with open(held_klassen_path, 'w', encoding='utf-8') as f:
+                        f.write(held_backup)
+                    self.queue.put(f"[info] Restored klassen/held.py after {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not restore klassen/held.py: {e}\n")
+            
+            # Restore framework/held.py if it was modified
+            if needs_framework_held_modification and framework_held_backup is not None:
+                try:
+                    with open(held_framework_path, 'w', encoding='utf-8') as f:
+                        f.write(framework_held_backup)
+                    self.queue.put(f"[info] Restored framework/held.py after {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not restore framework/held.py: {e}\n")
 
         # summary
         self.queue.put("\n--- summary ---\n")
