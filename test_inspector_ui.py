@@ -7,13 +7,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from framework.grundlage import level
 
-# Load Level 37 with private attributes
-level.lade(37, weiblich=False)
+# Load Level 38 with private attributes
+level.lade(38, weiblich=False)
 
 from framework.grundlage import *
 
 print("=" * 70)
-print("Inspector UI Test - Level 37 mit privaten Attributen")
+print("Inspector UI Test - Level 38 mit privaten Attributen")
 print("=" * 70)
 print()
 print("Instructions:")

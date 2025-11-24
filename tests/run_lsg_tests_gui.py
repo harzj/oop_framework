@@ -158,8 +158,8 @@ class RunLsgGui:
             name = os.path.basename(path)
             self.queue.put(f"\n=== Running {name} ===\n")
             
-            # For lsg35.py and lsg36.py: backup schueler.py and extract class from lsg file
-            # For lsg37.py: backup klassen/held.py and replace with held_lsg_37.py
+            # For lsg35.py, lsg36.py, lsg37.py: backup schueler.py and extract class from lsg file
+            # For lsg38.py: backup klassen/held.py and replace with held_lsg_37.py
             # For lsg31.py: backup framework/held.py and activate setze_position (if False -> if True)
             schueler_path = os.path.join(ROOT, "schueler.py")
             held_klassen_path = os.path.join(ROOT, "klassen", "held.py")
@@ -167,8 +167,8 @@ class RunLsgGui:
             schueler_backup = None
             held_backup = None
             framework_held_backup = None
-            needs_schueler_replacement = name in ["lsg35.py", "lsg36.py"]
-            needs_held_replacement = name == "lsg37.py"
+            needs_schueler_replacement = name in ["lsg35.py", "lsg36.py", "lsg37.py"]
+            needs_held_replacement = name == "lsg38.py"
             needs_framework_held_modification = name == "lsg31.py"
             
             if needs_schueler_replacement:
@@ -202,8 +202,8 @@ class RunLsgGui:
                         with open(held_klassen_path, 'r', encoding='utf-8') as f:
                             held_backup = f.read()
                     
-                    # Copy held_lsg_37.py to klassen/held.py
-                    held_lsg_path = os.path.join(ROOT, "lsg", "held_lsg_37.py")
+                    # Copy held_lsg_38.py to klassen/held.py
+                    held_lsg_path = os.path.join(ROOT, "lsg", "held_lsg_38.py")
                     if os.path.exists(held_lsg_path):
                         with open(held_lsg_path, 'r', encoding='utf-8') as f:
                             held_lsg_content = f.read()

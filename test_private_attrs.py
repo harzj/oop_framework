@@ -26,8 +26,8 @@ class DummyFramework:
         pass
 
 fw = DummyFramework()
-level37_path = os.path.join(root_dir, 'level', 'level37.json')
-sp = Spielfeld(level37_path, fw, feldgroesse=32)
+level38_path = os.path.join(root_dir, 'level', 'level38.json')
+sp = Spielfeld(level38_path, fw, feldgroesse=32)
 
 print(f"✓ Spielfeld loaded")
 

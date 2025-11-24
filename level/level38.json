@@ -1,8 +1,8 @@
 {
   "tiles": [
     "wwww",
+    "wpww",
     "wwww",
-    "wwpw",
     "wwww"
   ],
   "settings": {
@@ -36,12 +36,13 @@
     "Bogenschuetze": {
       "public": true
     },
-    "orientations": {
-      "2,2": "left"
-    },
     "victory": {
       "collect_hearts": false,
-      "move_to": null,
+      "move_to": {
+        "enabled": true,
+        "x": 2,
+        "y": 3
+      },
       "classes_present": true
     },
     "initial_gold": 0,
@@ -53,9 +54,13 @@
     "class_requirements": {
       "Held": {
         "inherits": "None",
-        "load_from_schueler": true,
-        "load_from_klassen": false,
-        "methods": [],
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [
+          "geh",
+          "links",
+          "rechts"
+        ],
         "attributes": [
           "x",
           "y",

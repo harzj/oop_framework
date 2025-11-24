@@ -1,16 +1,50 @@
 #!/usr/bin/env python3
-"""Test Level 37 victory checking with klassen/held.py"""
+"""Test Level 37 victory checking with move_to and method requirements"""
 import sys
 import os
 import pygame
 
 pygame.init()
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, root_dir)
 
 print("=" * 70)
-print("Testing Level 37 Victory Conditions (load_from_klassen)")
+print("Testing Level 37 Victory Conditions")
 print("=" * 70)
+
+# Create proper Level 36 solution
+test_solution = """
+class Held:
+    def __init__(self, x, y, richtung, weiblich):
+        self.x = x
+        self.y = y
+        self.richtung = richtung
+        self.weiblich = weiblich
+        self.name = "Namenloser Held"
+        self.typ = "Held"
+    
+    def geh(self):
+        if self.richtung == "o":
+            self.x += 1
+        elif self.richtung == "w":
+            self.x -= 1
+        elif self.richtung == "n":
+            self.y -= 1
+        elif self.richtung == "s":
+            self.y += 1
+    
+    def links(self):
+        links_dict = {"o": "n", "n": "w", "w": "s", "s": "o"}
+        self.richtung = links_dict[self.richtung]
+    
+    def rechts(self):
+        rechts_dict = {"o": "s", "s": "w", "w": "n", "n": "o"}
+        self.richtung = rechts_dict[self.richtung]
+"""
+
+schueler_path = os.path.join(root_dir, 'schueler.py')
+with open(schueler_path, 'w', encoding='utf-8') as f:
+    f.write(test_solution)
 
 from framework.spielfeld import Spielfeld
 
@@ -28,13 +62,9 @@ sp = Spielfeld(level37_path, fw, feldgroesse=32)
 
 print(f"✓ Spielfeld loaded")
 print(f"✓ Victory conditions:")
-vs = sp.victory_settings
-print(f"  - move_to: x={vs.get('move_to', {}).get('x')}, y={vs.get('move_to', {}).get('y')}")
-print(f"  - classes_present: {vs.get('classes_present')}")
-req = sp.class_requirements.get('Held', {})
-print(f"  - Required methods: {req.get('methods', [])}")
-print(f"  - Required attributes: {req.get('attributes', [])}")
-print(f"  - load_from_klassen: {req.get('load_from_klassen')}")
+print(f"  - move_to: x={sp.victory_settings.get('move_to', {}).get('x')}, y={sp.victory_settings.get('move_to', {}).get('y')}")
+print(f"  - classes_present: {sp.victory_settings.get('classes_present')}")
+print(f"  - Required methods: {sp.class_requirements.get('Held', {}).get('methods', [])}")
 
 # Check class implementation
 has_class = sp._student_has_class('Held')
@@ -46,30 +76,16 @@ if not has_class:
 
 # Get the hero
 held = sp.held
-if held is None:
-    print("✗ No hero spawned!")
-    sys.exit(1)
+print(f"\n✓ Hero starting position: x={held.x}, y={held.y}")
 
-print(f"\n✓ Hero starting position: x={held.x}, y={held.y}, richtung={held.richtung}")
+# Move hero to victory position (2, 3)
+target_x = sp.victory_settings['move_to']['x']
+target_y = sp.victory_settings['move_to']['y']
 
-# Check attributes
-print(f"\n✓ Checking attributes:")
-for attr in ['x', 'y', 'richtung', 'name', 'weiblich', 'typ']:
-    # Access through held (MetaHeld wrapper) to properly trigger getter fallback
-    try:
-        val = getattr(held, attr)
-        has_it = True
-    except AttributeError:
-        val = 'MISSING'
-        has_it = False
-    print(f"  - {attr}: {val} {'✓' if has_it else '✗'}")
-
-# Move hero directly to target
-target_x = vs['move_to']['x']
-target_y = vs['move_to']['y']
+# Simulate movement to target
 held.x = target_x
 held.y = target_y
-print(f"\n✓ Moved hero to target: ({held.x}, {held.y})")
+print(f"✓ Moved hero to: x={held.x}, y={held.y}")
 
 # Check victory
 victory = sp.check_victory()
@@ -77,7 +93,7 @@ print(f"\n✓ Victory check result: {victory}")
 
 if victory:
     print("\n" + "=" * 70)
-    print("✓✓✓ LEVEL 37 VICTORY TEST PASSED ✓✓✓")
+    print("✓✓✓ LEVEL 36 VICTORY TEST PASSED ✓✓✓")
     print("=" * 70)
 else:
     print("\n✗ Victory should have been triggered!")

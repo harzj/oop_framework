@@ -54,8 +54,8 @@
     "class_requirements": {
       "Held": {
         "inherits": "None",
-        "load_from_schueler": false,
-        "load_from_klassen": true,
+        "load_from_schueler": true,
+        "load_from_klassen": false,
         "methods": [
           "geh",
           "links",

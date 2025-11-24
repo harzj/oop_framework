@@ -15,8 +15,8 @@ class F:
         pass
 
 fw = F()
-level36_path = os.path.join(root_dir, 'level', 'level36.json')
-sp = Spielfeld(level36_path, fw, feldgroesse=32)
+level37_path = os.path.join(root_dir, 'level', 'level37.json')
+sp = Spielfeld(level37_path, fw, feldgroesse=32)
 h = sp.held
 
 print(f'Start: ({h.x},{h.y}), direction={h.richtung}')

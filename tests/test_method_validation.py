@@ -39,8 +39,8 @@ class DummyFramework:
         pass
 
 fw = DummyFramework()
-level36_path = os.path.join(root_dir, 'level', 'level36.json')
-sp = Spielfeld(level36_path, fw, feldgroesse=32)
+level37_path = os.path.join(root_dir, 'level', 'level37.json')
+sp = Spielfeld(level37_path, fw, feldgroesse=32)
 
 print(f"✓ Spielfeld loaded")
 print(f"✓ Class requirements methods: {sp.class_requirements.get('Held', {}).get('methods', [])}")
@@ -86,7 +86,7 @@ with open(schueler_path, 'w', encoding='utf-8') as f:
 if 'schueler' in sys.modules:
     del sys.modules['schueler']
 
-sp2 = Spielfeld(level36_path, fw, feldgroesse=32)
+sp2 = Spielfeld(level37_path, fw, feldgroesse=32)
 
 has_class2 = sp2._student_has_class('Held')
 print(f"✓ _student_has_class('Held'): {has_class2}")

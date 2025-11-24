@@ -19,7 +19,7 @@ class DummyFramework:
         pass
 
 fw = DummyFramework()
-sp = Spielfeld('level/level37.json', fw, feldgroesse=32)
+sp = Spielfeld('level/level38.json', fw, feldgroesse=32)
 
 held = sp.held
 if held is None:

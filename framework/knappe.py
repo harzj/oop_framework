@@ -89,6 +89,9 @@ class Knappe(Objekt):
         """Liest den Code vom Boden (falls dort ein Zettel liegt)."""
         if not self.framework:
             return None
+        # Check if framework is blocked
+        if getattr(self.framework, '_aktion_blockiert', False):
+            return None
         code_obj = self.framework.spielfeld.finde_code(self.x, self.y)
         if code_obj:
             self.geheimer_code = code_obj.gib_code()
@@ -96,12 +99,18 @@ class Knappe(Objekt):
             if self.framework:
                 self.framework.spielfeld.entferne_objekt(code_obj)
             return self.geheimer_code
+        # Kein Spruch gefunden - ungültige Aktion
+        if not getattr(self.framework, '_aus_tastatur', False):
+            self._ungueltige_aktion("Ungültige Aktion! Versuch es nochmal!")
         print("[Knappe] Kein Spruch hier.")
         self._render_and_delay(delay_ms)
         return None
     
     def bediene_tor(self,delay_ms=500):
         """Versucht, das Tor vor dem Helden zu öffnen oder zu schließen."""
+        # Check if framework is blocked
+        if getattr(self.framework, '_aktion_blockiert', False):
+            return None
         tor = self.framework.spielfeld.finde_tor_vor(self)
         if tor:
             if tor.offen:
@@ -109,6 +118,10 @@ class Knappe(Objekt):
             else:
                 tor.oeffnen()
         else:
+            # Kein Tor gefunden - ungültige Aktion
+            if not getattr(self.framework, '_aus_tastatur', False):
+                self._ungueltige_aktion("Ungültige Aktion! Versuch es nochmal!")
+            print("[Knappe]: Kein Tor vor mir")
             return None
         self._render_and_delay(delay_ms)
 

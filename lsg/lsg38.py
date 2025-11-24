@@ -1,8 +1,12 @@
 from framework.grundlage import level
-level.lade(38,weiblich=True)
+level.lade(38, weiblich=True)
 from framework.grundlage import *
-# Ab hier darfst du programmieren:
 
+# Ab hier darfst du programmieren:
+held.geh()
+held.geh()
+held.links()
+held.geh()
 
 # Dieser Befehl muss immer am Ende stehen
 framework.starten()

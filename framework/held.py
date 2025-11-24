@@ -72,6 +72,10 @@ class Held(Objekt):
         if not self.framework or not hasattr(self.framework, 'spielfeld'):
             return False
         
+        # Check if framework is blocked
+        if getattr(self.framework, '_aktion_blockiert', False):
+            return False
+        
         sp = self.framework.spielfeld
         
         # Try to pick up heart
@@ -79,6 +83,20 @@ class Held(Objekt):
             herz = sp.finde_herz(self.x, self.y)
             if herz:
                 sp.entferne_objekt(herz)
+                self._herzen += 1
+                # Reward gold if configured
+                try:
+                    from .config import HEART_GOLD
+                    if hasattr(self, 'gold'):
+                        try:
+                            self.gold = int(getattr(self, 'gold', 0) or 0) + int(HEART_GOLD)
+                        except Exception:
+                            try:
+                                self.gold = int(HEART_GOLD)
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
                 self._render_and_delay(delay_ms)
                 return True
         except Exception:
@@ -114,6 +132,9 @@ class Held(Objekt):
         except Exception:
             pass
         
+        # Nichts zum Aufheben gefunden - ungültige Aktion
+        if not getattr(self.framework, '_aus_tastatur', False):
+            self._ungueltige_aktion("Ungültige Aktion! Versuch es nochmal!")
         print("Hier liegt nichts.")
         self._render_and_delay(delay_ms)
         return False
@@ -232,6 +253,9 @@ class Held(Objekt):
         """Liest den Code vom Boden (falls dort ein Zettel liegt)."""
         if not self.framework:
             return None
+        # Check if framework is blocked
+        if getattr(self.framework, '_aktion_blockiert', False):
+            return None
         code_obj = self.framework.spielfeld.finde_code(self.x, self.y)
         if code_obj:
             self.geheimer_code = code_obj.gib_code()
@@ -239,6 +263,9 @@ class Held(Objekt):
             if self.framework:
                 self.framework.spielfeld.entferne_objekt(code_obj)
             return self.geheimer_code
+        # Kein Spruch gefunden - ungültige Aktion
+        if not getattr(self.framework, '_aus_tastatur', False):
+            self._ungueltige_aktion("Ungültige Aktion! Versuch es nochmal!")
         print("[Held] Kein Spruch hier.")
         self._render_and_delay(delay_ms)
         return None
@@ -248,6 +275,9 @@ class Held(Objekt):
     
     def bediene_tor(self,delay_ms=500):
         """Versucht, das Tor vor dem Helden zu öffnen oder zu schließen."""
+        # Check if framework is blocked
+        if getattr(self.framework, '_aktion_blockiert', False):
+            return
         tor = self.framework.spielfeld.finde_tor_vor(self)
         if tor:
             if tor.offen:
@@ -255,6 +285,9 @@ class Held(Objekt):
             else:
                 tor.oeffnen()
         else:
+            # Kein Tor gefunden - ungültige Aktion
+            if not getattr(self.framework, '_aus_tastatur', False):
+                self._ungueltige_aktion("Ungültige Aktion! Versuch es nochmal!")
             print("[Held]: Kein Tor vor mir")
         self._render_and_delay(delay_ms)
 
