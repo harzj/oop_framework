@@ -330,10 +330,27 @@ class MetaHeld(Held):
     """
 
     def __init__(self, framework, student_obj, x=0, y=0, richtung='down', weiblich=False):
-        # Use student's position values if they exist, otherwise use level position
-        student_x = getattr(student_obj, 'x', x)
-        student_y = getattr(student_obj, 'y', y)
-        student_richtung = getattr(student_obj, 'richtung', richtung)
+        # Helper to get attribute value directly or via getter
+        def get_attr_or_via_getter(obj, attr_name, default):
+            """Get attribute value directly or via get_<attr> method"""
+            try:
+                return getattr(obj, attr_name)
+            except AttributeError:
+                # Try getter method
+                getter_name = f'get_{attr_name}'
+                if hasattr(obj, getter_name):
+                    try:
+                        getter = getattr(obj, getter_name)
+                        if callable(getter):
+                            return getter()
+                    except Exception:
+                        pass
+                return default
+        
+        # Use student's position values if they exist (directly or via getter), otherwise use level position
+        student_x = get_attr_or_via_getter(student_obj, 'x', x)
+        student_y = get_attr_or_via_getter(student_obj, 'y', y)
+        student_richtung = get_attr_or_via_getter(student_obj, 'richtung', richtung)
         
         super().__init__(framework, student_x, student_y, student_richtung, steuerung_aktiv=False, weiblich=weiblich)
         object.__setattr__(self, '_student', student_obj)
@@ -423,12 +440,25 @@ class MetaHeld(Held):
                         # No implementation - do nothing (student must implement method)
                         pass
                 finally:
-                    # Sync position/direction from student -> meta
+                    # Sync position/direction from student -> meta (try direct access, then getter)
                     try:
                         if stud is not None:
                             for a in ('x', 'y', 'richtung'):
-                                if hasattr(stud, a):
-                                    object.__setattr__(self, a, getattr(stud, a))
+                                # Try direct access first
+                                try:
+                                    val = getattr(stud, a)
+                                    object.__setattr__(self, a, val)
+                                except AttributeError:
+                                    # Try getter method
+                                    getter_name = f'get_{a}'
+                                    if hasattr(stud, getter_name):
+                                        try:
+                                            getter = getattr(stud, getter_name)
+                                            if callable(getter):
+                                                val = getter()
+                                                object.__setattr__(self, a, val)
+                                        except Exception:
+                                            pass
                     except Exception:
                         pass
                     # Update sprite to reflect new direction

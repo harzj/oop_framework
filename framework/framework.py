@@ -207,21 +207,49 @@ class Framework:
                     except Exception:
                         pass
                     try:
-                        # show only attributes present on the student object
+                        # show only attributes present on the student object (directly or via getter)
                         dm = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'O', 'N': 'N', 'S': 'S', 'W': 'W', 'O': 'O'}
-                        if hasattr(stud, 'x'):
-                            x_val = getattr(stud, 'x')
+                        
+                        # Helper to get value directly or via getter
+                        def get_student_attr(obj, attr_name):
+                            """Try direct access first, then getter method"""
+                            try:
+                                return getattr(obj, attr_name)
+                            except AttributeError:
+                                getter_name = f'get_{attr_name}'
+                                if hasattr(obj, getter_name):
+                                    try:
+                                        getter = getattr(obj, getter_name)
+                                        if callable(getter):
+                                            return getter()
+                                    except Exception:
+                                        pass
+                                raise
+                        
+                        # Try to get and display x
+                        try:
+                            x_val = get_student_attr(stud, 'x')
                             x_txt = self.font.render(f"x={x_val}", True, (200,200,200))
                             self.screen.blit(x_txt, (panel_x, y)); y += 20
-                        if hasattr(stud, 'y'):
-                            y_val = getattr(stud, 'y')
+                        except AttributeError:
+                            pass
+                        
+                        # Try to get and display y
+                        try:
+                            y_val = get_student_attr(stud, 'y')
                             y_txt = self.font.render(f"y={y_val}", True, (200,200,200))
                             self.screen.blit(y_txt, (panel_x, y)); y += 20
-                        if hasattr(stud, 'richtung'):
-                            r = getattr(stud, 'richtung')
+                        except AttributeError:
+                            pass
+                        
+                        # Try to get and display richtung
+                        try:
+                            r = get_student_attr(stud, 'richtung')
                             rdisp = dm.get(str(r), str(r))
                             r_txt = self.font.render(f"richtung={rdisp}", True, (200,200,200))
                             self.screen.blit(r_txt, (panel_x, y)); y += 20
+                        except AttributeError:
+                            pass
                     except Exception:
                         pass
                     # After showing richtung, draw Held-Inventar (if any) below it

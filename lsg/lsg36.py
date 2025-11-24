@@ -5,7 +5,7 @@ from framework.grundlage import *
 # Ab hier darfst du programmieren:
 class Held:
     def __init__(self, x, y, richtung, weiblich):
-        self.x = x  # Setze feste Startposition (0,0) unabhängig von Level
+        self.x = x
         self.y = y
         self.richtung = richtung
         self.weiblich = weiblich

@@ -39,6 +39,8 @@ class Held:
             self.__richtung = "down"
     
     # Getter methods for private attributes
+
+
     def get_x(self):
         return self.__x
     
@@ -47,7 +49,7 @@ class Held:
     
     def get_richtung(self):
         return self.__richtung
-    
+   
     def get_weiblich(self):
         return self.__weiblich
     

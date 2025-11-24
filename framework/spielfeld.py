@@ -425,11 +425,25 @@ class Spielfeld:
                         self.held = None
                         continue
                     
-                    # Check which attributes the student set
-                    has_x = hasattr(student_inst, 'x')
-                    has_y = hasattr(student_inst, 'y')
-                    has_richtung = hasattr(student_inst, 'richtung')
-                    has_weiblich = hasattr(student_inst, 'weiblich')
+                    # Check which attributes the student set (or provides via getter methods)
+                    # For each attribute, check direct access OR getter method
+                    def has_attribute_or_getter(obj, attr_name):
+                        """Check if object has attribute directly or via get_<attr> method"""
+                        # Try direct access first
+                        if hasattr(obj, attr_name):
+                            return True
+                        # Try getter method
+                        getter_name = f'get_{attr_name}'
+                        if hasattr(obj, getter_name):
+                            getter = getattr(obj, getter_name)
+                            if callable(getter):
+                                return True
+                        return False
+                    
+                    has_x = has_attribute_or_getter(student_inst, 'x')
+                    has_y = has_attribute_or_getter(student_inst, 'y')
+                    has_richtung = has_attribute_or_getter(student_inst, 'richtung')
+                    has_weiblich = has_attribute_or_getter(student_inst, 'weiblich')
                     
                     # Store student instance wrapped in MetaHeld for framework integration
                     from .held import MetaHeld
@@ -445,9 +459,26 @@ class Spielfeld:
                     
                     # Check if student's position matches level expectation and warn if not
                     if has_x and has_y:
-                        student_x = getattr(student_inst, 'x', None)
-                        student_y = getattr(student_inst, 'y', None)
-                        if student_x != x or student_y != y:
+                        # Try to get position via direct access or getter
+                        def get_attribute_value(obj, attr_name, default=None):
+                            """Get attribute value directly or via get_<attr> method"""
+                            try:
+                                return getattr(obj, attr_name)
+                            except AttributeError:
+                                # Try getter method
+                                getter_name = f'get_{attr_name}'
+                                if hasattr(obj, getter_name):
+                                    getter = getattr(obj, getter_name)
+                                    if callable(getter):
+                                        try:
+                                            return getter()
+                                        except Exception:
+                                            pass
+                                return default
+                        
+                        student_x = get_attribute_value(student_inst, 'x', None)
+                        student_y = get_attribute_value(student_inst, 'y', None)
+                        if student_x is not None and student_y is not None and (student_x != x or student_y != y):
                             print(f"[WARNUNG] Held ist an Position ({student_x}, {student_y}), "
                                   f"aber Level erwartet ({x}, {y}). Level kann nicht abgeschlossen werden.")
                     
@@ -2345,15 +2376,35 @@ class Spielfeld:
                         student_mode_for_held = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
                         
                         if student_mode_for_held:
-                            # Check all required attributes exist
-                            # Use held (MetaHeld wrapper) to access attributes, which will
-                            # try direct access first, then fall back to getter methods
+                            # Check all required attributes exist on student object
+                            # Must check the student object directly, not the MetaHeld wrapper,
+                            # because MetaHeld inherits attributes from base Held class
                             required_attrs = req.get('attributes', [])
+                            
+                            # Get student object from MetaHeld wrapper
+                            student_obj = getattr(held, '_student', None)
+                            if student_obj is None:
+                                return False
+                            
                             for attr in required_attrs:
-                                try:
-                                    # Access through held (MetaHeld) to trigger __getattr__ with getter fallback
-                                    getattr(held, attr)
-                                except AttributeError:
+                                # Check if attribute is accessible on student object
+                                # (either directly or via getter method)
+                                accessible = False
+                                # Try direct attribute access
+                                if hasattr(student_obj, attr):
+                                    accessible = True
+                                else:
+                                    # Try getter method
+                                    getter_name = f'get_{attr}'
+                                    if hasattr(student_obj, getter_name):
+                                        try:
+                                            getter = getattr(student_obj, getter_name)
+                                            if callable(getter):
+                                                accessible = True
+                                        except Exception:
+                                            pass
+                                
+                                if not accessible:
                                     return False
                             
                             # Check that position/direction values match level expectations

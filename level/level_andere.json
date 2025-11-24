@@ -1,0 +1,97 @@
+{
+  "tiles": [
+    "tttt",
+    "tmbt",
+    "tpgt",
+    "tttt"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Zettel": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "victory": {
+      "collect_hearts": false,
+      "move_to": null,
+      "classes_present": true
+    },
+    "initial_gold": 0,
+    "quest_mode": "items",
+    "quest_max_kosten": 0,
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Held": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [],
+        "attributes": [
+          "x",
+          "y",
+          "richtung",
+          "name",
+          "weiblich"
+        ]
+      },
+      "Tor": {
+        "inherits": "None",
+        "methods": [
+          "get_x",
+          "get_y",
+          "oeffnen",
+          "schliessen",
+          "bedienen",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "offen",
+          "typ"
+        ]
+      },
+      "Hindernis": {
+        "inherits": "None",
+        "methods": [
+          "get_x",
+          "get_y",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ",
+          "art"
+        ]
+      }
+    }
+  }
+}
