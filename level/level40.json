@@ -1,0 +1,28 @@
+{
+  "tiles": [
+    "wwwwww",
+    "wwwwww",
+    "wwwwww",
+    "wwwwww",
+    "wwwwww"
+  ],
+  "settings": {
+    "orientations": {
+      "2,2": "down"
+    },
+    "victory": {
+      "rebuild_mode": true,
+      "collect_hearts": false,
+      "move_to": null,
+      "classes_present": false
+    },
+    "template_objects": [
+      {
+        "typ": "Held",
+        "x": 2,
+        "y": 2,
+        "richtung": "down"
+      }
+    ]
+  }
+}

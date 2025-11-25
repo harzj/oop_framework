@@ -1,0 +1,125 @@
+{
+  "tiles": [
+    "wwbww",
+    "mwxww",
+    "tphkw",
+    "wwwht",
+    "swwdh"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Zettel": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "colors": {
+      "0,4": "blue",
+      "3,4": "blue"
+    },
+    "victory": {
+      "rebuild_mode": true,
+      "collect_hearts": false,
+      "move_to": null,
+      "classes_present": false
+    },
+    "initial_gold": 0,
+    "quest_mode": "items",
+    "quest_max_kosten": 0,
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "template_objects": [
+      {
+        "typ": "Hindernis",
+        "x": 2,
+        "y": 0,
+        "hindernis_typ": "Busch"
+      },
+      {
+        "typ": "Hindernis",
+        "x": 0,
+        "y": 1,
+        "hindernis_typ": "Berg"
+      },
+      {
+        "typ": "Monster",
+        "x": 2,
+        "y": 1
+      },
+      {
+        "typ": "Hindernis",
+        "x": 0,
+        "y": 2,
+        "hindernis_typ": "Baum"
+      },
+      {
+        "typ": "Held",
+        "x": 1,
+        "y": 2
+      },
+      {
+        "typ": "Herz",
+        "x": 2,
+        "y": 2
+      },
+      {
+        "typ": "Knappe",
+        "x": 3,
+        "y": 2
+      },
+      {
+        "typ": "Herz",
+        "x": 3,
+        "y": 3
+      },
+      {
+        "typ": "Hindernis",
+        "x": 4,
+        "y": 3,
+        "hindernis_typ": "Baum"
+      },
+      {
+        "typ": "Schluessel",
+        "x": 0,
+        "y": 4,
+        "farbe": "blue"
+      },
+      {
+        "typ": "Tuer",
+        "x": 3,
+        "y": 4,
+        "farbe": "blue"
+      },
+      {
+        "typ": "Herz",
+        "x": 4,
+        "y": 4
+      }
+    ]
+  }
+}

@@ -387,8 +387,70 @@ class MetaHeld(Held):
         
         super().__init__(framework, student_x, student_y, student_richtung, steuerung_aktiv=False, weiblich=weiblich)
         object.__setattr__(self, '_student', student_obj)
+        
+        # Monkey-patch student methods to trigger rendering after execution
+        self._patch_student_methods()
+        
         try:
             self.aktiviere_steuerung()
+        except Exception:
+            pass
+
+    def _patch_student_methods(self):
+        """Wrap student movement methods to trigger rendering after execution."""
+        try:
+            stud = object.__getattribute__(self, '_student')
+            
+            # List of methods to patch
+            methods_to_patch = ['geh', 'links', 'rechts', 'zurueck']
+            
+            for method_name in methods_to_patch:
+                if hasattr(stud, method_name):
+                    original_method = getattr(stud, method_name)
+                    if callable(original_method):
+                        # Create wrapper function
+                        def create_wrapper(orig_method, meta_self):
+                            def wrapper(*args, **kwargs):
+                                # Call original student method
+                                result = orig_method(*args, **kwargs)
+                                
+                                # Sync position from student to meta
+                                try:
+                                    for a in ('x', 'y', 'richtung'):
+                                        try:
+                                            val = getattr(stud, a)
+                                            object.__setattr__(meta_self, a, val)
+                                        except AttributeError:
+                                            getter_name = f'get_{a}'
+                                            if hasattr(stud, getter_name):
+                                                try:
+                                                    getter = getattr(stud, getter_name)
+                                                    if callable(getter):
+                                                        val = getter()
+                                                        object.__setattr__(meta_self, a, val)
+                                                except Exception:
+                                                    pass
+                                except Exception:
+                                    pass
+                                
+                                # Update sprite
+                                try:
+                                    if hasattr(meta_self, '_update_sprite_richtung'):
+                                        meta_self._update_sprite_richtung()
+                                except Exception:
+                                    pass
+                                
+                                # Render immediately
+                                try:
+                                    meta_self._render_and_delay(0)
+                                except Exception:
+                                    pass
+                                
+                                return result
+                            return wrapper
+                        
+                        # Replace student method with wrapper
+                        setattr(stud, method_name, create_wrapper(original_method, self))
         except Exception:
             pass
 
@@ -498,6 +560,11 @@ class MetaHeld(Held):
                     try:
                         if hasattr(self, '_update_sprite_richtung'):
                             self._update_sprite_richtung()
+                    except Exception:
+                        pass
+                    # Render immediately to make movement visible
+                    try:
+                        self._render_and_delay(0)
                     except Exception:
                         pass
             return _inner

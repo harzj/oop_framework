@@ -1,4 +1,10 @@
 # leveleditor.py
+# Setup für lokales pygame (falls gebündelt)
+try:
+    from framework import setup_pygame
+except ImportError:
+    pass
+
 import os
 import json
 import pygame
@@ -552,6 +558,7 @@ class LevelEditor:
         move_x = str(move_def.get('x', 0)) if isinstance(move_def, dict) else '0'
         move_y = str(move_def.get('y', 0)) if isinstance(move_def, dict) else '0'
         classes_def = bool(vic.get('classes_present', False))
+        rebuild_def = bool(vic.get('rebuild_mode', False))
 
         root = tk.Tk(); root.title("Siegbedingungen (F3)")
         frm = ttk.Frame(root, padding=10); frm.grid(row=0, column=0)
@@ -575,19 +582,34 @@ class LevelEditor:
         classes_var = tk.BooleanVar(value=classes_def)
         tk.Checkbutton(frm, text="Alle im Level verwendeten Klassen implementiert (Schülerklassen)", variable=classes_var).grid(row=4, column=0, columnspan=3, sticky='w', pady=(6,2))
 
+        rebuild_var = tk.BooleanVar(value=rebuild_def)
+        tk.Checkbutton(frm, text="Level nachbauen (Schüler müssen Objekte selbst erzeugen)", variable=rebuild_var).grid(row=5, column=0, columnspan=3, sticky='w', pady=(6,2))
+        
+        ttk.Label(frm, text="Hinweis: 'Level nachbauen' ist inkompatibel mit 'Bewegen' und 'Herzen sammeln'.", font=("Consolas", 9)).grid(row=6, column=0, columnspan=3, sticky='w', pady=(2,6))
+
         def ok():
             try:
                 v = {}
-                v['collect_hearts'] = bool(collect_var.get())
-                if move_var.get():
-                    try:
-                        vx = int(x_ent.get())
-                        vy = int(y_ent.get())
-                        v['move_to'] = {'enabled': True, 'x': vx, 'y': vy}
-                    except Exception:
-                        v['move_to'] = {'enabled': False}
-                else:
+                rebuild_enabled = bool(rebuild_var.get())
+                
+                # Wenn rebuild_mode aktiv ist, deaktiviere inkompatible Optionen
+                if rebuild_enabled:
+                    v['rebuild_mode'] = True
+                    v['collect_hearts'] = False
                     v['move_to'] = None
+                else:
+                    v['rebuild_mode'] = False
+                    v['collect_hearts'] = bool(collect_var.get())
+                    if move_var.get():
+                        try:
+                            vx = int(x_ent.get())
+                            vy = int(y_ent.get())
+                            v['move_to'] = {'enabled': True, 'x': vx, 'y': vy}
+                        except Exception:
+                            v['move_to'] = {'enabled': False}
+                    else:
+                        v['move_to'] = None
+                
                 v['classes_present'] = bool(classes_var.get())
                 self.level_settings['victory'] = v
             except Exception:
@@ -597,8 +619,8 @@ class LevelEditor:
         def cancel():
             root.destroy()
 
-        ttk.Button(frm, text='OK', command=ok).grid(row=5, column=1, pady=8)
-        ttk.Button(frm, text='Abbrechen', command=cancel).grid(row=5, column=2, pady=8)
+        ttk.Button(frm, text='OK', command=ok).grid(row=7, column=1, pady=8)
+        ttk.Button(frm, text='Abbrechen', command=cancel).grid(row=7, column=2, pady=8)
         root.mainloop()
 
     # -----------------------------
@@ -988,6 +1010,47 @@ class LevelEditor:
                 data["settings"]["class_requirements"] = self.class_requirements
         except Exception:
             pass
+        
+        # Export template_objects if rebuild_mode is enabled
+        try:
+            vic = self.level_settings.get('victory', {})
+            if vic and vic.get('rebuild_mode', False):
+                # Sammle alle Objekte aus dem Level als Templates
+                template_objects = []
+                type_map = {
+                    'p': 'Held', 'k': 'Knappe', 'x': 'Monster', 'y': 'Bogenschuetze',
+                    'h': 'Herz', 'd': 'Tuer', 'g': 'Tor', 's': 'Schluessel',
+                    'c': 'Zettel', 'v': 'Villager', 't': 'Hindernis', 'm': 'Hindernis', 'b': 'Hindernis'
+                }
+                for y, row in enumerate(self.level):
+                    for x, code in enumerate(row):
+                        typ = type_map.get(code.lower())
+                        if typ:
+                            obj_data = {'typ': typ, 'x': x, 'y': y}
+                            # Richtung hinzufügen falls gesetzt
+                            richt = self.orientations.get(f"{x},{y}")
+                            if richt:
+                                obj_data['richtung'] = richt
+                            # Farbe für Türen/Schlüssel
+                            if code.lower() in ('d', 's'):
+                                farbe = self.colors.get(f"{x},{y}")
+                                if farbe:
+                                    obj_data['farbe'] = farbe
+                            # Geschlecht für Villager
+                            if code.lower() == 'v':
+                                vdata = self.villagers.get(f"{x},{y}", {})
+                                if isinstance(vdata, dict) and vdata.get('weiblich'):
+                                    obj_data['weiblich'] = True
+                            # Hindernis-Typ
+                            if code.lower() in ('t', 'm', 'b'):
+                                hindernis_typ = {'t': 'Baum', 'm': 'Berg', 'b': 'Busch'}
+                                obj_data['hindernis_typ'] = hindernis_typ.get(code.lower(), 'Baum')
+                            template_objects.append(obj_data)
+                data["settings"]["template_objects"] = template_objects
+        except Exception as e:
+            print(f"[WARNUNG] Fehler beim Exportieren der template_objects: {e}")
+            pass
+        
         return data
 
 

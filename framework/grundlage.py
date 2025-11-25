@@ -1,4 +1,10 @@
 # grundlage.py
+# Setup für lokales pygame (falls gebündelt)
+try:
+    from framework import setup_pygame
+except ImportError:
+    pass
+
 from framework.framework import Framework
 from .code import Code
 from .held import Held
@@ -86,6 +92,16 @@ class LevelManager:
         try:
             settings = getattr(sp, 'settings', {}) or {}
             student_mode = bool(settings.get('import_pfad') or settings.get('use_student_module') or settings.get('student_classes_in_subfolder'))
+            
+            # Check if ANY class_requirements request student classes
+            if not student_mode:
+                class_reqs = settings.get('class_requirements', {})
+                if isinstance(class_reqs, dict):
+                    for cls_name, req in class_reqs.items():
+                        if isinstance(req, dict):
+                            if req.get('load_from_schueler') or req.get('load_from_klassen'):
+                                student_mode = True
+                                break
         except Exception:
             student_mode = False
 
@@ -149,20 +165,45 @@ class LevelManager:
                     cls = None
 
                 # Decide export: if student_mode requested, only export student classes
-                if student_mode:
-                    # if a student class was found, export it; otherwise skip export
+                # EXCEPT in rebuild_mode: dort Framework-Klassen immer exportieren
+                rebuild_mode = False
+                try:
+                    vic_settings = settings.get('victory', {})
+                    rebuild_mode = bool(vic_settings.get('rebuild_mode', False))
+                except Exception:
+                    rebuild_mode = False
+                
+                if student_mode and not rebuild_mode:
+                    # Student mode: prefer student classes but fallback to framework classes
                     if cls is None:
-                        # ensure name not present
+                        # No student class exists, use framework class
+                        cls = fwcls
+                    if cls is None:
+                        # Neither student nor framework class available
                         if hasattr(_mod, cname):
                             try:
                                 delattr(_mod, cname)
                             except Exception:
                                 pass
                         continue
-                    else:
-                        # export student class (as-is)
+                    # Export class (student or framework fallback)
+                    try:
+                        if cls is fwcls and fwcls is not None:
+                            setattr(_mod, cname, _flexible_ctor(fwcls))
+                        else:
+                            setattr(_mod, cname, cls)
+                    except Exception:
                         try:
                             setattr(_mod, cname, cls)
+                        except Exception:
+                            pass
+                elif student_mode and rebuild_mode:
+                    # Rebuild mode with student mode: Do NOT export any classes
+                    # Students must explicitly import from klassen.* themselves
+                    # This forces them to write: from klassen.held import Held
+                    if hasattr(_mod, cname):
+                        try:
+                            delattr(_mod, cname)
                         except Exception:
                             pass
                 else:

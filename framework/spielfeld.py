@@ -54,6 +54,10 @@ class Spielfeld:
         self.objekte = []
         self.held = None
         self.knappe = None
+        
+        # Template objects for rebuild mode (rendered with 25% opacity)
+        self.template_objects = []
+        self.rebuild_mode = bool(self.victory_settings.get('rebuild_mode', False)) if self.victory_settings else False
 
         self._logged_broken_objects = set()
         #self.zufallscode = str(randint(1000,9999))
@@ -224,6 +228,17 @@ class Spielfeld:
             student_mode_enabled = bool(self.settings.get('import_pfad') or self.settings.get('use_student_module') or self.settings.get('student_classes_in_subfolder'))
         except Exception:
             student_mode_enabled = False
+        
+        # Load template objects if in rebuild mode
+        if self.rebuild_mode:
+            try:
+                template_data = self.settings.get('template_objects', [])
+                if isinstance(template_data, list):
+                    for tpl in template_data:
+                        if isinstance(tpl, dict):
+                            self.template_objects.append(tpl)
+            except Exception as e:
+                print(f"[FEHLER] Konnte template_objects nicht laden: {e}")
 
         # If quest_mode == 'items', prepare desired item names and prices
         ITEM_NAMES = ["Ring", "Apple", "Sword", "Shield", "Potion", "Scroll", "Bread", "Gem", "Torch", "Amulet"]
@@ -268,119 +283,125 @@ class Spielfeld:
         spawned_villagers = []
 
         # --- Spawn fixed Hindernis objects for tiles (so level.gib_objekt_bei returns objects)
-        # Map tile codes to human-readable types
-        tile_to_type = {'b': 'Busch', 't': 'Baum', 'm': 'Berg'}
-        try:
-            HindernisClass = None
+        # Skip in rebuild_mode - templates will be rendered instead
+        if not self.rebuild_mode:
+            # Map tile codes to human-readable types
+            tile_to_type = {'b': 'Busch', 't': 'Baum', 'm': 'Berg'}
             try:
-                HindernisClass = self._get_entity_class('Hindernis', None)
-            except Exception:
                 HindernisClass = None
+                try:
+                    HindernisClass = self._get_entity_class('Hindernis', None)
+                except Exception:
+                    HindernisClass = None
 
-            class _InternalHindernis:
-                def __init__(self, art, x=None, y=None):
-                    self.typ = art
-                    self.name = art
-                    self.x = x
-                    self.y = y
-                    self.framework = None
-                    # object state expected by framework
-                    self.tot = False
-                def ist_passierbar(self):
-                    # Default: if student Hindernis class is available and provides
-                    # ist_passierbar, defer to it; otherwise legacy behavior (not passierbar)
-                    stud = getattr(self, '_student', None)
-                    if stud is not None:
-                        if hasattr(stud, 'ist_passierbar'):
-                            try:
-                                return bool(stud.ist_passierbar())
-                            except Exception:
+                class _InternalHindernis:
+                    def __init__(self, art, x=None, y=None):
+                        self.typ = art
+                        self.name = art
+                        self.x = x
+                        self.y = y
+                        self.framework = None
+                        # object state expected by framework
+                        self.tot = False
+                    def ist_passierbar(self):
+                        # Default: if student Hindernis class is available and provides
+                        # ist_passierbar, defer to it; otherwise legacy behavior (not passierbar)
+                        stud = getattr(self, '_student', None)
+                        if stud is not None:
+                            if hasattr(stud, 'ist_passierbar'):
+                                try:
+                                    return bool(stud.ist_passierbar())
+                                except Exception:
+                                    return True
+                            else:
+                                # student class present but no method -> tile remains passierbar
                                 return True
-                        else:
-                            # student class present but no method -> tile remains passierbar
-                            return True
-                    # no student class -> legacy: not passierbar
-                    return False
-                def attribute_als_text(self):
-                    # hide from inspector by returning empty dict
-                    return {}
-                def zeichne(self, screen, feldgroesse):
-                    # Hindernisse werden vom Level-Tile gerendert by the framework; do nothing here.
-                    return
+                        # no student class -> legacy: not passierbar
+                        return False
+                    def attribute_als_text(self):
+                        # hide from inspector by returning empty dict
+                        return {}
+                    def zeichne(self, screen, feldgroesse):
+                        # Hindernisse werden vom Level-Tile gerendert by the framework; do nothing here.
+                        return
 
-            for yy, row in enumerate(self.level.tiles):
-                for xx, code in enumerate(row):
-                    art = tile_to_type.get(code)
-                    if not art:
-                        continue
-                    obj = None
-                    # Prefer student class if present
-                    try:
-                        if HindernisClass is not None and student_mode_enabled:
-                            # try flexible instantiation signatures
-                            try:
-                                student_inst = HindernisClass(art)
-                            except TypeError:
+                for yy, row in enumerate(self.level.tiles):
+                    for xx, code in enumerate(row):
+                        art = tile_to_type.get(code)
+                        if not art:
+                            continue
+                        obj = None
+                        # Prefer student class if present
+                        try:
+                            if HindernisClass is not None and student_mode_enabled:
+                                # try flexible instantiation signatures
                                 try:
-                                    student_inst = HindernisClass(self.level, art)
-                                except Exception:
+                                    student_inst = HindernisClass(art)
+                                except TypeError:
                                     try:
-                                        student_inst = HindernisClass(self.level, xx, yy, art)
+                                        student_inst = HindernisClass(self.level, art)
                                     except Exception:
-                                        student_inst = None
-                            if student_inst is not None:
-                                obj = student_inst
-                                try:
-                                    # do not forcibly set attributes on student object
-                                    pass
-                                except Exception:
-                                    pass
-                                # attach student marker for passability checks
-                                try:
-                                    setattr(obj, '_student_present', True)
-                                except Exception:
-                                    pass
-                                # but also keep a small proxy so framework can call ist_passierbar
-                                try:
-                                    proxy = _InternalHindernis(art, xx, yy)
-                                    proxy._student = obj
-                                    obj = proxy
-                                except Exception:
-                                    # fallback: use student_inst directly
-                                    pass
-                        else:
+                                        try:
+                                            student_inst = HindernisClass(self.level, xx, yy, art)
+                                        except Exception:
+                                            student_inst = None
+                                if student_inst is not None:
+                                    obj = student_inst
+                                    try:
+                                        # do not forcibly set attributes on student object
+                                        pass
+                                    except Exception:
+                                        pass
+                                    # attach student marker for passability checks
+                                    try:
+                                        setattr(obj, '_student_present', True)
+                                    except Exception:
+                                        pass
+                                    # but also keep a small proxy so framework can call ist_passierbar
+                                    try:
+                                        proxy = _InternalHindernis(art, xx, yy)
+                                        proxy._student = obj
+                                        obj = proxy
+                                    except Exception:
+                                        # fallback: use student_inst directly
+                                        pass
+                            else:
+                                obj = _InternalHindernis(art, xx, yy)
+                        except Exception:
                             obj = _InternalHindernis(art, xx, yy)
-                    except Exception:
-                        obj = _InternalHindernis(art, xx, yy)
 
-                    try:
-                        obj.x = xx
-                        obj.y = yy
-                    except Exception:
-                        pass
-                    try:
-                        obj.framework = self.framework
-                    except Exception:
-                        pass
-                    try:
-                        # ensure typ/name present for rendering
-                        if not hasattr(obj, 'typ'):
-                            obj.typ = art
-                        if not hasattr(obj, 'name'):
-                            obj.name = art
-                    except Exception:
-                        pass
-                    try:
-                        # avoid appending None objects (robustness)
-                        if obj is None:
-                            obj = _InternalHindernis(art, xx, yy)
-                        self.objekte.append(obj)
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                        try:
+                            obj.x = xx
+                            obj.y = yy
+                        except Exception:
+                            pass
+                        try:
+                            obj.framework = self.framework
+                        except Exception:
+                            pass
+                        try:
+                            # ensure typ/name present for rendering
+                            if not hasattr(obj, 'typ'):
+                                obj.typ = art
+                            if not hasattr(obj, 'name'):
+                                obj.name = art
+                        except Exception:
+                            pass
+                        try:
+                            # avoid appending None objects (robustness)
+                            if obj is None:
+                                obj = _InternalHindernis(art, xx, yy)
+                            self.objekte.append(obj)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
 
         for typ, x, y, sichtbar in self.level.iter_entity_spawns():
+            # Skip entity spawning in rebuild mode
+            if self.rebuild_mode:
+                continue
+                
             t = typ.lower() if isinstance(typ, str) else typ
             # Lese Richtung (default "down")
             richt = orients.get(f"{x},{y}", "down")
@@ -828,7 +849,14 @@ class Spielfeld:
                 except Exception:
                     pass
 
-        print(f"Level geladen: {len(self.objekte)} Objekte gespawnt.")
+        # Extract level number from filename for display
+        try:
+            import re
+            match = re.search(r'level(\d+)', self.levelfile)
+            level_num = match.group(1) if match else "?"
+            print(f"Level {level_num} erfolgreich geladen.")
+        except Exception:
+            print("Level erfolgreich geladen.")
         # After spawning, set initial hero gold and, if in item-quest mode, distribute desired items to villagers
         try:
             if hasattr(self, 'held') and self.held is not None:
@@ -1517,6 +1545,74 @@ class Spielfeld:
 
 
     # --- Zeichnen ---
+    def _render_template_objects(self, screen):
+        """Rendert Template-Objekte mit 25% Opacity im rebuild_mode."""
+        from .utils import lade_sprite
+        
+        # Sprite-Mapping für Template-Objekte
+        sprite_map = {
+            'Held': 'sprites/held.png',
+            'Knappe': 'sprites/knappe.png',
+            'Monster': 'sprites/monster.png',
+            'Bogenschuetze': 'sprites/archer.png',
+            'Herz': 'sprites/herz.png',
+            'Tuer': 'sprites/tuer.png',
+            'Tor': 'sprites/tor_zu.png',
+            'Schluessel': 'sprites/key_green.png',
+            'Zettel': 'sprites/code.png',
+            'Villager': 'sprites/villager.png',
+            'Hindernis': 'sprites/baum.png',  # default, wird überschrieben
+        }
+        
+        for tpl in self.template_objects:
+            # Überspringe erfüllte Templates
+            if tpl.get('_fulfilled', False):
+                continue
+            
+            try:
+                typ = tpl.get('typ')
+                x = tpl.get('x', 0)
+                y = tpl.get('y', 0)
+                richtung = tpl.get('richtung', 'down')
+                
+                # Bestimme Sprite
+                sprite_path = sprite_map.get(typ, 'sprites/gras.png')
+                
+                # Spezialbehandlung für Hindernis
+                if typ == 'Hindernis':
+                    hindernis_typ = tpl.get('hindernis_typ', 'Baum')
+                    sprite_map_hindernis = {'Baum': 'sprites/baum.png', 'Berg': 'sprites/berg.png', 'Busch': 'sprites/busch.png'}
+                    sprite_path = sprite_map_hindernis.get(hindernis_typ, 'sprites/baum.png')
+                
+                # Spezialbehandlung für farbige Türen/Schlüssel
+                if typ in ('Tuer', 'Schluessel'):
+                    farbe = tpl.get('farbe', 'green')
+                    if typ == 'Tuer':
+                        sprite_path = f'sprites/locked_door_{farbe}.png'
+                    else:
+                        sprite_path = f'sprites/key_{farbe}.png'
+                
+                # Spezialbehandlung für richtungsabhängige Sprites (Held, Knappe, Monster, etc.)
+                if typ in ('Held', 'Knappe', 'Monster', 'Bogenschuetze'):
+                    # Verwende richtungsspezifische Sprites
+                    base_name = sprite_path.replace('.png', '')
+                    sprite_path = f'{base_name}_{richtung}.png'
+                
+                # Lade und skaliere Sprite
+                sprite = lade_sprite(sprite_path)
+                if sprite:
+                    scaled = pygame.transform.scale(sprite, (self.feldgroesse, self.feldgroesse))
+                    
+                    # Erstelle Surface mit Alpha für Transparenz
+                    alpha_surface = scaled.copy()
+                    alpha_surface.set_alpha(64)  # 25% opacity (255 * 0.25 = 64)
+                    
+                    # Zeichne an Position
+                    screen.blit(alpha_surface, (x * self.feldgroesse, y * self.feldgroesse))
+            except Exception as e:
+                # Fehler beim Rendern eines einzelnen Templates ignorieren
+                pass
+    
     def zeichne(self, screen):
         # If rendering was explicitly disabled (student classes requested but missing),
         # show a small overlay and skip normal drawing.
@@ -1568,6 +1664,9 @@ class Spielfeld:
                         screen.blit(img, (x * self.feldgroesse, y * self.feldgroesse))
                     # Draw obstacle textures unless hidden
                     if code in ('m','b','t','g'):
+                        # Skip obstacle tiles in rebuild_mode - templates will be rendered instead
+                        if self.rebuild_mode and code in ('m','b','t'):
+                            continue
                         if hide_obstacles and code in ('m','b','t'):
                             continue
                         tex = self.level.texturen.get(code)
@@ -1580,6 +1679,14 @@ class Spielfeld:
                 self.level.zeichne(screen, self.feldgroesse)
             except Exception:
                 pass
+        
+        # Draw template objects with 25% opacity in rebuild mode
+        if self.rebuild_mode and self.template_objects:
+            try:
+                self._render_template_objects(screen)
+            except Exception as e:
+                print(f"[FEHLER] Template-Rendering fehlgeschlagen: {e}")
+        
         for typ in zeichenreihenfolge:
             # Iterate defensively: student-provided objects may raise on attribute access
             # (or miss attributes). Avoid list comprehensions that access obj attributes
@@ -2163,72 +2270,6 @@ class Spielfeld:
         except Exception:
             return []
 
-    def check_victory(self) -> bool:
-        """Evaluate configured victory conditions (AND semantics).
-
-        Supported conditions (in self.settings['victory']):
-        - collect_hearts: bool (default True) -> satisfied when no hearts remain
-        - move_to: {'enabled':True, 'x':int, 'y':int} -> satisfied when Held is at (x,y)
-        - classes_present: bool -> satisfied when all canonical classes used in level have student definitions
-
-        If no victory dict exists, default behaviour is collect_hearts True (backwards-compatible).
-        """
-        try:
-            vic = (self.settings or {}).get('victory')
-            if not isinstance(vic, dict):
-                # default: collect hearts
-                return not self.gibt_noch_herzen()
-
-            # collect_hearts
-            if vic.get('collect_hearts', True):
-                if self.gibt_noch_herzen():
-                    return False
-
-            # move_to
-            mv = vic.get('move_to')
-            if isinstance(mv, dict) and mv.get('enabled'):
-                try:
-                    held = getattr(self, 'held', None)
-                    if not held:
-                        return False
-                    tx = int(mv.get('x', -999))
-                    ty = int(mv.get('y', -999))
-                    # framework may block actions; require not blocked
-                    blocked = getattr(self.framework, '_aktion_blockiert', False) if getattr(self, 'framework', None) else False
-                    if blocked:
-                        return False
-                    if getattr(held, 'x', None) != tx or getattr(held, 'y', None) != ty:
-                        return False
-                except Exception:
-                    return False
-
-            # classes_present
-            if vic.get('classes_present', False):
-                # map spawn codes to canonical names. Prefer the precomputed
-                # required set (computed before spawning), otherwise fall back
-                # to iter_entity_spawns (best-effort).
-                mapping = { 'p': 'Held', 'h': 'Herz', 'x': 'Monster', 'c': 'Code', 'd': 'Tuer', 's': 'Schluessel', 'v': 'Villager', 'k': 'Knappe', 'g': 'Tor', 'q': 'Questgeber' }
-                needed = getattr(self, '_required_spawn_classes', None)
-                if not needed:
-                    needed = set()
-                    for typ, x, y, sichtbar in self.level.iter_entity_spawns():
-                        cname = mapping.get(typ)
-                        if cname:
-                            needed.add(cname)
-                # For each needed canonical class, require that a student class file exists
-                for cname in needed:
-                    try:
-                        if not self._student_has_class(cname):
-                            return False
-                    except Exception:
-                        return False
-
-            # all enabled conditions satisfied
-            return True
-        except Exception:
-            # on error, fail-safe to False to avoid false victories
-            return False
-
     def set_objekt(self, x: int, y: int, obj) -> bool:
         """Platziert `obj` logisch auf Position (x,y) falls das Terrain begehbar ist.
 
@@ -2443,7 +2484,139 @@ class Spielfeld:
                 except Exception:
                     return False
 
+            # 4) rebuild_mode: require that all template objects have been created by student
+            if bool(vs.get('rebuild_mode', False)):
+                if not self.template_objects:
+                    return False
+                
+                for tpl in self.template_objects:
+                    try:
+                        x, y = tpl.get('x'), tpl.get('y')
+                        expected_typ = tpl.get('typ')
+                        
+                        # Helper für Attributzugriff mit Getter-Support
+                        def get_obj_attr(obj, attr_name):
+                            try:
+                                return getattr(obj, attr_name)
+                            except AttributeError:
+                                getter_name = f'get_{attr_name}'
+                                if hasattr(obj, getter_name):
+                                    getter = getattr(obj, getter_name)
+                                    if callable(getter):
+                                        return getter()
+                            return None
+                        
+                        found = False
+                        for obj in self.objekte:
+                            obj_x = get_obj_attr(obj, 'x')
+                            obj_y = get_obj_attr(obj, 'y')
+                            
+                            if obj_x == x and obj_y == y:
+                                # Prüfe Typ
+                                obj_typ = getattr(obj, 'typ', None) or obj.__class__.__name__
+                                if obj_typ == expected_typ:
+                                    found = True
+                                    
+                                    # Prüfe optionale Attribute wie Richtung
+                                    if 'richtung' in tpl:
+                                        expected_richt = tpl.get('richtung')
+                                        actual_richt = get_obj_attr(obj, 'richtung')
+                                        if actual_richt != expected_richt:
+                                            return False
+                                    break
+                        
+                        if not found:
+                            return False
+                    except Exception:
+                        return False
+
             # all enabled conditions satisfied
             return True
         except Exception:
+            return False
+    
+    def objekt_hinzufuegen(self, objekt):
+        """
+        Fügt ein von Schülern erzeugtes Objekt zum Spielfeld hinzu.
+        Wird im rebuild_mode verwendet, um Objekte zu platzieren.
+        
+        Args:
+            objekt: Das hinzuzufügende Objekt (muss x, y, typ Attribute haben)
+        """
+        try:
+            # Überprüfe ob Objekt die notwendigen Attribute hat (direkt oder über Getter)
+            def has_attribute_or_getter(obj, attr_name):
+                if hasattr(obj, attr_name):
+                    return True
+                getter_name = f'get_{attr_name}'
+                if hasattr(obj, getter_name) and callable(getattr(obj, getter_name)):
+                    return True
+                return False
+            
+            if not has_attribute_or_getter(objekt, 'x') or not has_attribute_or_getter(objekt, 'y'):
+                print("[FEHLER] Objekt muss x und y Attribute (oder get_x/get_y Getter) haben")
+                return False
+            
+            # Hole x, y Werte
+            def get_attribute_value(obj, attr_name):
+                try:
+                    return getattr(obj, attr_name)
+                except AttributeError:
+                    getter_name = f'get_{attr_name}'
+                    if hasattr(obj, getter_name):
+                        return getattr(obj, getter_name)()
+                return None
+            
+            # Im rebuild_mode mit class_requirements: Wenn es ein Held ist, wrappe in MetaHeld
+            final_obj = objekt
+            typ_str = str(getattr(objekt, 'typ', '')) or objekt.__class__.__name__
+            
+            if self.rebuild_mode and typ_str == 'Held':
+                # Prüfe ob class_requirements für Held aktiv ist
+                req = self.class_requirements.get("Held", {})
+                student_mode_for_held = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                
+                if student_mode_for_held:
+                    # Erstelle MetaHeld wrapper um Schüler-Objekt
+                    try:
+                        from .held import MetaHeld
+                        x = get_attribute_value(objekt, 'x')
+                        y = get_attribute_value(objekt, 'y')
+                        richt = get_attribute_value(objekt, 'richtung') or 'down'
+                        weiblich = get_attribute_value(objekt, 'weiblich') or False
+                        
+                        final_obj = MetaHeld(self.framework, objekt, x, y, richt, weiblich=weiblich)
+                    except Exception as e:
+                        print(f"[FEHLER] Held konnte nicht erstellt werden: {e}")
+                        final_obj = objekt
+            
+            # Füge Objekt zur Liste hinzu
+            self.objekte.append(final_obj)
+            
+            # Im rebuild_mode: Prüfe ob dieses Objekt ein Template ersetzt
+            if self.rebuild_mode:
+                x = get_attribute_value(objekt, 'x')
+                y = get_attribute_value(objekt, 'y')
+                typ = getattr(objekt, 'typ', None) or objekt.__class__.__name__
+                
+                # Suche passendes Template und markiere es als erfüllt
+                for i, tpl in enumerate(self.template_objects):
+                    if tpl.get('x') == x and tpl.get('y') == y:
+                        # Template gefunden - markiere als erfüllt (wird nicht mehr gerendert)
+                        tpl['_fulfilled'] = True
+                        break
+            
+            # Setze Framework-Referenz falls möglich
+            try:
+                setattr(final_obj, 'framework', self.framework)
+            except Exception:
+                pass
+            
+            # Wenn es ein Held ist, setze self.held
+            if typ_str == 'Held':
+                self.held = final_obj
+            
+            return True
+        except Exception as e:
+            print(f"[FEHLER] Konnte Objekt nicht hinzufügen: {e}")
             return False

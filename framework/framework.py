@@ -125,9 +125,13 @@ class Framework:
         except Exception:
             pass
 
+        # Use spielfeld.objekt_hinzufuegen for proper handling (especially in rebuild mode)
         try:
-            # append to spielfeld list
-            self.spielfeld.objekte.append(obj)
+            if hasattr(self.spielfeld, 'objekt_hinzufuegen'):
+                self.spielfeld.objekt_hinzufuegen(obj)
+            else:
+                # Fallback: direct append
+                self.spielfeld.objekte.append(obj)
         except Exception:
             # fallback: try to ensure list exists
             try:
@@ -137,13 +141,9 @@ class Framework:
             except Exception:
                 pass
 
-        # If a Held was added, ensure spielfeld.held references it and controls are active
+        # If a Held was added, ensure controls are active
         try:
             if getattr(obj, 'typ', None) == 'Held' or obj.__class__.__name__ == 'Held':
-                try:
-                    self.spielfeld.held = obj
-                except Exception:
-                    pass
                 try:
                     # If the object exposes an aktiviere_steuerung method, call it
                     if hasattr(obj, 'aktiviere_steuerung') and callable(getattr(obj, 'aktiviere_steuerung')):
@@ -154,13 +154,6 @@ class Framework:
                 except Exception:
                     pass
 
-        except Exception:
-            pass
-
-        # Knappe shortcut
-        try:
-            if getattr(obj, 'typ', None) == "Knappe":
-                self.spielfeld.knappe = obj
         except Exception:
             pass
 

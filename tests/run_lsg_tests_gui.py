@@ -276,7 +276,12 @@ class RunLsgGui:
                 except Exception:
                     pass
                 self.queue.put("=> TIMEOUT\n")
-                results.append((name, False, 124))
+                # Determine expected outcome for timeout case
+                expected_fail = "expected_fail" in name
+                expected_outcome = not expected_fail
+                actual_outcome = False  # timeout = fail
+                deviation = (expected_outcome != actual_outcome)
+                results.append((name, False, 124, expected_outcome, deviation))
                 self._current_proc = None
                 continue
             except Exception as e:
@@ -288,7 +293,13 @@ class RunLsgGui:
 
             rc = proc.returncode if proc else -1
             ok = (rc == 0)
-            results.append((name, ok, rc))
+            # Determine expected outcome
+            expected_fail = "expected_fail" in name
+            expected_outcome = not expected_fail  # True for normal tests, False for expected_fail tests
+            actual_outcome = ok
+            deviation = (expected_outcome != actual_outcome)
+            
+            results.append((name, ok, rc, expected_outcome, deviation))
             self.queue.put(f"=> {'OK' if ok else f'FAIL (code {rc})'}\n")
             
             # Restore schueler.py if it was replaced
@@ -320,9 +331,27 @@ class RunLsgGui:
 
         # summary
         self.queue.put("\n--- summary ---\n")
-        for name, ok, code in results:
+        total_tests = len(results)
+        deviations = []
+        
+        for name, ok, code, expected_outcome, deviation in results:
             status = "OK" if ok else f"FAIL ({code})"
-            self.queue.put(f"{name}: {status}\n")
+            if deviation:
+                expected_str = "PASS" if expected_outcome else "FAIL"
+                actual_str = "PASS" if ok else "FAIL"
+                deviation_marker = f" [DEVIATION: Expected {expected_str}, got {actual_str}]"
+                deviations.append((name, expected_str, actual_str))
+            else:
+                deviation_marker = ""
+            self.queue.put(f"{name}: {status}{deviation_marker}\n")
+        
+        # Deviation summary
+        if deviations:
+            self.queue.put(f"\n--- DEVIATIONS ({len(deviations)}/{total_tests}) ---\n")
+            for name, expected, actual in deviations:
+                self.queue.put(f"{name}: Expected {expected}, got {actual}\n")
+        else:
+            self.queue.put(f"\n--- All tests matched expectations ({total_tests}/{total_tests}) ---\n")
 
         self.queue.put("\n[run finished]\n")
         # re-enable UI by posting a special token

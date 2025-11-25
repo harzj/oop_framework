@@ -1,0 +1,84 @@
+{
+  "tiles": [
+    "wwwwww",
+    "wwwwww",
+    "wwwpww",
+    "wwwwww",
+    "wwwwww"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Zettel": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "orientations": {
+      "3,2": "left"
+    },
+    "victory": {
+      "rebuild_mode": true,
+      "collect_hearts": false,
+      "move_to": null,
+      "classes_present": false
+    },
+    "initial_gold": 0,
+    "quest_mode": "items",
+    "quest_max_kosten": 0,
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Held": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [
+          "geh",
+          "links",
+          "rechts"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "richtung",
+          "name",
+          "weiblich",
+          "typ"
+        ]
+      }
+    },
+    "template_objects": [
+      {
+        "typ": "Held",
+        "x": 3,
+        "y": 2,
+        "richtung": "left"
+      }
+    ]
+  }
+}
