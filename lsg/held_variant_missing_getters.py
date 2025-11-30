@@ -1,5 +1,5 @@
 
-# Korrekte Implementierung: Alle Attribute privat mit Gettern/Settern
+# Falsch: Private Attribute aber keine Getter
 class Held:
     def __init__(self, x, y, richtung, weiblich):
         self.__x = x
@@ -39,28 +39,5 @@ class Held:
         elif self.__richtung == "right":
             self.__richtung = "down"
     
-    # Getter methods for private attributes
-    def get_x(self):
-        return self.__x
-    
-    def get_y(self):
-        return self.__y
-    
-    def get_richtung(self):
-        return self.__richtung
-   
-    def get_weiblich(self):
-        return self.__weiblich
-    
-    def get_typ(self):
-        return self.__typ
-    
-    # Setter methods for private attributes
-    def set_x(self, value):
-        self.__x = value
-    
-    def set_y(self, value):
-        self.__y = value
-    
-    def set_richtung(self, value):
-        self.__richtung = value
+    # Keine Getter! - WRONG!
+    # Keine Setter!

@@ -637,9 +637,9 @@ class LevelEditor:
         # Define all classes that can be implemented by students (Code renamed to Zettel)
         CLASSES = ["Held", "Herz", "Tuer", "Tor", "Hindernis", "Knappe", "Monster", "Bogenschuetze", "Schluessel", "Zettel", "Villager"]
         
-        # Define core attributes as checkboxes (only x, y, typ, richtung, name)
+        # Define core attributes as checkboxes (only x, y, typ, richtung, name, weiblich)
         CORE_ATTRIBUTES = {
-            "Held": ["x", "y", "richtung", "name"],
+            "Held": ["x", "y", "richtung", "typ", "name", "weiblich"],
             "Knappe": ["x", "y", "richtung", "name"],
             "Monster": ["x", "y", "richtung", "name"],
             "Bogenschuetze": ["x", "y", "richtung", "name"],
@@ -648,7 +648,7 @@ class LevelEditor:
             "Tor": ["x", "y"],
             "Schluessel": ["x", "y"],
             "Hindernis": ["x", "y", "typ"],
-            "Zettel": ["x", "y"],
+            "Zettel": ["x", "y", "typ", "spruch"],
             "Villager": ["x", "y", "name"],
         }
         
@@ -658,30 +658,30 @@ class LevelEditor:
                     "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
                     "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung", 
                     "get_name", "set_name", "nimm_herz", "spruch_lesen", "spruch_sagen", 
-                    "bediene_tor", "verwende_schluessel"],
+                    "bediene_tor", "verwende_schluessel", "ist_passierbar"],
             "Knappe": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
                       "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
                       "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
                       "get_name", "set_name", "nimm_herz", "spruch_lesen", "spruch_sagen",
-                      "bediene_tor", "verwende_schluessel"],
+                      "bediene_tor", "verwende_schluessel", "ist_passierbar"],
             "Monster": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
                        "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
                        "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
-                       "get_name", "set_name", "angriff"],
+                       "get_name", "set_name", "angriff", "ist_passierbar"],
             "Bogenschuetze": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
                              "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
                              "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
-                             "get_name", "set_name", "angriff"],
-            "Herz": ["set_position", "get_x", "get_y"],
-            "Tuer": ["set_position", "get_x", "get_y"],
-            "Tor": ["set_position", "get_x", "get_y"],
-            "Schluessel": ["set_position", "get_x", "get_y"],
-            "Hindernis": ["set_position", "get_x", "get_y"],
-            "Zettel": ["set_position", "get_x", "get_y"],
+                             "get_name", "set_name", "angriff", "ist_passierbar"],
+            "Herz": ["set_position", "get_x", "get_y", "ist_passierbar"],
+            "Tuer": ["set_position", "get_x", "get_y", "ist_passierbar"],
+            "Tor": ["set_position", "get_x", "get_y", "ist_passierbar"],
+            "Schluessel": ["set_position", "get_x", "get_y", "ist_passierbar"],
+            "Hindernis": ["set_position", "get_x", "get_y", "get_typ", "ist_passierbar"],
+            "Zettel": ["set_position", "get_x", "get_y", "get_typ", "get_spruch", "set_spruch", "ist_passierbar"],
             "Villager": ["set_position", "get_x", "get_y", "geh", "links", "rechts", "zurueck",
                         "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
                         "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
-                        "get_name", "set_name"],
+                        "get_name", "set_name", "ist_passierbar"],
         }
         
         # Define inheritance options per class (framework base classes)
@@ -775,53 +775,157 @@ class LevelEditor:
                                         state="readonly", width=20)
             inherits_combo.pack(anchor='w', padx=10)
             
-            # Required attributes
+            # Required attributes with public/private distinction
             ttk.Label(scrollable_frame, text="Erforderliche Attribute:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(15,2))
             attr_vars = {}
+            attr_private_vars = {}
+            
+            # Get existing attributes (legacy: list, new: dict with privacy info)
             existing_attrs = existing.get("attributes", [])
+            existing_attrs_private = existing.get("attributes_private", {})
             
-            # Core attributes as checkboxes
+            # Legacy compatibility: if attributes is a list, convert to dict format
+            if isinstance(existing_attrs, list):
+                existing_attrs_dict = {attr: True for attr in existing_attrs}
+            else:
+                existing_attrs_dict = existing_attrs if isinstance(existing_attrs, dict) else {}
+            
+            # Core attributes as two checkboxes per attribute (public/private)
+            ttk.Label(scrollable_frame, text="Kernattribute (wähle: vorhanden ODER privat):", 
+                     font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(2,0))
+            
             for attr in CORE_ATTRIBUTES.get(class_name, []):
-                var = tk.BooleanVar(value=(attr in existing_attrs))
-                ttk.Checkbutton(scrollable_frame, text=attr, variable=var).pack(anchor='w', padx=20)
-                attr_vars[attr] = var
+                attr_frame = ttk.Frame(scrollable_frame)
+                attr_frame.pack(anchor='w', padx=30, pady=2)
+                
+                ttk.Label(attr_frame, text=f"{attr}:", width=15).pack(side='left')
+                
+                # Check if this attribute is required (public or private)
+                is_required = attr in existing_attrs_dict or existing_attrs_private.get(attr, False)
+                is_private = existing_attrs_private.get(attr, False)
+                
+                public_var = tk.BooleanVar(value=(is_required and not is_private))
+                private_var = tk.BooleanVar(value=is_private)
+                
+                # Mutual exclusion between public and private
+                def make_public_toggle(pub_var, priv_var):
+                    def toggle():
+                        if pub_var.get():
+                            priv_var.set(False)
+                    return toggle
+                
+                def make_private_toggle(pub_var, priv_var):
+                    def toggle():
+                        if priv_var.get():
+                            pub_var.set(False)
+                    return toggle
+                
+                ttk.Checkbutton(attr_frame, text="vorhanden", variable=public_var,
+                              command=make_public_toggle(public_var, private_var)).pack(side='left', padx=5)
+                ttk.Checkbutton(attr_frame, text="privat", variable=private_var,
+                              command=make_private_toggle(public_var, private_var)).pack(side='left', padx=5)
+                
+                attr_vars[attr] = public_var
+                attr_private_vars[attr] = private_var
             
-            # Additional attributes as comma-separated text field
-            ttk.Label(scrollable_frame, text="Weitere Attribute (kommagetrennt):", font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(5,0))
-            # Extract extra attributes not in core list
+            # Additional public attributes
+            ttk.Label(scrollable_frame, text="Weitere öffentliche Attribute (kommagetrennt):", 
+                     font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(10,0))
             core_attrs = set(CORE_ATTRIBUTES.get(class_name, []))
-            extra_attrs = [a for a in existing_attrs if a not in core_attrs]
-            extra_attrs_var = tk.StringVar(value=", ".join(extra_attrs))
-            extra_attrs_entry = ttk.Entry(scrollable_frame, textvariable=extra_attrs_var, width=40)
-            extra_attrs_entry.pack(anchor='w', padx=20, pady=(2,5))
+            extra_public_attrs = [a for a in existing_attrs_dict.keys() if a not in core_attrs and not existing_attrs_private.get(a, False)]
+            extra_public_attrs_var = tk.StringVar(value=", ".join(extra_public_attrs))
+            extra_public_attrs_entry = ttk.Entry(scrollable_frame, textvariable=extra_public_attrs_var, width=40)
+            extra_public_attrs_entry.pack(anchor='w', padx=20, pady=(2,5))
             
-            # Required methods
+            # Additional private attributes
+            ttk.Label(scrollable_frame, text="Weitere private Attribute (kommagetrennt):", 
+                     font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(5,0))
+            extra_private_attrs = [a for a in existing_attrs_private.keys() if a not in core_attrs and existing_attrs_private.get(a, False)]
+            extra_private_attrs_var = tk.StringVar(value=", ".join(extra_private_attrs))
+            extra_private_attrs_entry = ttk.Entry(scrollable_frame, textvariable=extra_private_attrs_var, width=40)
+            extra_private_attrs_entry.pack(anchor='w', padx=20, pady=(2,5))
+            
+            # Required methods with public/private distinction
             ttk.Label(scrollable_frame, text="Erforderliche Methoden:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(15,2))
             method_vars = {}
+            method_private_vars = {}
+            
+            # Get existing methods (legacy: list, new: dict with privacy info)
             existing_methods = existing.get("methods", [])
+            existing_methods_private = existing.get("methods_private", {})
             
-            # Standard methods as checkboxes
+            # Legacy compatibility: if methods is a list, convert to dict format
+            if isinstance(existing_methods, list):
+                existing_methods_dict = {method: True for method in existing_methods}
+            else:
+                existing_methods_dict = existing_methods if isinstance(existing_methods, dict) else {}
+            
+            # Standard methods as two checkboxes per method (public/private)
+            ttk.Label(scrollable_frame, text="Standardmethoden (wähle: vorhanden ODER privat):", 
+                     font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(2,0))
+            
             for method in STANDARD_METHODS.get(class_name, []):
-                var = tk.BooleanVar(value=(method in existing_methods))
-                ttk.Checkbutton(scrollable_frame, text=method, variable=var).pack(anchor='w', padx=20)
-                method_vars[method] = var
+                method_frame = ttk.Frame(scrollable_frame)
+                method_frame.pack(anchor='w', padx=30, pady=1)
+                
+                ttk.Label(method_frame, text=f"{method}:", width=25).pack(side='left')
+                
+                # Check if this method is required (public or private)
+                is_required = method in existing_methods_dict or existing_methods_private.get(method, False)
+                is_private = existing_methods_private.get(method, False)
+                
+                public_var = tk.BooleanVar(value=(is_required and not is_private))
+                private_var = tk.BooleanVar(value=is_private)
+                
+                # Mutual exclusion between public and private
+                def make_method_public_toggle(pub_var, priv_var):
+                    def toggle():
+                        if pub_var.get():
+                            priv_var.set(False)
+                    return toggle
+                
+                def make_method_private_toggle(pub_var, priv_var):
+                    def toggle():
+                        if priv_var.get():
+                            pub_var.set(False)
+                    return toggle
+                
+                ttk.Checkbutton(method_frame, text="vorhanden", variable=public_var,
+                              command=make_method_public_toggle(public_var, private_var)).pack(side='left', padx=5)
+                ttk.Checkbutton(method_frame, text="privat", variable=private_var,
+                              command=make_method_private_toggle(public_var, private_var)).pack(side='left', padx=5)
+                
+                method_vars[method] = public_var
+                method_private_vars[method] = private_var
             
-            # Additional methods as comma-separated text field
-            ttk.Label(scrollable_frame, text="Weitere Methoden (kommagetrennt):", font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(5,0))
-            # Extract extra methods not in standard list
+            # Additional public methods
+            ttk.Label(scrollable_frame, text="Weitere öffentliche Methoden (kommagetrennt):", 
+                     font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(10,0))
             standard_methods = set(STANDARD_METHODS.get(class_name, []))
-            extra_methods = [m for m in existing_methods if m not in standard_methods]
-            extra_methods_var = tk.StringVar(value=", ".join(extra_methods))
-            extra_methods_entry = ttk.Entry(scrollable_frame, textvariable=extra_methods_var, width=40)
-            extra_methods_entry.pack(anchor='w', padx=20, pady=(2,5))
+            extra_public_methods = [m for m in existing_methods_dict.keys() if m not in standard_methods and not existing_methods_private.get(m, False)]
+            extra_public_methods_var = tk.StringVar(value=", ".join(extra_public_methods))
+            extra_public_methods_entry = ttk.Entry(scrollable_frame, textvariable=extra_public_methods_var, width=40)
+            extra_public_methods_entry.pack(anchor='w', padx=20, pady=(2,5))
+            
+            # Additional private methods
+            ttk.Label(scrollable_frame, text="Weitere private Methoden (kommagetrennt):", 
+                     font=("Consolas", 9)).pack(anchor='w', padx=20, pady=(5,0))
+            extra_private_methods = [m for m in existing_methods_private.keys() if m not in standard_methods and existing_methods_private.get(m, False)]
+            extra_private_methods_var = tk.StringVar(value=", ".join(extra_private_methods))
+            extra_private_methods_entry = ttk.Entry(scrollable_frame, textvariable=extra_private_methods_var, width=40)
+            extra_private_methods_entry.pack(anchor='w', padx=20, pady=(2,5))
             
             # Store all variables for this class
             class_vars[class_name] = {
                 "inherits": inherits_var,
                 "methods": method_vars,
+                "methods_private": method_private_vars,
                 "attributes": attr_vars,
-                "extra_methods": extra_methods_var,
-                "extra_attributes": extra_attrs_var,
+                "attributes_private": attr_private_vars,
+                "extra_public_methods": extra_public_methods_var,
+                "extra_private_methods": extra_private_methods_var,
+                "extra_public_attributes": extra_public_attrs_var,
+                "extra_private_attributes": extra_private_attrs_var,
                 "load_from_schueler": load_schueler_var,
                 "load_from_klassen": load_klassen_var
             }
@@ -842,30 +946,56 @@ class LevelEditor:
                     config["load_from_schueler"] = vars_dict["load_from_schueler"].get()
                     config["load_from_klassen"] = vars_dict["load_from_klassen"].get()
                 
-                # Collect selected methods from checkboxes
-                selected_methods = [m for m, v in vars_dict["methods"].items() if v.get()]
+                # Collect public methods (selected checkboxes)
+                public_methods = [m for m, v in vars_dict["methods"].items() if v.get()]
                 
-                # Add extra methods from text field
-                extra_methods_str = vars_dict["extra_methods"].get().strip()
-                if extra_methods_str:
-                    extra_methods = [m.strip() for m in extra_methods_str.split(",") if m.strip()]
-                    selected_methods.extend(extra_methods)
+                # Add extra public methods from text field
+                extra_public_methods_str = vars_dict["extra_public_methods"].get().strip()
+                if extra_public_methods_str:
+                    extra_public = [m.strip() for m in extra_public_methods_str.split(",") if m.strip()]
+                    public_methods.extend(extra_public)
                 
-                config["methods"] = selected_methods
+                # Collect private methods (selected checkboxes)
+                private_methods = {m: True for m, v in vars_dict["methods_private"].items() if v.get()}
                 
-                # Collect selected attributes from checkboxes
-                selected_attrs = [a for a, v in vars_dict["attributes"].items() if v.get()]
+                # Add extra private methods from text field
+                extra_private_methods_str = vars_dict["extra_private_methods"].get().strip()
+                if extra_private_methods_str:
+                    extra_private = [m.strip() for m in extra_private_methods_str.split(",") if m.strip()]
+                    for m in extra_private:
+                        private_methods[m] = True
                 
-                # Add extra attributes from text field
-                extra_attrs_str = vars_dict["extra_attributes"].get().strip()
-                if extra_attrs_str:
-                    extra_attrs = [a.strip() for a in extra_attrs_str.split(",") if a.strip()]
-                    selected_attrs.extend(extra_attrs)
+                # Store methods (keep list for backwards compatibility, add privacy dict)
+                config["methods"] = public_methods
+                if private_methods:
+                    config["methods_private"] = private_methods
                 
-                config["attributes"] = selected_attrs
+                # Collect public attributes (selected checkboxes)
+                public_attrs = [a for a, v in vars_dict["attributes"].items() if v.get()]
+                
+                # Add extra public attributes from text field
+                extra_public_attrs_str = vars_dict["extra_public_attributes"].get().strip()
+                if extra_public_attrs_str:
+                    extra_public = [a.strip() for a in extra_public_attrs_str.split(",") if a.strip()]
+                    public_attrs.extend(extra_public)
+                
+                # Collect private attributes (selected checkboxes)
+                private_attrs = {a: True for a, v in vars_dict["attributes_private"].items() if v.get()}
+                
+                # Add extra private attributes from text field
+                extra_private_attrs_str = vars_dict["extra_private_attributes"].get().strip()
+                if extra_private_attrs_str:
+                    extra_private = [a.strip() for a in extra_private_attrs_str.split(",") if a.strip()]
+                    for a in extra_private:
+                        private_attrs[a] = True
+                
+                # Store attributes (keep list for backwards compatibility, add privacy dict)
+                config["attributes"] = public_attrs
+                if private_attrs:
+                    config["attributes_private"] = private_attrs
                 
                 # Store if anything is configured
-                if selected_methods or selected_attrs or config["inherits"] != "None":
+                if public_methods or private_methods or public_attrs or private_attrs or config["inherits"] != "None":
                     new_requirements[class_name] = config
                 # For Held, also store if load flags are set
                 elif class_name == "Held" and (config.get("load_from_schueler") or config.get("load_from_klassen")):

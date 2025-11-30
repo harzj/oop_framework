@@ -482,8 +482,13 @@ class Framework:
                 # separator between monsters
                 draw_sep(y); y += 8
 
-            # Finally render remaining objects (excluding Held, Knappe, Monsters)
-            remaining = [o for o in self.spielfeld.objekte if o not in ([held] if held else []) and o is not kn and getattr(o,'typ',None) != 'Monster']
+            # Finally render remaining objects (excluding Held, Knappe, Monsters, and items)
+            # Items to exclude: Zettel, Herz, Tuer, Tor, Schluessel, Hindernis, etc.
+            excluded_types = ['Monster', 'Zettel', 'Herz', 'Tuer', 'Tor', 'Schluessel', 'Baum', 'Berg', 'Busch', 'Hindernis', 'Spruch', '?']
+            remaining = [o for o in self.spielfeld.objekte 
+                        if o not in ([held] if held else []) 
+                        and o is not kn 
+                        and getattr(o,'typ',None) not in excluded_types]
             for o in remaining:
                 try:
                     try:

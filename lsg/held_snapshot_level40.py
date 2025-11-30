@@ -1,5 +1,5 @@
 
-# Korrekte Implementierung: Alle Attribute privat mit Gettern/Settern
+# Snapshot der korrekten held.py für Level 40 Tests
 class Held:
     def __init__(self, x, y, richtung, weiblich):
         self.__x = x
@@ -64,3 +64,4 @@ class Held:
     
     def set_richtung(self, value):
         self.__richtung = value
+

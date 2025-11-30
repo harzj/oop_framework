@@ -289,10 +289,106 @@ class Spielfeld:
             tile_to_type = {'b': 'Busch', 't': 'Baum', 'm': 'Berg'}
             try:
                 HindernisClass = None
-                try:
-                    HindernisClass = self._get_entity_class('Hindernis', None)
-                except Exception:
-                    HindernisClass = None
+                student_mode_enabled = False
+                hindernis_requirements = self.class_requirements.get('Hindernis', {})
+                hindernis_class_valid = False
+                
+                # Initialize validation flag (True if not in student mode, False if in student mode until validated)
+                self._hindernis_class_valid = True  # Default: valid if no requirements
+                
+                # Check if student mode is enabled for Hindernis
+                if hindernis_requirements:
+                    student_mode_enabled = bool(hindernis_requirements.get('load_from_schueler') or hindernis_requirements.get('load_from_klassen'))
+                    if student_mode_enabled:
+                        self._hindernis_class_valid = False  # Will be set to True if validation passes
+                
+                # Try to get student Hindernis class and validate it ONCE
+                if student_mode_enabled:
+                    try:
+                        HindernisClass = self._get_entity_class('Hindernis', None)
+                        if HindernisClass is None:
+                            print("Klasse Hindernis fehlt")
+                        else:
+                            # Validate class requirements ONCE (not per instance)
+                            # Create a temporary instance to test validation
+                            try:
+                                test_inst = HindernisClass(0, 0, 't')
+                            except TypeError:
+                                try:
+                                    test_inst = HindernisClass('t')
+                                except Exception:
+                                    try:
+                                        test_inst = HindernisClass(self.level, 't')
+                                    except Exception:
+                                        try:
+                                            test_inst = HindernisClass(self.level, 0, 0, 't')
+                                        except Exception:
+                                            test_inst = None
+                            
+                            if test_inst is not None:
+                                validation_ok = True
+                                missing_get_typ = False
+                                
+                                # Get required methods list to check if get_typ is explicitly required
+                                required_methods = hindernis_requirements.get('methods', [])
+                                get_typ_required = 'get_typ' in required_methods
+                                
+                                # Check private attributes - separate check for x, y vs typ
+                                private_attrs = hindernis_requirements.get('attributes_private', {})
+                                for attr_name, required in private_attrs.items():
+                                    if required:
+                                        has_private = hasattr(test_inst, f"_{test_inst.__class__.__name__}__{attr_name}")
+                                        has_public = hasattr(test_inst, attr_name) and not attr_name.startswith('_')
+                                        
+                                        if not has_private or has_public:
+                                            print(f"Hindernis: Attribut '{attr_name}' muss privat sein")
+                                            validation_ok = False
+                                            break
+                                        
+                                        # Check getter
+                                        getter_name = f'get_{attr_name}'
+                                        has_getter = hasattr(test_inst, getter_name) and callable(getattr(test_inst, getter_name))
+                                        
+                                        if not has_getter:
+                                            if attr_name == 'typ' and not get_typ_required:
+                                                # get_typ not in required methods: allow missing but render as '?'
+                                                print(f"Hindernis: Getter '{getter_name}' fehlt - wird als '?' gerendert")
+                                                missing_get_typ = True
+                                            else:
+                                                # get_x, get_y or required get_typ missing is a validation failure
+                                                print(f"Hindernis: Getter '{getter_name}' fehlt")
+                                                validation_ok = False
+                                                break
+                                
+                                # Check required methods (excluding getters which were already checked above)
+                                if validation_ok:
+                                    for method_name in required_methods:
+                                        # Skip getters that were already validated with attributes
+                                        if method_name.startswith('get_') and method_name[4:] in private_attrs:
+                                            continue
+                                        if not (hasattr(test_inst, method_name) and callable(getattr(test_inst, method_name))):
+                                            print(f"Hindernis: Methode '{method_name}' fehlt")
+                                            validation_ok = False
+                                            break
+                                
+                                # Check public attributes
+                                if validation_ok:
+                                    public_attrs = hindernis_requirements.get('attributes', [])
+                                    for attr_name in public_attrs:
+                                        if not hasattr(test_inst, attr_name):
+                                            print(f"Hindernis: Attribut '{attr_name}' fehlt")
+                                            validation_ok = False
+                                            break
+                                
+                                hindernis_class_valid = validation_ok
+                                
+                                # Store validation result and missing_get_typ flag
+                                self._hindernis_class_valid = validation_ok
+                                self._hindernis_missing_get_typ = missing_get_typ if validation_ok else False
+                    except Exception:
+                        HindernisClass = None
+                        print("Klasse Hindernis fehlt")
+                        self._hindernis_class_valid = False
 
                 class _InternalHindernis:
                     def __init__(self, art, x=None, y=None):
@@ -322,8 +418,28 @@ class Spielfeld:
                         # hide from inspector by returning empty dict
                         return {}
                     def zeichne(self, screen, feldgroesse):
-                        # Hindernisse werden vom Level-Tile gerendert by the framework; do nothing here.
-                        return
+                        # If student class is used and we have a typ override (like '?'), 
+                        # render it as an object instead of relying on tiles
+                        if hasattr(self, '_student') and self.typ == '?':
+                            # Render question mark
+                            surf = pygame.Surface((feldgroesse, feldgroesse))
+                            surf.fill((200, 200, 200))
+                            font = pygame.font.SysFont('Arial', feldgroesse // 2)
+                            text = font.render('?', True, (255, 0, 0))
+                            text_rect = text.get_rect(center=(feldgroesse // 2, feldgroesse // 2))
+                            surf.blit(text, text_rect)
+                            screen.blit(surf, (self.x * feldgroesse, self.y * feldgroesse))
+                        elif hasattr(self, '_student'):
+                            # Student class present - render based on typ
+                            try:
+                                sprite_map = {'Baum': 'sprites/baum.png', 'Berg': 'sprites/berg.png', 'Busch': 'sprites/busch.png'}
+                                from framework.utils import lade_sprite
+                                surf = lade_sprite(sprite_map.get(self.typ, 'sprites/baum.png'), feldgroesse)
+                                img = pygame.transform.scale(surf, (feldgroesse, feldgroesse))
+                                screen.blit(img, (self.x * feldgroesse, self.y * feldgroesse))
+                            except Exception:
+                                pass
+                        # Otherwise: Hindernisse werden vom Level-Tile gerendert by the framework
 
                 for yy, row in enumerate(self.level.tiles):
                     for xx, code in enumerate(row):
@@ -331,20 +447,24 @@ class Spielfeld:
                         if not art:
                             continue
                         obj = None
-                        # Prefer student class if present
+                        # Prefer student class if present and valid
                         try:
-                            if HindernisClass is not None and student_mode_enabled:
-                                # try flexible instantiation signatures
+                            if HindernisClass is not None and hindernis_class_valid:
+                                # Class exists and passed validation - instantiate
                                 try:
-                                    student_inst = HindernisClass(art)
+                                    student_inst = HindernisClass(xx, yy, art)
                                 except TypeError:
                                     try:
-                                        student_inst = HindernisClass(self.level, art)
+                                        student_inst = HindernisClass(art)
                                     except Exception:
                                         try:
-                                            student_inst = HindernisClass(self.level, xx, yy, art)
+                                            student_inst = HindernisClass(self.level, art)
                                         except Exception:
-                                            student_inst = None
+                                            try:
+                                                student_inst = HindernisClass(self.level, xx, yy, art)
+                                            except Exception:
+                                                student_inst = None
+                                
                                 if student_inst is not None:
                                     obj = student_inst
                                     try:
@@ -361,41 +481,174 @@ class Spielfeld:
                                     try:
                                         proxy = _InternalHindernis(art, xx, yy)
                                         proxy._student = obj
+                                        # Mark if get_typ is missing (use stored flag or check on instance)
+                                        missing_get_typ = getattr(self, '_hindernis_missing_get_typ', False)
+                                        if missing_get_typ or not hasattr(obj, 'get_typ') or not callable(getattr(obj, 'get_typ', None)):
+                                            proxy._missing_get_typ = True
+                                            proxy.typ = '?'  # Override typ for rendering
                                         obj = proxy
                                     except Exception:
                                         # fallback: use student_inst directly
                                         pass
+                            elif student_mode_enabled:
+                                # Student mode active but class missing/invalid - don't render
+                                obj = None
                             else:
+                                # No student mode - use framework hindernis
                                 obj = _InternalHindernis(art, xx, yy)
-                        except Exception:
-                            obj = _InternalHindernis(art, xx, yy)
+                        except Exception as e:
+                            # If student mode is enabled, don't fall back to framework hindernis
+                            if not student_mode_enabled:
+                                obj = _InternalHindernis(art, xx, yy)
+                            else:
+                                obj = None
 
-                        try:
-                            obj.x = xx
-                            obj.y = yy
-                        except Exception:
-                            pass
-                        try:
-                            obj.framework = self.framework
-                        except Exception:
-                            pass
-                        try:
-                            # ensure typ/name present for rendering
-                            if not hasattr(obj, 'typ'):
-                                obj.typ = art
-                            if not hasattr(obj, 'name'):
-                                obj.name = art
-                        except Exception:
-                            pass
-                        try:
-                            # avoid appending None objects (robustness)
-                            if obj is None:
-                                obj = _InternalHindernis(art, xx, yy)
-                            self.objekte.append(obj)
-                        except Exception:
-                            pass
+                        # Only add object if it's not None
+                        if obj is not None:
+                            try:
+                                obj.x = xx
+                                obj.y = yy
+                            except Exception:
+                                pass
+                            try:
+                                obj.framework = self.framework
+                            except Exception:
+                                pass
+                            try:
+                                # ensure typ/name present for rendering
+                                if not hasattr(obj, 'typ'):
+                                    # Try to get typ via getter
+                                    if hasattr(obj, 'get_typ') and callable(getattr(obj, 'get_typ', None)):
+                                        try:
+                                            obj.typ = obj.get_typ()
+                                        except Exception:
+                                            obj.typ = '?'  # Mark as unknown
+                                    else:
+                                        obj.typ = '?'  # get_typ missing
+                                if not hasattr(obj, 'name'):
+                                    obj.name = getattr(obj, 'typ', art)
+                            except Exception:
+                                pass
+                            try:
+                                self.objekte.append(obj)
+                            except Exception:
+                                pass
             except Exception:
                 pass
+
+        # --- Validate Zettel class (similar to Hindernis validation)
+        if not self.rebuild_mode:
+            try:
+                ZettelClass = None
+                zettel_student_mode_enabled = False
+                zettel_requirements = self.class_requirements.get('Zettel', {})
+                zettel_class_valid = False
+                
+                # Initialize validation flag (True if not in student mode, False if in student mode until validated)
+                self._zettel_class_valid = True  # Default: valid if no requirements
+                
+                # Check if student mode is enabled for Zettel
+                if zettel_requirements:
+                    zettel_student_mode_enabled = bool(zettel_requirements.get('load_from_schueler') or zettel_requirements.get('load_from_klassen'))
+                    if zettel_student_mode_enabled:
+                        self._zettel_class_valid = False  # Will be set to True if validation passes
+                
+                # Try to get student Zettel class and validate it ONCE
+                if zettel_student_mode_enabled:
+                    try:
+                        ZettelClass = self._get_entity_class('Zettel', None)
+                        if ZettelClass is None:
+                            print("Klasse Zettel fehlt")
+                        else:
+                            # Validate class requirements ONCE (not per instance)
+                            # Create a temporary instance to test validation
+                            try:
+                                test_inst = ZettelClass(0, 0)
+                            except Exception:
+                                test_inst = None
+                            
+                            if test_inst is not None:
+                                validation_ok = True
+                                can_render = True  # Can render if x,y are present
+                                
+                                # Get required methods list
+                                required_methods = zettel_requirements.get('methods', [])
+                                
+                                # Check private attributes
+                                private_attrs = zettel_requirements.get('attributes_private', {})
+                                for attr_name, required in private_attrs.items():
+                                    if required:
+                                        has_private = hasattr(test_inst, f"_{test_inst.__class__.__name__}__{attr_name}")
+                                        has_public = hasattr(test_inst, attr_name) and not attr_name.startswith('_')
+                                        
+                                        if not has_private or has_public:
+                                            print(f"Zettel: Attribut '{attr_name}' muss privat sein")
+                                            validation_ok = False
+                                            # Check if it's x or y - if so, can't render
+                                            if attr_name in ('x', 'y'):
+                                                can_render = False
+                                            break
+                                        
+                                        # Check getter
+                                        getter_name = f'get_{attr_name}'
+                                        has_getter = hasattr(test_inst, getter_name) and callable(getattr(test_inst, getter_name))
+                                        
+                                        if not has_getter:
+                                            print(f"Zettel: Getter '{getter_name}' fehlt")
+                                            validation_ok = False
+                                            # For x,y getters: can't render. For typ,spruch: can still render
+                                            if attr_name in ('x', 'y'):
+                                                can_render = False
+                                            break
+                                
+                                # Check required methods (excluding getters which were already checked above)
+                                if validation_ok:
+                                    for method_name in required_methods:
+                                        # Skip getters that were already validated with attributes
+                                        if method_name.startswith('get_') and method_name[4:] in private_attrs:
+                                            continue
+                                        # Skip setters for private attributes (already covered)
+                                        if method_name.startswith('set_') and method_name[4:] in private_attrs:
+                                            setter_attr = method_name[4:]
+                                            has_setter = hasattr(test_inst, method_name) and callable(getattr(test_inst, method_name))
+                                            if not has_setter:
+                                                print(f"Zettel: Setter '{method_name}' fehlt")
+                                                validation_ok = False
+                                                break
+                                            continue
+                                        if not (hasattr(test_inst, method_name) and callable(getattr(test_inst, method_name))):
+                                            print(f"Zettel: Methode '{method_name}' fehlt")
+                                            validation_ok = False
+                                            break
+                                
+                                # Check public attributes
+                                if validation_ok:
+                                    public_attrs = zettel_requirements.get('attributes', [])
+                                    for attr_name in public_attrs:
+                                        if not hasattr(test_inst, attr_name):
+                                            print(f"Zettel: Attribut '{attr_name}' fehlt")
+                                            validation_ok = False
+                                            break
+                                
+                                zettel_class_valid = validation_ok
+                                
+                                # Store validation result
+                                self._zettel_class_valid = validation_ok
+                                self._zettel_can_render = can_render  # Can render if x,y are accessible
+                    except Exception:
+                        ZettelClass = None
+                        print("Klasse Zettel fehlt")
+                        self._zettel_class_valid = False
+                
+                # Store Zettel class and student mode flag for later use in spawning
+                self._ZettelClass = ZettelClass
+                self._zettel_student_mode_enabled = zettel_student_mode_enabled
+                
+            except Exception:
+                self._zettel_class_valid = True  # Default: valid if no validation configured
+                self._zettel_can_render = True
+                self._ZettelClass = None
+                self._zettel_student_mode_enabled = False
 
         for typ, x, y, sichtbar in self.level.iter_entity_spawns():
             # Skip entity spawning in rebuild mode
@@ -595,18 +848,67 @@ class Spielfeld:
                     setattr(grundlage, "bogenschuetze", m)
 
             elif t == "c":
-                cls = self._get_entity_class("Code", Code)
-                if student_mode_enabled and cls is None:
-                    continue
-                try:
-                    code = cls(x, y, c=self.zufallscode)
-                except Exception:
-                    code = Code(x, y, c=self.zufallscode)
-                code.framework = self.framework
-                self.objekte.append(code)
-                if sichtbar:
-                    import framework.grundlage as grundlage
-                    setattr(grundlage, "zettel", code)
+                # Check if Zettel class is configured, otherwise use Code
+                use_zettel_class = getattr(self, '_zettel_student_mode_enabled', False)
+                zettel_can_render = getattr(self, '_zettel_can_render', True)
+                
+                if use_zettel_class and getattr(self, '_ZettelClass', None) is not None:
+                    # Use student Zettel class - render if x,y are accessible
+                    if zettel_can_render:
+                        try:
+                            code = self._ZettelClass(x, y)
+                            code.framework = self.framework
+                            
+                            # Ensure x, y are accessible as properties (not just via getters)
+                            if not hasattr(code, 'x'):
+                                if hasattr(code, 'get_x') and callable(getattr(code, 'get_x', None)):
+                                    try:
+                                        code.x = code.get_x()
+                                    except Exception:
+                                        code.x = x
+                            if not hasattr(code, 'y'):
+                                if hasattr(code, 'get_y') and callable(getattr(code, 'get_y', None)):
+                                    try:
+                                        code.y = code.get_y()
+                                    except Exception:
+                                        code.y = y
+                            
+                            # Ensure typ is accessible for rendering
+                            if not hasattr(code, 'typ'):
+                                # Try to get typ via getter
+                                if hasattr(code, 'get_typ') and callable(getattr(code, 'get_typ', None)):
+                                    try:
+                                        code.typ = code.get_typ()
+                                    except Exception:
+                                        code.typ = 'Zettel'  # Default
+                                else:
+                                    code.typ = 'Zettel'  # Default if no getter
+                            
+                            self.objekte.append(code)
+                            if sichtbar:
+                                import framework.grundlage as grundlage
+                                setattr(grundlage, "zettel", code)
+                        except Exception:
+                            # Failed to create Zettel - skip
+                            pass
+                    # else: Zettel class can't render (x,y not accessible) - don't spawn
+                elif use_zettel_class:
+                    # Zettel class required but not found - don't spawn
+                    pass
+                else:
+                    # Use framework Code class
+                    cls = self._get_entity_class("Code", Code)
+                    if student_mode_enabled and cls is None:
+                        continue
+                    try:
+                        code = cls(x, y, c=self.zufallscode)
+                    except Exception:
+                        code = Code(x, y, c=self.zufallscode)
+                    code.framework = self.framework
+                    self.objekte.append(code)
+                    if sichtbar:
+                        import framework.grundlage as grundlage
+                        setattr(grundlage, "zettel", code)
 
             elif t == "d":
                 # prüfe, ob für diese Position eine Farbe konfiguriert ist (ggf. überschrieben durch random)
@@ -1207,7 +1509,7 @@ class Spielfeld:
 
     def _student_has_class(self, canonical_name: str) -> bool:
         """Check (by filesystem/AST) whether a student-provided class with the
-        given canonical name exists either in `schueler.py` or in `klassen/<name>.py`.
+        given canonical_name exists either in `schueler.py` or in `klassen/<name>.py`.
         This avoids importing/running student top-level code and provides a
         reliable presence test for tile-drawing logic.
         """
@@ -1307,6 +1609,25 @@ class Spielfeld:
                                     return True
                                 except Exception:
                                     return False
+                            # For Zettel classes, use class_requirements if available
+                            elif cls_name == 'Zettel':
+                                # Get required attributes and methods from class_requirements
+                                req = self.class_requirements.get("Zettel", {})
+                                required_attrs = req.get('attributes', [])
+                                required_methods = req.get('methods', [])
+                                
+                                try:
+                                    # Check attributes
+                                    if required_attrs and not _class_has_required_attrs(node, required_attrs):
+                                        return False
+                                    
+                                    # Check methods
+                                    if required_methods and not _class_has_required_methods(node, required_methods):
+                                        return False
+                                    
+                                    return True
+                                except Exception:
+                                    return False
                             return True
                     return False
                 except Exception:
@@ -1343,7 +1664,7 @@ class Spielfeld:
             req = self.class_requirements.get(canonical_name, {})
             load_from_klassen = req.get('load_from_klassen', False)
             load_from_schueler = req.get('load_from_schueler', False)
-
+            
             # If class_requirements explicitly sets load location, use that
             if load_from_klassen or load_from_schueler:
                 if load_from_klassen:
@@ -1389,7 +1710,7 @@ class Spielfeld:
         the result after spawning has occurred.
         """
         try:
-            mapping = { 'p': 'Held', 'h': 'Herz', 'x': 'Monster', 'c': 'Code', 'd': 'Tuer', 's': 'Schluessel', 'v': 'Villager', 'k': 'Knappe', 'g': 'Tor', 'q': 'Questgeber' }
+            mapping = { 'p': 'Held', 'h': 'Herz', 'x': 'Monster', 'c': 'Code', 'd': 'Tuer', 's': 'Schluessel', 'v': 'Villager', 'k': 'Knappe', 'g': 'Tor', 'q': 'Questgeber', 't': 'Hindernis', 'm': 'Hindernis', 'b': 'Hindernis' }
             needed = set()
             for y, zeile in enumerate(self.level.tiles):
                 for x, code in enumerate(zeile):
@@ -1634,20 +1955,27 @@ class Spielfeld:
             pass
         # Sortierte Zeichnung: zuerst Boden / Hindernisse, dann Items, dann Lebewesen
         # Use canonical type names (matching Objekt.typ) so objects are drawn.
-        zeichenreihenfolge = ["Berg", "Baum", "Busch", "Hindernis", "Spruch", "Herz", "Tuer", "Tor", "Schluessel", "Monster", "Held", "Knappe", "Questgeber", "Dorfbewohner", "Dorfbewohnerin"]
+        zeichenreihenfolge = ["Berg", "Baum", "Busch", "Hindernis", "?", "Spruch", "Zettel", "Herz", "Tuer", "Tor", "Schluessel", "Monster", "Held", "Knappe", "Questgeber", "Dorfbewohner", "Dorfbewohnerin"]
 
         # Determine whether student mode requests are active and whether a student
-        # Hindernis class exists. If the level requests student classes but the
-        # Hindernis class is missing, don't draw obstacle tiles (m,b,t).
-        try:
-            student_mode_enabled = bool(self.settings.get('import_pfad') or self.settings.get('use_student_module') or self.settings.get('student_classes_in_subfolder'))
-        except Exception:
-            student_mode_enabled = False
+        # Hindernis class is valid. 
+        # - If class missing or validation failed: don't draw obstacle tiles
+        # - If get_typ missing: draw as question marks (handled in object drawing)
+        # - If all getters present: draw normally via object drawing
         hide_obstacles = False
         try:
+            hindernis_requirements = self.class_requirements.get('Hindernis', {})
+            student_mode_enabled = False
+            
+            if hindernis_requirements:
+                student_mode_enabled = bool(hindernis_requirements.get('load_from_schueler') or hindernis_requirements.get('load_from_klassen'))
+            
             if student_mode_enabled:
-                # Use AST-based presence check which handles both schueler.py and klassen/*.py
+                # Check if class exists
                 if not self._student_has_class('Hindernis'):
+                    hide_obstacles = True
+                # Check if validation passed (get_x, get_y present)
+                elif not getattr(self, '_hindernis_class_valid', False):
                     hide_obstacles = True
         except Exception:
             hide_obstacles = False
@@ -2006,13 +2334,32 @@ class Spielfeld:
                  "Knapptain Iglo","Ritterschorsch","Helm Mut","Sigi von Schwertlingen","Klaus der Kleingehauene","Egon Eisenfaust","Ben Knied","Rainer Zufallsson","Dietmar Degenhart","Uwe von Ungefähr","Hartmut Helmrich","Bodo Beinhart","Kai der Kurze","Knapphart Stahl","Tobi Taschenmesser","Fridolin Fehlschlag","Gernot Gnadenlos","Ralf Rüstungslos","Gustav Gürtelschwert","Kuno Knickbein"]
         return random.choice(names).capitalize()
 
+    def _get_attribute_value(self, obj, attr_name, default=None):
+        """Get attribute value from object, trying getter method first, then direct access."""
+        # Try direct attribute access first
+        if hasattr(obj, attr_name):
+            try:
+                return getattr(obj, attr_name)
+            except AttributeError:
+                pass
+        # Try getter method
+        getter_name = f'get_{attr_name}'
+        if hasattr(obj, getter_name):
+            try:
+                getter = getattr(obj, getter_name)
+                if callable(getter):
+                    return getter()
+            except Exception:
+                pass
+        return default
+    
     def _draw_object_default(self, o, screen, feldgroesse):
         """Best-effort drawing for objects that don't implement zeichne().
         Uses available object.bild or falls back to canonical sprites by type.
         """
         try:
-            ox = int(getattr(o, 'x', 0))
-            oy = int(getattr(o, 'y', 0))
+            ox = int(self._get_attribute_value(o, 'x', 0))
+            oy = int(self._get_attribute_value(o, 'y', 0))
         except Exception:
             return
 
@@ -2053,6 +2400,21 @@ class Spielfeld:
                         surf = tex
                     else:
                         surf = lade_sprite(None, feldgroesse)
+                elif typ == '?':
+                    # Render question mark for unknown/invalid typ
+                    surf = pygame.Surface((feldgroesse, feldgroesse))
+                    surf.fill((200, 200, 200))
+                    font = pygame.font.SysFont('Arial', feldgroesse // 2)
+                    text = font.render('?', True, (255, 0, 0))
+                    text_rect = text.get_rect(center=(feldgroesse // 2, feldgroesse // 2))
+                    surf.blit(text, text_rect)
+                elif typ in ('Baum', 'Berg', 'Busch'):
+                    # Render Hindernis types
+                    sprite_map = {'Baum': 'sprites/baum.png', 'Berg': 'sprites/berg.png', 'Busch': 'sprites/busch.png'}
+                    surf = lade_sprite(sprite_map.get(typ, 'sprites/baum.png'), feldgroesse)
+                elif typ == 'Zettel':
+                    # Render Zettel (Code)
+                    surf = lade_sprite('sprites/code.png', feldgroesse)
                 else:
                     surf = lade_sprite(None, feldgroesse)
             except Exception:
@@ -2333,6 +2695,75 @@ class Spielfeld:
                 c+=1
         return c
 
+    def _check_privacy_requirements(self, class_name, obj):
+        """Check if privacy requirements for attributes and methods are met.
+        
+        Returns True if all requirements are satisfied, False otherwise.
+        """
+        try:
+            req = self.class_requirements.get(class_name, {})
+            if not req:
+                return True  # No requirements = always satisfied
+            
+            # Get private attribute/method requirements
+            private_attrs_req = req.get('attributes_private', {})
+            private_methods_req = req.get('methods_private', {})
+            
+            if not private_attrs_req and not private_methods_req:
+                return True  # No privacy requirements
+            
+            # Get the actual student object (not wrapper)
+            student_obj = obj
+            if hasattr(obj, '_student'):
+                student_obj = getattr(obj, '_student')
+            
+            student_class = student_obj.__class__
+            
+            # Check private attributes
+            for attr_name, required in private_attrs_req.items():
+                if not required:
+                    continue
+                
+                # Check if attribute is actually private (starts with __)
+                private_attr_name = f"_{student_class.__name__}__{attr_name}"
+                has_private_attr = hasattr(student_obj, private_attr_name)
+                
+                # Also check if there's a non-private attribute with the same name (would be wrong)
+                has_public_attr = hasattr(student_obj, attr_name) and not attr_name.startswith('_')
+                
+                if not has_private_attr or has_public_attr:
+                    return False
+                
+                # Check getter exists
+                getter_name = f'get_{attr_name}'
+                if not (hasattr(student_obj, getter_name) and callable(getattr(student_obj, getter_name))):
+                    return False
+                
+                # Check setter exists (optional for some attributes like typ and weiblich)
+                setter_name = f'set_{attr_name}'
+                if attr_name not in ['typ', 'weiblich']:
+                    if not (hasattr(student_obj, setter_name) and callable(getattr(student_obj, setter_name))):
+                        return False
+            
+            # Check private methods
+            for method_name, required in private_methods_req.items():
+                if not required:
+                    continue
+                
+                # Check if method is actually private (starts with __)
+                private_method_name = f"_{student_class.__name__}__{method_name}"
+                has_private_method = hasattr(student_obj, private_method_name)
+                
+                # Also check if there's a non-private method with the same name (would be wrong)
+                has_public_method = hasattr(student_obj, method_name) and not method_name.startswith('_')
+                
+                if not has_private_method or has_public_method:
+                    return False
+            
+            return True
+        except Exception:
+            return False
+
     def check_victory(self) -> bool:
         """Evaluate configured victory conditions.
 
@@ -2384,9 +2815,15 @@ class Spielfeld:
                     # build canonical set
                     mapping = {
                         'p': 'Held', 'k': 'Knappe', 'x': 'Monster', 'h': 'Herz',
-                        'd': 'Tuer', 'c': 'Code', 'v': 'Villager', 'g': 'Tor',
-                        's': 'Schluessel', 'q': 'Questgeber'
+                        'd': 'Tuer', 'v': 'Villager', 'g': 'Tor',
+                        's': 'Schluessel', 'q': 'Questgeber',
+                        't': 'Hindernis', 'm': 'Hindernis', 'b': 'Hindernis'
                     }
+                    # Check if Zettel class is configured, otherwise use Code
+                    if getattr(self, '_zettel_student_mode_enabled', False):
+                        mapping['c'] = 'Zettel'
+                    else:
+                        mapping['c'] = 'Code'
                     # Prefer the precomputed required classes (computed before
                     # _spawn_aus_level runs and mutates tiles). Fall back to
                     # scanning iter_entity_spawns only when the precomputed set
@@ -2402,9 +2839,16 @@ class Spielfeld:
                             if cn:
                                 needed.add(cn)
                     # for each needed canonical name, require _student_has_class True
+                    # BUT only if the class requires student implementation
                     for cn in needed:
-                        if not self._student_has_class(cn):
-                            return False
+                        # Check if this class requires student implementation
+                        req = self.class_requirements.get(cn, {})
+                        requires_student = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        
+                        if requires_student:
+                            has_class = self._student_has_class(cn)
+                            if not has_class:
+                                return False
                     
                     # Additional validation for student Held: check required attributes and values
                     if 'Held' in needed:
@@ -2480,6 +2924,69 @@ class Spielfeld:
                                         return False
                                     if actual_richtung != expected_richtung:
                                         return False
+                            
+                            # Check privacy requirements (private attributes/methods with getters/setters)
+                            if not self._check_privacy_requirements('Held', held):
+                                return False
+                    
+                    # Remap 'Code' to 'Zettel' if Zettel student mode is active
+                    if getattr(self, '_zettel_student_mode_enabled', False) and 'Code' in needed:
+                        needed.remove('Code')
+                        needed.add('Zettel')
+                    
+                    # Check privacy requirements for other classes (Hindernis, etc.)
+                    for class_name in needed:
+                        if class_name == 'Held':
+                            continue  # Already checked above
+                        
+                        # Check if this class has privacy requirements
+                        req = self.class_requirements.get(class_name, {})
+                        if not req:
+                            continue
+                        
+                        # Check if it's student mode for this class
+                        student_mode = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        if not student_mode:
+                            continue
+                        # Find all objects of this class type
+                        objects_to_check = []
+                        if class_name == 'Hindernis':
+                            # Check if Hindernis class validation passed during spawn
+                            if not getattr(self, '_hindernis_class_valid', True):
+                                return False
+                            # Hindernisse are in self.objekte, filter by class
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Hindernis']
+                        elif class_name == 'Herz':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Herz']
+                        elif class_name == 'Tuer':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Tuer']
+                        elif class_name == 'Tor':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Tor']
+                        elif class_name == 'Schluessel':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Schluessel']
+                        elif class_name == 'Knappe':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Knappe']
+                        elif class_name == 'Monster' or class_name == 'Bogenschuetze':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ in ['Monster', 'Bogenschuetze']]
+                        elif class_name == 'Villager':
+                            objects_to_check = [obj for obj in self.objekte if obj.__class__.__name__ == 'Villager']
+                        
+                        # For Hindernis and Zettel, we already checked validation during spawn and stored result
+                        # Don't check objects_to_check as they might be proxy objects
+                        if class_name == 'Hindernis':
+                            # Already validated during spawn
+                            continue
+                        elif class_name == 'Zettel':
+                            # Check validation result from spawn
+                            if not getattr(self, '_zettel_class_valid', True):
+                                return False
+                            continue
+                        else:
+                            # Check privacy for at least one object of this class
+                            if objects_to_check:
+                                # Check privacy requirements for the first object
+                                if not self._check_privacy_requirements(class_name, objects_to_check[0]):
+                                    return False
                 
                 except Exception:
                     return False

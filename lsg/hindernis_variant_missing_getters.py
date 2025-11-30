@@ -1,5 +1,5 @@
 
-# Korrekte Implementierung: Alle Attribute privat mit Gettern
+# Falsch: Private Attribute aber fehlende Getter
 class Hindernis():
     def __init__(self, x, y, art):
         self.__typ = art  # möglich sind Baum, Berg, Busch
@@ -9,13 +9,10 @@ class Hindernis():
     def ist_passierbar(self):
         return False
     
-    def get_typ(self):
-        return self.__typ
+    # get_typ fehlt!
+    # get_x fehlt!
+    # get_y fehlt!
     
-    def get_x(self):
-        return self.__x
-    
-    def get_y(self):
-        return self.__y
-    
-
+    def set_position(self, x, y):
+        self.__x = x
+        self.__y = y

@@ -161,15 +161,23 @@ class RunLsgGui:
             # For lsg35.py, lsg36.py, lsg37.py: backup schueler.py and extract class from lsg file
             # For lsg38.py: backup klassen/held.py and replace with held_lsg_37.py
             # For lsg31.py: backup framework/held.py and activate setze_position (if False -> if True)
+            # For lsg40*.py: backup klassen/held.py and replace with appropriate held_variant_*.py
             schueler_path = os.path.join(ROOT, "schueler.py")
             held_klassen_path = os.path.join(ROOT, "klassen", "held.py")
+            hindernis_klassen_path = os.path.join(ROOT, "klassen", "hindernis.py")
+            zettel_klassen_path = os.path.join(ROOT, "klassen", "zettel.py")
             held_framework_path = os.path.join(ROOT, "framework", "held.py")
             schueler_backup = None
             held_backup = None
+            hindernis_backup = None
+            zettel_backup = None
             framework_held_backup = None
             needs_schueler_replacement = name in ["lsg35.py", "lsg36.py", "lsg37.py"]
             needs_held_replacement = name == "lsg38.py"
             needs_framework_held_modification = name == "lsg31.py"
+            needs_level40_held_replacement = name.startswith("lsg40")
+            needs_level41_hindernis_replacement = name.startswith("lsg41")
+            needs_level42_zettel_replacement = name.startswith("lsg42")
             
             if needs_schueler_replacement:
                 try:
@@ -233,6 +241,89 @@ class RunLsgGui:
                         self.queue.put(f"[info] Activated setze_position in framework/held.py for {name}\n")
                 except Exception as e:
                     self.queue.put(f"[warning] Could not modify framework/held.py for {name}: {e}\n")
+            
+            if needs_level40_held_replacement:
+                try:
+                    # Backup existing klassen/held.py
+                    if os.path.exists(held_klassen_path):
+                        with open(held_klassen_path, 'r', encoding='utf-8') as f:
+                            held_backup = f.read()
+                    
+                    # Determine which variant to use based on test name
+                    variant_name = "correct"  # default for lsg40.py
+                    if "public_attributes" in name:
+                        variant_name = "public_attributes"
+                    elif "missing_getters" in name:
+                        variant_name = "missing_getters"
+                    elif "missing_setters" in name:
+                        variant_name = "missing_setters"
+                    
+                    # Copy appropriate held_variant_*.py to klassen/held.py
+                    held_variant_path = os.path.join(ROOT, "lsg", f"held_variant_{variant_name}.py")
+                    if os.path.exists(held_variant_path):
+                        with open(held_variant_path, 'r', encoding='utf-8') as f:
+                            held_variant_content = f.read()
+                        with open(held_klassen_path, 'w', encoding='utf-8') as f:
+                            f.write(held_variant_content)
+                        self.queue.put(f"[info] Copied held_variant_{variant_name}.py to klassen/held.py for {name}\n")
+                    else:
+                        self.queue.put(f"[warning] held_variant_{variant_name}.py not found\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not replace klassen/held.py for {name}: {e}\n")
+            
+            if needs_level41_hindernis_replacement:
+                try:
+                    # Backup existing klassen/hindernis.py
+                    if os.path.exists(hindernis_klassen_path):
+                        with open(hindernis_klassen_path, 'r', encoding='utf-8') as f:
+                            hindernis_backup = f.read()
+                    
+                    # Determine which variant to use based on test name
+                    variant_name = "correct"  # default for lsg41.py
+                    if "public_attributes" in name:
+                        variant_name = "public_attributes"
+                    elif "missing_getters" in name:
+                        variant_name = "missing_getters"
+                    
+                    # Copy appropriate hindernis_variant_*.py to klassen/hindernis.py
+                    hindernis_variant_path = os.path.join(ROOT, "lsg", f"hindernis_variant_{variant_name}.py")
+                    if os.path.exists(hindernis_variant_path):
+                        with open(hindernis_variant_path, 'r', encoding='utf-8') as f:
+                            hindernis_variant_content = f.read()
+                        with open(hindernis_klassen_path, 'w', encoding='utf-8') as f:
+                            f.write(hindernis_variant_content)
+                        self.queue.put(f"[info] Copied hindernis_variant_{variant_name}.py to klassen/hindernis.py for {name}\n")
+                    else:
+                        self.queue.put(f"[warning] hindernis_variant_{variant_name}.py not found\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not replace klassen/hindernis.py for {name}: {e}\n")
+            
+            if needs_level42_zettel_replacement:
+                try:
+                    # Backup existing klassen/zettel.py
+                    if os.path.exists(zettel_klassen_path):
+                        with open(zettel_klassen_path, 'r', encoding='utf-8') as f:
+                            zettel_backup = f.read()
+                    
+                    # Determine which variant to use based on test name
+                    variant_name = "correct"  # default for lsg42.py
+                    if "public_attributes" in name:
+                        variant_name = "public_attributes"
+                    elif "missing_getters" in name:
+                        variant_name = "missing_getters"
+                    
+                    # Copy appropriate zettel_variant_*.py to klassen/zettel.py
+                    zettel_variant_path = os.path.join(ROOT, "lsg", f"zettel_variant_{variant_name}.py")
+                    if os.path.exists(zettel_variant_path):
+                        with open(zettel_variant_path, 'r', encoding='utf-8') as f:
+                            zettel_variant_content = f.read()
+                        with open(zettel_klassen_path, 'w', encoding='utf-8') as f:
+                            f.write(zettel_variant_content)
+                        self.queue.put(f"[info] Copied zettel_variant_{variant_name}.py to klassen/zettel.py for {name}\n")
+                    else:
+                        self.queue.put(f"[warning] zettel_variant_{variant_name}.py not found\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not replace klassen/zettel.py for {name}: {e}\n")
             
             env = os.environ.copy()
             env["OOP_TEST"] = "1"
@@ -311,14 +402,32 @@ class RunLsgGui:
                 except Exception as e:
                     self.queue.put(f"[warning] Could not restore schueler.py: {e}\n")
             
-            # Restore klassen/held.py if it was replaced
-            if needs_held_replacement and held_backup is not None:
+            # Restore klassen/held.py if it was replaced (lsg38 or lsg40)
+            if (needs_held_replacement or needs_level40_held_replacement) and held_backup is not None:
                 try:
                     with open(held_klassen_path, 'w', encoding='utf-8') as f:
                         f.write(held_backup)
                     self.queue.put(f"[info] Restored klassen/held.py after {name}\n")
                 except Exception as e:
                     self.queue.put(f"[warning] Could not restore klassen/held.py: {e}\n")
+            
+            # Restore klassen/hindernis.py if it was replaced (lsg41)
+            if needs_level41_hindernis_replacement and hindernis_backup is not None:
+                try:
+                    with open(hindernis_klassen_path, 'w', encoding='utf-8') as f:
+                        f.write(hindernis_backup)
+                    self.queue.put(f"[info] Restored klassen/hindernis.py after {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not restore klassen/hindernis.py: {e}\n")
+            
+            # Restore klassen/zettel.py if it was replaced (lsg42)
+            if needs_level42_zettel_replacement and zettel_backup is not None:
+                try:
+                    with open(zettel_klassen_path, 'w', encoding='utf-8') as f:
+                        f.write(zettel_backup)
+                    self.queue.put(f"[info] Restored klassen/zettel.py after {name}\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not restore klassen/zettel.py: {e}\n")
             
             # Restore framework/held.py if it was modified
             if needs_framework_held_modification and framework_held_backup is not None:

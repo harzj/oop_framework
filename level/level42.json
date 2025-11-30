@@ -1,9 +1,10 @@
 {
   "tiles": [
-    "wwww",
-    "wpww",
-    "wwww",
-    "wwww"
+    "ttttt",
+    "tpwwt",
+    "twwwt",
+    "twcwt",
+    "ttttt"
   ],
   "settings": {
     "Held": {
@@ -39,11 +40,7 @@
     "victory": {
       "rebuild_mode": false,
       "collect_hearts": false,
-      "move_to": {
-        "enabled": true,
-        "x": 2,
-        "y": 2
-      },
+      "move_to": null,
       "classes_present": true
     },
     "initial_gold": 0,
@@ -57,19 +54,27 @@
         "inherits": "None",
         "load_from_schueler": false,
         "load_from_klassen": true,
+        "methods": [],
+        "attributes": []
+      },
+      "Zettel": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
         "methods": [
-          "geh",
-          "links",
-          "rechts"
+          "get_x",
+          "get_y",
+          "get_typ",
+          "get_spruch",
+          "set_spruch",
+          "ist_passierbar"
         ],
-        "methods_private": {},
         "attributes": [],
         "attributes_private": {
           "x": true,
           "y": true,
-          "richtung": true,
           "typ": true,
-          "weiblich": true
+          "spruch": true
         }
       }
     }

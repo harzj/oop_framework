@@ -18,4 +18,6 @@ class Hindernis():
     def get_y(self):
         return self.__y
     
-
+    def set_position(self, x, y):
+        self.__x = x
+        self.__y = y
