@@ -1,28 +1,26 @@
 
-# Fehlerhafte Implementierung: Fehlende Getter (soll fehlschlagen)
+# Fehlerhafte Implementierung: Öffentliche Attribute (soll fehlschlagen)
 class Zettel():
     def __init__(self, x, y):
-        self.__typ = "Zettel"
-        self.__x = x
-        self.__y = y
-        self.__spruch = "Sesam öffne dich"
+        self.typ = "Zettel"  # Sollte privat sein!
+        self.x = x           # Sollte privat sein!
+        self.y = y           # Sollte privat sein!
+        self.spruch = "Sesam öffne dich"  # Sollte privat sein!
 
     def ist_passierbar(self):
         return True
     
     def get_typ(self):
-        return self.__typ
+        return self.typ
     
     def get_x(self):
-        return self.__x
+        return self.x
     
     def get_y(self):
-        return self.__y
-    
-
+        return self.y
     
     def get_spruch(self):
-        return self.__spruch
+        return self.spruch
     
     def set_spruch(self, spruch):
-        self.__spruch = spruch
+        self.spruch = spruch

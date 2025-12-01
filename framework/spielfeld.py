@@ -2798,14 +2798,19 @@ class Spielfeld:
                     held = getattr(self, 'held', None)
                     if held is None:
                         return False
-                    hx = int(getattr(held, 'x', None))
-                    hy = int(getattr(held, 'y', None))
+                    # Use getter methods for private attributes
+                    hx = self._get_attribute_value(held, 'x', None)
+                    hy = self._get_attribute_value(held, 'y', None)
+                    if hx is None or hy is None:
+                        return False
+                    hx = int(hx)
+                    hy = int(hy)
                     if hx != tx or hy != ty:
                         return False
                     # also ensure framework not blocking student actions
                     if getattr(self.framework, '_aktion_blockiert', False):
                         return False
-                except Exception:
+                except Exception as e:
                     return False
 
             # 3) classes_present: require that all canonical classes used in the level

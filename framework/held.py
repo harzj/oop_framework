@@ -449,8 +449,8 @@ class MetaHeld(Held):
                                 return result
                             return wrapper
                         
-                        # Replace student method with wrapper
-                        setattr(stud, method_name, create_wrapper(original_method, self))
+                        # Replace method on MetaHeld (not on student) to override inherited method
+                        setattr(self, method_name, create_wrapper(original_method, self))
         except Exception:
             pass
 

@@ -1,5 +1,5 @@
 
-# Korrekte Implementierung: Alle Attribute privat mit Gettern/Settern
+# Falsch: Alle Attribute öffentlich (kein __ Präfix)
 class Held:
     def __init__(self, x, y, richtung, weiblich):
         self.__x = x
@@ -38,29 +38,36 @@ class Held:
             self.__richtung = "up"
         elif self.__richtung == "right":
             self.__richtung = "down"
-    
-    # Getter methods for private attributes
+
+
     def get_x(self):
         return self.__x
-    
+
     def get_y(self):
         return self.__y
     
     def get_richtung(self):
         return self.__richtung
-   
+    
     def get_weiblich(self):
         return self.__weiblich
     
     def get_typ(self):
         return self.__typ
+    def set_x(self, x):
+        self.__x = x
     
-    # Setter methods for private attributes
-    def set_x(self, value):
-        self.__x = value
-    
-    def set_y(self, value):
-        self.__y = value
-    
-    def set_richtung(self, value):
-        self.__richtung = value
+    def set_y(self, y):
+        self.__y = y
+
+    def set_name(self,name):
+        if len(name<20):
+            self.name = name
+        else:
+            print("Name zu lang!")
+
+    def set_richtung(self, richtung):
+        if richtung in ["up","down","left","right"]:
+            self.__richtung = richtung
+        else:
+            print("Ungültige Richtung!")
