@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# pytest
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Distribution
+dist/
+build/
+
+# Legacy tests (temporary debug files)
+tests/legacy_tests/
+
+# Example/backup files
+beispiel_8_3_2.py
+schueler_backup.py
+schueler_held_bsp.py
+
+# Backup files
+*_backup.py

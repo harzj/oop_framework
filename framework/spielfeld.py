@@ -1,4 +1,5 @@
 # framework/spielfeld.py
+import sys
 import pygame
 from .level import Level
 from .utils import richtung_offset, lade_sprite
@@ -296,11 +297,30 @@ class Spielfeld:
                 # Initialize validation flag (True if not in student mode, False if in student mode until validated)
                 self._hindernis_class_valid = True  # Default: valid if no requirements
                 
+                # Check if classes_present is enabled - if yes, only student classes allowed
+                classes_present_mode = self.victory_settings.get('classes_present', False)
+                
                 # Check if student mode is enabled for Hindernis
                 if hindernis_requirements:
-                    student_mode_enabled = bool(hindernis_requirements.get('load_from_schueler') or hindernis_requirements.get('load_from_klassen'))
+                    # Check explicit load flags OR if requirements configured (same logic as _get_entity_class)
+                    prefer_schueler = bool(hindernis_requirements.get('load_from_schueler', False))
+                    prefer_klassen = bool(hindernis_requirements.get('load_from_klassen', False))
+                    has_methods = bool(hindernis_requirements.get('methods', []))
+                    has_attrs = bool(hindernis_requirements.get('attributes', []))
+                    has_inheritance = hindernis_requirements.get('inherits') and hindernis_requirements.get('inherits') != 'None'
+                    
+                    student_mode_enabled = prefer_schueler or prefer_klassen or has_methods or has_attrs or has_inheritance
                     if student_mode_enabled:
                         self._hindernis_class_valid = False  # Will be set to True if validation passes
+                elif classes_present_mode:
+                    # classes_present is true but no Hindernis requirements:
+                    # This means Hindernis is not required for this level
+                    # Don't render any Hindernisse (framework or student)
+                    student_mode_enabled = True  # Mark as student mode to prevent framework rendering
+                    self._hindernis_class_valid = False  # No class available
+                
+                # Store the student mode flag for rendering logic
+                self._hindernis_student_mode_enabled = student_mode_enabled
                 
                 # Try to get student Hindernis class and validate it ONCE
                 if student_mode_enabled:
@@ -333,32 +353,44 @@ class Spielfeld:
                                 required_methods = hindernis_requirements.get('methods', [])
                                 get_typ_required = 'get_typ' in required_methods
                                 
-                                # Check private attributes - separate check for x, y vs typ
+                                # Check private attributes - check in parent class hierarchy
                                 private_attrs = hindernis_requirements.get('attributes_private', {})
                                 for attr_name, required in private_attrs.items():
                                     if required:
-                                        has_private = hasattr(test_inst, f"_{test_inst.__class__.__name__}__{attr_name}")
+                                        # Try to find the attribute in the class hierarchy
+                                        # Check both own class and parent class name mangling
+                                        found = False
+                                        for cls in HindernisClass.__mro__:
+                                            mangled_name = f"_{cls.__name__}__{attr_name}"
+                                            if hasattr(test_inst, mangled_name):
+                                                found = True
+                                                break
+                                        
+                                        # Also check if attribute is public (which would be wrong)
                                         has_public = hasattr(test_inst, attr_name) and not attr_name.startswith('_')
                                         
-                                        if not has_private or has_public:
+                                        if not found or has_public:
                                             print(f"Hindernis: Attribut '{attr_name}' muss privat sein")
                                             validation_ok = False
                                             break
-                                        
-                                        # Check getter
-                                        getter_name = f'get_{attr_name}'
-                                        has_getter = hasattr(test_inst, getter_name) and callable(getattr(test_inst, getter_name))
-                                        
-                                        if not has_getter:
-                                            if attr_name == 'typ' and not get_typ_required:
-                                                # get_typ not in required methods: allow missing but render as '?'
-                                                print(f"Hindernis: Getter '{getter_name}' fehlt - wird als '?' gerendert")
-                                                missing_get_typ = True
-                                            else:
-                                                # get_x, get_y or required get_typ missing is a validation failure
-                                                print(f"Hindernis: Getter '{getter_name}' fehlt")
-                                                validation_ok = False
-                                                break
+                                
+                                # Check getters separately
+                                if validation_ok and private_attrs:
+                                    for attr_name, required in private_attrs.items():
+                                        if required:
+                                            getter_name = f'get_{attr_name}'
+                                            has_getter = hasattr(test_inst, getter_name) and callable(getattr(test_inst, getter_name))
+                                            
+                                            if not has_getter:
+                                                if attr_name == 'typ' and not get_typ_required:
+                                                    # get_typ not in required methods: allow missing but render as '?'
+                                                    print(f"Hindernis: Getter '{getter_name}' fehlt - wird als '?' gerendert")
+                                                    missing_get_typ = True
+                                                else:
+                                                    # get_x, get_y or required get_typ missing is a validation failure
+                                                    print(f"Hindernis: Getter '{getter_name}' fehlt")
+                                                    validation_ok = False
+                                                    break
                                 
                                 # Check required methods (excluding getters which were already checked above)
                                 if validation_ok:
@@ -486,6 +518,19 @@ class Spielfeld:
                                         if missing_get_typ or not hasattr(obj, 'get_typ') or not callable(getattr(obj, 'get_typ', None)):
                                             proxy._missing_get_typ = True
                                             proxy.typ = '?'  # Override typ for rendering
+                                        else:
+                                            # Get typ value for rendering (but don't re-validate class)
+                                            try:
+                                                typ_value = obj.get_typ()
+                                                if typ_value in ['Baum', 'Berg', 'Busch']:
+                                                    proxy.typ = typ_value
+                                                else:
+                                                    # Typ value is wrong, but class was already validated
+                                                    # This might be a student implementation error (e.g., name mangling)
+                                                    # Render as '?' but don't fail validation
+                                                    proxy.typ = '?'
+                                            except Exception:
+                                                proxy.typ = '?'
                                         obj = proxy
                                     except Exception:
                                         # fallback: use student_inst directly
@@ -549,7 +594,14 @@ class Spielfeld:
                 
                 # Check if student mode is enabled for Zettel
                 if zettel_requirements:
-                    zettel_student_mode_enabled = bool(zettel_requirements.get('load_from_schueler') or zettel_requirements.get('load_from_klassen'))
+                    # Check explicit load flags OR if requirements configured (same logic as Hindernis)
+                    prefer_schueler = bool(zettel_requirements.get('load_from_schueler', False))
+                    prefer_klassen = bool(zettel_requirements.get('load_from_klassen', False))
+                    has_methods = bool(zettel_requirements.get('methods', []))
+                    has_attrs = bool(zettel_requirements.get('attributes', []))
+                    has_inheritance = zettel_requirements.get('inherits') and zettel_requirements.get('inherits') != 'None'
+                    
+                    zettel_student_mode_enabled = prefer_schueler or prefer_klassen or has_methods or has_attrs or has_inheritance
                     if zettel_student_mode_enabled:
                         self._zettel_class_valid = False  # Will be set to True if validation passes
                 
@@ -574,14 +626,23 @@ class Spielfeld:
                                 # Get required methods list
                                 required_methods = zettel_requirements.get('methods', [])
                                 
-                                # Check private attributes
+                                # Check private attributes - check in parent class hierarchy
                                 private_attrs = zettel_requirements.get('attributes_private', {})
                                 for attr_name, required in private_attrs.items():
                                     if required:
-                                        has_private = hasattr(test_inst, f"_{test_inst.__class__.__name__}__{attr_name}")
+                                        # Try to find the attribute in the class hierarchy
+                                        # Check both own class and parent class name mangling
+                                        found = False
+                                        for cls in ZettelClass.__mro__:
+                                            mangled_name = f"_{cls.__name__}__{attr_name}"
+                                            if hasattr(test_inst, mangled_name):
+                                                found = True
+                                                break
+                                        
+                                        # Also check if attribute is public (which would be wrong)
                                         has_public = hasattr(test_inst, attr_name) and not attr_name.startswith('_')
                                         
-                                        if not has_private or has_public:
+                                        if not found or has_public:
                                             print(f"Zettel: Attribut '{attr_name}' muss privat sein")
                                             validation_ok = False
                                             # Check if it's x or y - if so, can't render
@@ -649,6 +710,129 @@ class Spielfeld:
                 self._zettel_can_render = True
                 self._ZettelClass = None
                 self._zettel_student_mode_enabled = False
+
+        # --- Validate Knappe class before spawning (Phase 2 support)
+        # Similar to Hindernis validation above
+        try:
+            KnappeClass = None
+            knappe_student_mode_enabled = False
+            knappe_requirements = self.class_requirements.get('Knappe', {})
+            knappe_class_valid = False
+            
+            # Initialize validation flag
+            self._knappe_class_valid = True  # Default: valid if no requirements
+            
+            # Check if classes_present is enabled
+            classes_present_mode = self.victory_settings.get('classes_present', False)
+            
+            # Check if student mode is enabled for Knappe
+            if knappe_requirements:
+                prefer_schueler = bool(knappe_requirements.get('load_from_schueler', False))
+                prefer_klassen = bool(knappe_requirements.get('load_from_klassen', False))
+                has_methods = bool(knappe_requirements.get('methods', []))
+                has_attrs = bool(knappe_requirements.get('attributes', []))
+                has_inheritance = knappe_requirements.get('inherits') and knappe_requirements.get('inherits') != 'None'
+                
+                knappe_student_mode_enabled = prefer_schueler or prefer_klassen or has_methods or has_attrs or has_inheritance
+                if knappe_student_mode_enabled:
+                    self._knappe_class_valid = False  # Will be set to True if validation passes
+            elif classes_present_mode:
+                # classes_present is true but no Knappe requirements:
+                # This means Knappe is not required for this level
+                # Don't render any Knappe (framework or student)
+                knappe_student_mode_enabled = True
+                self._knappe_class_valid = False
+            
+            # Try to get student Knappe class and validate it
+            if knappe_student_mode_enabled:
+                try:
+                    KnappeClass = self._get_entity_class('Knappe', None)
+                    if KnappeClass is None:
+                        print("Klasse Knappe fehlt")
+                    else:
+                        # Validate class requirements
+                        # Try to create test instance with minimal signature
+                        try:
+                            test_inst = KnappeClass(0, 0, 'OBEN')
+                        except Exception:
+                            try:
+                                test_inst = KnappeClass(self.level, 0, 0, 'OBEN')
+                            except Exception:
+                                try:
+                                    test_inst = KnappeClass(self.framework, 0, 0, 'OBEN')
+                                except Exception:
+                                    test_inst = None
+                        
+                        if test_inst is not None:
+                            validation_ok = True
+                            
+                            # Check private attributes
+                            private_attrs = knappe_requirements.get('attributes_private', {})
+                            for attr_name, required in private_attrs.items():
+                                if required:
+                                    # Check in class hierarchy
+                                    found = False
+                                    for cls in KnappeClass.__mro__:
+                                        mangled_name = f"_{cls.__name__}__{attr_name}"
+                                        if hasattr(test_inst, mangled_name):
+                                            found = True
+                                            break
+                                    
+                                    has_public = hasattr(test_inst, attr_name) and not attr_name.startswith('_')
+                                    
+                                    if not found or has_public:
+                                        print(f"Knappe: Attribut '{attr_name}' muss privat sein")
+                                        validation_ok = False
+                                        break
+                            
+                            # Check getters
+                            if validation_ok and private_attrs:
+                                for attr_name, required in private_attrs.items():
+                                    if required:
+                                        getter_name = f'get_{attr_name}'
+                                        has_getter = hasattr(test_inst, getter_name) and callable(getattr(test_inst, getter_name))
+                                        
+                                        if not has_getter:
+                                            print(f"Knappe: Getter '{getter_name}' fehlt")
+                                            validation_ok = False
+                                            break
+                            
+                            # Check required methods
+                            if validation_ok:
+                                required_methods = knappe_requirements.get('methods', [])
+                                for method_name in required_methods:
+                                    # Skip getters already validated
+                                    if method_name.startswith('get_') and method_name[4:] in private_attrs:
+                                        continue
+                                    if not (hasattr(test_inst, method_name) and callable(getattr(test_inst, method_name))):
+                                        print(f"Knappe: Methode '{method_name}' fehlt")
+                                        validation_ok = False
+                                        break
+                            
+                            # Check public attributes
+                            if validation_ok:
+                                public_attrs = knappe_requirements.get('attributes', [])
+                                for attr_name in public_attrs:
+                                    if not hasattr(test_inst, attr_name):
+                                        print(f"Knappe: Attribut '{attr_name}' fehlt")
+                                        validation_ok = False
+                                        break
+                            
+                            knappe_class_valid = validation_ok
+                            self._knappe_class_valid = validation_ok
+                except Exception:
+                    KnappeClass = None
+                    print("Klasse Knappe fehlt")
+                    self._knappe_class_valid = False
+            
+            # Store Knappe class and student mode flag
+            self._KnappeClass = KnappeClass
+            self._knappe_student_mode_enabled = knappe_student_mode_enabled
+            
+        except Exception:
+            self._knappe_class_valid = True
+            self._KnappeClass = None
+            self._knappe_student_mode_enabled = False
 
         for typ, x, y, sichtbar in self.level.iter_entity_spawns():
             # Skip entity spawning in rebuild mode
@@ -1088,9 +1272,23 @@ class Spielfeld:
                     setattr(grundlage, "tor", tor)
 
             elif t == "k":
-                cls = self._get_entity_class("Knappe", Knappe)
+                # Check if Knappe should be spawned (based on validation done before loop)
+                knappe_student_mode = getattr(self, '_knappe_student_mode_enabled', False)
+                knappe_valid = getattr(self, '_knappe_class_valid', True)
+                
+                # Skip spawning if student mode is active but class is invalid/missing
+                if knappe_student_mode and not knappe_valid:
+                    continue
+                
+                # Get Knappe class (prefer pre-validated class)
+                cls = getattr(self, '_KnappeClass', None)
+                if cls is None:
+                    cls = self._get_entity_class("Knappe", Knappe)
+                
+                # Old global student_mode_enabled check (for Phase 1 compatibility)
                 if student_mode_enabled and cls is None:
                     continue
+                
                 # Instantiate student-provided Knappe if available.
                 # Important: student classes often expect a Level object as first
                 # argument (their API). The framework historically passed the
@@ -1103,53 +1301,80 @@ class Spielfeld:
                 try:
                     inst = None
                     if cls is not None:
-                        # Try: student wants Level as first arg
-                        try:
-                            inst = cls(self.level, x, y, richt)
-                        except Exception:
-                            inst = None
-                        # Try: student wants Framework as first arg
-                        if inst is None:
+                        # If cls is the framework Knappe, use the correct framework signature
+                        if cls is Knappe:
+                            inst = Knappe(self.framework, x, y, richt, name=self.generate_knappe_name())
+                        else:
+                            # Try various student class signatures
+                            # Try: student wants (x, y, richtung) - Level 46 style (no weiblich)
                             try:
-                                inst = cls(self.framework, x, y, richt)
+                                inst = cls(x, y, richt)
                             except Exception:
                                 inst = None
-                        # Try other common variant: level + kwargs (no name)
-                        if inst is None:
-                            try:
-                                inst = cls(self.level, x, y, richt, **{})
-                            except Exception:
-                                inst = None
+                            # Try: student wants (x, y, richtung, weiblich) - older style
+                            if inst is None:
+                                try:
+                                    weiblich = getattr(self.framework, "weiblich", False)
+                                    inst = cls(x, y, richt, weiblich)
+                                except Exception:
+                                    inst = None
+                            # Try: student wants Level as first arg
+                            if inst is None:
+                                try:
+                                    inst = cls(self.level, x, y, richt)
+                                except Exception:
+                                    inst = None
+                            # Try: student wants Framework as first arg
+                            if inst is None:
+                                try:
+                                    inst = cls(self.framework, x, y, richt)
+                                except Exception:
+                                    inst = None
+                            # Try other common variant: level + kwargs (no name)
+                            if inst is None:
+                                try:
+                                    inst = cls(self.level, x, y, richt, **{})
+                                except Exception:
+                                    inst = None
                     if inst is not None:
                         self.knappe = inst
+                    elif not knappe_student_mode:
+                        # Only use framework fallback if NOT in student mode
+                        self.knappe = Knappe(self.framework, x, y, richt, name=self.generate_knappe_name())
                     else:
-                        # Final fallback: use framework Knappe with generated name
-                        self.knappe = Knappe(self.framework, x, y, richt, name=self.generate_knappe_name())
-                except Exception:
-                    # If anything unexpected fails, ensure we still spawn a framework Knappe
-                    try:
-                        self.knappe = Knappe(self.framework, x, y, richt, name=self.generate_knappe_name())
-                    except Exception:
+                        # Student mode active but no valid class - don't spawn
                         self.knappe = None
-                self.objekte.append(self.knappe)
-                if sichtbar:
-                    import framework.grundlage as grundlage
-                    setattr(grundlage, "knappe", self.knappe)
-                # If a hero was already spawned, attach this Knappe to the hero immediately.
-                try:
-                    if getattr(self, 'held', None) is not None:
-                        # Ensure the held has a knappen list
-                        if not hasattr(self.held, 'knappen'):
+                except Exception:
+                    # If anything unexpected fails, only spawn framework Knappe if NOT in student mode
+                    if not knappe_student_mode:
+                        try:
+                            self.knappe = Knappe(self.framework, x, y, richt, name=self.generate_knappe_name())
+                        except Exception:
+                            self.knappe = None
+                    else:
+                        self.knappe = None
+                
+                # Only add to objekte if knappe was created
+                if self.knappe is not None:
+                    self.objekte.append(self.knappe)
+                    if sichtbar:
+                        import framework.grundlage as grundlage
+                        setattr(grundlage, "knappe", self.knappe)
+                    # If a hero was already spawned, attach this Knappe to the hero immediately.
+                    try:
+                        if getattr(self, 'held', None) is not None:
+                            # Ensure the held has a knappen list
+                            if not hasattr(self.held, 'knappen'):
+                                try:
+                                    setattr(self.held, 'knappen', [])
+                                except Exception:
+                                    pass
                             try:
-                                setattr(self.held, 'knappen', [])
+                                self.held.add_knappe(self.knappe)
                             except Exception:
                                 pass
-                        try:
-                            self.held.add_knappe(self.knappe)
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
 
         # Extract level number from filename for display
         try:
@@ -1271,12 +1496,18 @@ class Spielfeld:
                     prefer_klassen = bool(req.get('load_from_klassen', False))
                     load_student_from_requirements = prefer_schueler or prefer_klassen
                 else:
-                    # For other classes: if methods or attributes configured, assume student class
+                    # For other classes: check explicit load flags OR if methods/attributes configured
+                    prefer_schueler = bool(req.get('load_from_schueler', False))
+                    prefer_klassen = bool(req.get('load_from_klassen', False))
                     has_methods = bool(req.get('methods', []))
                     has_attrs = bool(req.get('attributes', []))
-                    load_student_from_requirements = has_methods or has_attrs
-                    # Other classes always load from klassen/<name>.py when configured
-                    if load_student_from_requirements:
+                    has_inheritance = req.get('inherits') and req.get('inherits') != 'None'
+                    
+                    # Load student class if explicitly requested OR if requirements configured
+                    load_student_from_requirements = prefer_schueler or prefer_klassen or has_methods or has_attrs or has_inheritance
+                    
+                    # Determine source: prioritize explicit flags, fallback to klassen/ if requirements present
+                    if not (prefer_schueler or prefer_klassen) and (has_methods or has_attrs or has_inheritance):
                         prefer_klassen = True
 
             # If an explicit import path is provided, prefer it (backwards-compatible)
@@ -1297,6 +1528,9 @@ class Spielfeld:
             # Helper: import module with caching per module name
             if not hasattr(self, '_student_module_cache'):
                 self._student_module_cache = {}
+            
+            # Define repo_root once for use in try_import
+            repo_root = os.path.dirname(os.path.dirname(__file__))
 
             def try_import(candidates, required_class_name=None):
                 """Try to load candidate modules, but only return a module that
@@ -1342,13 +1576,13 @@ class Spielfeld:
                                         if keep:
                                             new_nodes.append(node)
                                     elif isinstance(node, ast.ImportFrom):
-                                        # skip wildcard imports and any imports from our framework package
+                                        # Skip imports from framework package to avoid pollution
                                         modname = getattr(node, 'module', '') or ''
                                         if modname.startswith('framework'):
                                             continue
-                                        # skip `from ... import *` which may pollute namespace
-                                        if any(alias.name == '*' for alias in node.names):
-                                            continue
+                                        # Allow `from ... import *` for student classes (e.g., from spielobjekt import *)
+                                        # This is needed for inheritance in klassen/ directory
+                                        # Only skip wildcard imports from framework
                                         new_nodes.append(node)
                                     elif isinstance(node, ast.Assign):
                                         # avoid assignments that call functions at top-level
@@ -1364,9 +1598,24 @@ class Spielfeld:
                                 ast.fix_missing_locations(new_mod)
                                 module = types.ModuleType(mod_name or os.path.splitext(os.path.basename(path))[0])
                                 module.__file__ = path
-                                # execute only the trimmed AST
-                                code_obj = compile(new_mod, path, 'exec')
-                                exec(code_obj, module.__dict__)
+                                
+                                # If loading from klassen/ directory, add it to sys.path temporarily
+                                # so that relative imports like "from spielobjekt import *" work
+                                klassen_dir = os.path.join(repo_root, 'klassen')
+                                added_to_path = False
+                                if 'klassen' in path and klassen_dir not in sys.path:
+                                    sys.path.insert(0, klassen_dir)
+                                    added_to_path = True
+                                
+                                try:
+                                    # execute only the trimmed AST
+                                    code_obj = compile(new_mod, path, 'exec')
+                                    exec(code_obj, module.__dict__)
+                                finally:
+                                    # Remove klassen/ from sys.path after loading
+                                    if added_to_path and klassen_dir in sys.path:
+                                        sys.path.remove(klassen_dir)
+                                
                                 return module
                             except Exception:
                                 return None
@@ -1374,12 +1623,26 @@ class Spielfeld:
                         # If cand refers to a dotted package (like klassen.x), try normal import first
                         if '.' in cand:
                             try:
-                                mod = importlib.import_module(cand)
-                                self._student_module_cache[cand] = mod
-                                if required_class_name is None or getattr(mod, required_class_name, None) is not None:
-                                    return mod
-                                # module loaded but doesn't define the required class -> try next candidate
-                                continue
+                                # For klassen.* imports, add klassen/ to sys.path temporarily
+                                _repo_root = os.path.dirname(os.path.dirname(__file__))
+                                klassen_dir = os.path.join(_repo_root, 'klassen')
+                                added_to_path = False
+                                if cand.startswith('klassen.') and klassen_dir not in sys.path:
+                                    sys.path.insert(0, klassen_dir)
+                                    added_to_path = True
+                                
+                                try:
+                                    mod = importlib.import_module(cand)
+                                    
+                                    self._student_module_cache[cand] = mod
+                                    if required_class_name is None or getattr(mod, required_class_name, None) is not None:
+                                        return mod
+                                    # module loaded but doesn't define the required class -> try next candidate
+                                    continue
+                                finally:
+                                    # Remove klassen/ from sys.path after import
+                                    if added_to_path and klassen_dir in sys.path:
+                                        sys.path.remove(klassen_dir)
                             except Exception:
                                 self._student_module_cache[cand] = None
                                 continue
@@ -1418,8 +1681,6 @@ class Spielfeld:
                         self._student_module_cache[cand] = None
                         continue
                 return None
-
-            repo_root = os.path.dirname(os.path.dirname(__file__))
 
             # Build candidate modules depending on provided settings
             candidates = []
@@ -1547,8 +1808,14 @@ class Spielfeld:
                                                 attr_name = t.attr
                                                 # Handle private attributes: __x -> x
                                                 if attr_name.startswith('_' + class_node.name + '__'):
-                                                    # Double underscore name mangling
+                                                    # Double underscore name mangling (own class)
                                                     attr_name = attr_name[len('_' + class_node.name + '__'):]
+                                                elif attr_name.startswith('_') and '__' in attr_name:
+                                                    # Name mangling from parent class (e.g., _Spielobjekt__typ -> typ)
+                                                    # Extract the attribute name after the last __
+                                                    parts = attr_name.split('__')
+                                                    if len(parts) >= 2:
+                                                        attr_name = parts[-1]  # Get the part after __
                                                 elif attr_name.startswith('__'):
                                                     # Private attribute __x -> x
                                                     attr_name = attr_name[2:]
@@ -1565,69 +1832,172 @@ class Spielfeld:
                                                 elif isinstance(a1, ast.Str):
                                                     found.add(a1.s)
                         
-                        # Second pass: find getter methods
+                        # Second pass: find getter methods in this class
                         for item in class_node.body:
                             if isinstance(item, ast.FunctionDef):
                                 if item.name.startswith('get_'):
                                     attr_name = item.name[4:]  # Remove 'get_' prefix
                                     getters.add(attr_name)
                         
-                        # An attribute is considered present if it's set in __init__ OR has a getter
+                        # Third pass: if not all attributes found, check parent classes
                         available = found | getters
+                        if not set(required).issubset(available):
+                            # Get base class names
+                            for base in class_node.bases:
+                                base_name = None
+                                if isinstance(base, ast.Name):
+                                    base_name = base.id
+                                elif isinstance(base, ast.Attribute):
+                                    base_name = base.attr
+                                
+                                if base_name:
+                                    # Try to find and parse the parent class file
+                                    try:
+                                        # Look for parent class in klassen/ directory
+                                        parent_file = os.path.join(repo_root, 'klassen', f'{base_name.lower()}.py')
+                                        if os.path.exists(parent_file):
+                                            parent_src = open(parent_file, 'r', encoding='utf-8').read()
+                                            parent_tree = ast.parse(parent_src, parent_file)
+                                            
+                                            # Find the parent class
+                                            for parent_node in parent_tree.body:
+                                                if isinstance(parent_node, ast.ClassDef) and parent_node.name == base_name:
+                                                    # Get parent's attributes from __init__
+                                                    for item in parent_node.body:
+                                                        if isinstance(item, ast.FunctionDef) and item.name == '__init__':
+                                                            for stmt in ast.walk(item):
+                                                                if isinstance(stmt, ast.Assign):
+                                                                    for t in stmt.targets:
+                                                                        if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == 'self':
+                                                                            attr_name = t.attr
+                                                                            # Handle private attributes from parent
+                                                                            if attr_name.startswith('_' + base_name + '__'):
+                                                                                attr_name = attr_name[len('_' + base_name + '__'):]
+                                                                            elif attr_name.startswith('__'):
+                                                                                attr_name = attr_name[2:]
+                                                                            found.add(attr_name)
+                                                    
+                                                    # Get parent's getter methods
+                                                    for item in parent_node.body:
+                                                        if isinstance(item, ast.FunctionDef):
+                                                            if item.name.startswith('get_'):
+                                                                attr_name = item.name[4:]
+                                                                getters.add(attr_name)
+                                    except Exception:
+                                        pass
+                            
+                            available = found | getters
+                        
                         return set(required).issubset(available)
                     
-                    # helper: check whether the class has required methods
+                    # helper: check whether the class has required methods (including inherited)
                     def _class_has_required_methods(class_node, required_methods):
                         found_methods = set()
+                        # Check methods defined in this class
                         for item in class_node.body:
                             if isinstance(item, ast.FunctionDef):
                                 found_methods.add(item.name)
+                        
+                        # If not all methods found, check parent classes
+                        if not set(required_methods).issubset(found_methods):
+                            # Get base class names
+                            for base in class_node.bases:
+                                base_name = None
+                                if isinstance(base, ast.Name):
+                                    base_name = base.id
+                                elif isinstance(base, ast.Attribute):
+                                    base_name = base.attr
+                                
+                                if base_name:
+                                    # Try to find and parse the parent class file
+                                    try:
+                                        # Look for parent class in klassen/ directory
+                                        parent_file = os.path.join(repo_root, 'klassen', f'{base_name.lower()}.py')
+                                        if os.path.exists(parent_file):
+                                            parent_src = open(parent_file, 'r', encoding='utf-8').read()
+                                            parent_tree = ast.parse(parent_src, parent_file)
+                                            
+                                            # Find the parent class and its methods
+                                            for parent_node in parent_tree.body:
+                                                if isinstance(parent_node, ast.ClassDef) and parent_node.name == base_name:
+                                                    for item in parent_node.body:
+                                                        if isinstance(item, ast.FunctionDef):
+                                                            found_methods.add(item.name)
+                                    except Exception:
+                                        pass
+                        
                         return set(required_methods).issubset(found_methods)
+                    
+                    # helper: check whether the class inherits from the required base class
+                    def _class_has_required_inheritance(class_node, required_base):
+                        if required_base == "None" or not required_base:
+                            return True  # No inheritance required
+                        
+                        # Check if the class has any base classes
+                        if not class_node.bases:
+                            return False  # No inheritance but required
+                        
+                        # Check each base class
+                        for base in class_node.bases:
+                            # Simple name (e.g., Spielobjekt)
+                            if isinstance(base, ast.Name) and base.id == required_base:
+                                return True
+                            # Attribute access (e.g., module.Spielobjekt)
+                            if isinstance(base, ast.Attribute) and base.attr == required_base:
+                                return True
+                        
+                        return False  # Required base class not found
 
                     for node in tree.body:
                         if isinstance(node, ast.ClassDef) and node.name == cls_name:
-                            # For Held classes, use class_requirements if available
-                            if cls_name == 'Held':
-                                # Get required attributes and methods from class_requirements
-                                req = self.class_requirements.get("Held", {})
-                                required_attrs = req.get('attributes', [])
-                                required_methods = req.get('methods', [])
-                                
-                                # If no class_requirements, use legacy minimal set for attributes
-                                if not required_attrs:
-                                    required_attrs = ['x', 'y', 'richtung', 'weiblich', 'typ']
-                                
+                            # Check class_requirements for ANY class that has requirements defined
+                            req = self.class_requirements.get(cls_name, {})
+                            required_attrs = req.get('attributes', [])
+                            required_methods = req.get('methods', [])
+                            required_inheritance = req.get('inherits', 'None')
+                            
+                            # Also include private attributes and methods
+                            private_attrs = req.get('attributes_private', {})
+                            private_methods = req.get('methods_private', {})
+                            
+                            # Combine public and private requirements
+                            all_required_attrs = list(required_attrs)
+                            if isinstance(private_attrs, dict):
+                                all_required_attrs.extend([attr for attr, is_private in private_attrs.items() if is_private])
+                            
+                            all_required_methods = list(required_methods)
+                            if isinstance(private_methods, dict):
+                                all_required_methods.extend([method for method, is_private in private_methods.items() if is_private])
+                            
+                            # Special case: Held - if no requirements defined, use legacy minimal set
+                            if cls_name == 'Held' and not all_required_attrs and not all_required_methods:
+                                all_required_attrs = ['x', 'y', 'richtung', 'weiblich', 'typ']
+                            
+                            # Check if any requirements are defined (attributes, methods, or inheritance)
+                            has_requirements = (all_required_attrs or all_required_methods or 
+                                              (required_inheritance and required_inheritance != 'None'))
+                            
+                            # If we have any requirements, validate them
+                            if has_requirements:
                                 try:
+                                    # Check inheritance first (most important constraint)
+                                    if required_inheritance and required_inheritance != 'None':
+                                        if not _class_has_required_inheritance(node, required_inheritance):
+                                            return False
+                                    
                                     # Check attributes
-                                    if required_attrs and not _class_has_required_attrs(node, required_attrs):
+                                    if all_required_attrs and not _class_has_required_attrs(node, all_required_attrs):
                                         return False
                                     
                                     # Check methods
-                                    if required_methods and not _class_has_required_methods(node, required_methods):
+                                    if all_required_methods and not _class_has_required_methods(node, all_required_methods):
                                         return False
                                     
                                     return True
                                 except Exception:
                                     return False
-                            # For Zettel classes, use class_requirements if available
-                            elif cls_name == 'Zettel':
-                                # Get required attributes and methods from class_requirements
-                                req = self.class_requirements.get("Zettel", {})
-                                required_attrs = req.get('attributes', [])
-                                required_methods = req.get('methods', [])
-                                
-                                try:
-                                    # Check attributes
-                                    if required_attrs and not _class_has_required_attrs(node, required_attrs):
-                                        return False
-                                    
-                                    # Check methods
-                                    if required_methods and not _class_has_required_methods(node, required_methods):
-                                        return False
-                                    
-                                    return True
-                                except Exception:
-                                    return False
+                            
+                            # No requirements defined for this class - just check that it exists
                             return True
                     return False
                 except Exception:
@@ -1664,6 +2034,31 @@ class Spielfeld:
             req = self.class_requirements.get(canonical_name, {})
             load_from_klassen = req.get('load_from_klassen', False)
             load_from_schueler = req.get('load_from_schueler', False)
+            check_implementation = req.get('check_implementation', False)
+            
+            # Check if class has any requirements (inheritance, methods, attributes)
+            has_inheritance = req.get('inherits') and req.get('inherits') != 'None'
+            has_methods = bool(req.get('methods') or req.get('methods_private'))
+            has_attributes = bool(req.get('attributes') or req.get('attributes_private'))
+            has_any_requirements = has_inheritance or has_methods or has_attributes
+            
+            # For abstract classes with check_implementation, always search in klassen/
+            if check_implementation and canonical_name in ['Spielobjekt', 'Charakter']:
+                if os.path.exists(kp):
+                    return _file_has_class(kp, canonical_name)
+                # Also check schueler.py as fallback
+                if os.path.exists(sp):
+                    return _file_has_class(sp, canonical_name)
+                return False
+            
+            # If class has ANY requirements defined, search in klassen/ first
+            if has_any_requirements and not load_from_schueler:
+                if os.path.exists(kp):
+                    return _file_has_class(kp, canonical_name)
+                # Also check schueler.py as fallback
+                if os.path.exists(sp):
+                    return _file_has_class(sp, canonical_name)
+                return False
             
             # If class_requirements explicitly sets load location, use that
             if load_from_klassen or load_from_schueler:
@@ -1710,7 +2105,31 @@ class Spielfeld:
         the result after spawning has occurred.
         """
         try:
-            mapping = { 'p': 'Held', 'h': 'Herz', 'x': 'Monster', 'c': 'Code', 'd': 'Tuer', 's': 'Schluessel', 'v': 'Villager', 'k': 'Knappe', 'g': 'Tor', 'q': 'Questgeber', 't': 'Hindernis', 'm': 'Hindernis', 'b': 'Hindernis' }
+            # Check if Zettel student mode will be enabled
+            zettel_requirements = self.class_requirements.get('Zettel', {})
+            prefer_schueler = bool(zettel_requirements.get('load_from_schueler', False))
+            prefer_klassen = bool(zettel_requirements.get('load_from_klassen', False))
+            has_methods = bool(zettel_requirements.get('methods', []))
+            has_attrs = bool(zettel_requirements.get('attributes', []))
+            has_inheritance = zettel_requirements.get('inherits') and zettel_requirements.get('inherits') != 'None'
+            zettel_student_mode = prefer_schueler or prefer_klassen or has_methods or has_attrs or has_inheritance
+            
+            # Map tile codes to class names
+            mapping = { 
+                'p': 'Held', 
+                'h': 'Herz', 
+                'x': 'Monster', 
+                'c': 'Zettel' if zettel_student_mode else 'Code',  # Use Zettel if student mode
+                'd': 'Tuer', 
+                's': 'Schluessel', 
+                'v': 'Villager', 
+                'k': 'Knappe', 
+                'g': 'Tor', 
+                'q': 'Questgeber', 
+                't': 'Hindernis', 
+                'm': 'Hindernis', 
+                'b': 'Hindernis' 
+            }
             needed = set()
             for y, zeile in enumerate(self.level.tiles):
                 for x, code in enumerate(zeile):
@@ -1964,19 +2383,13 @@ class Spielfeld:
         # - If all getters present: draw normally via object drawing
         hide_obstacles = False
         try:
-            hindernis_requirements = self.class_requirements.get('Hindernis', {})
-            student_mode_enabled = False
+            # Use the pre-validated flags from spawn logic
+            student_mode_enabled = getattr(self, '_hindernis_student_mode_enabled', False)
+            hindernis_valid = getattr(self, '_hindernis_class_valid', False)
             
-            if hindernis_requirements:
-                student_mode_enabled = bool(hindernis_requirements.get('load_from_schueler') or hindernis_requirements.get('load_from_klassen'))
-            
-            if student_mode_enabled:
-                # Check if class exists
-                if not self._student_has_class('Hindernis'):
-                    hide_obstacles = True
-                # Check if validation passed (get_x, get_y present)
-                elif not getattr(self, '_hindernis_class_valid', False):
-                    hide_obstacles = True
+            if student_mode_enabled and not hindernis_valid:
+                # Student mode is active but class is missing or invalid - hide tiles
+                hide_obstacles = True
         except Exception:
             hide_obstacles = False
 
@@ -2708,6 +3121,7 @@ class Spielfeld:
             # Get private attribute/method requirements
             private_attrs_req = req.get('attributes_private', {})
             private_methods_req = req.get('methods_private', {})
+            required_methods = req.get('methods', [])
             
             if not private_attrs_req and not private_methods_req:
                 return True  # No privacy requirements
@@ -2734,14 +3148,15 @@ class Spielfeld:
                 if not has_private_attr or has_public_attr:
                     return False
                 
-                # Check getter exists
+                # Only check getter/setter if they are in the required methods list
                 getter_name = f'get_{attr_name}'
-                if not (hasattr(student_obj, getter_name) and callable(getattr(student_obj, getter_name))):
-                    return False
+                if getter_name in required_methods:
+                    if not (hasattr(student_obj, getter_name) and callable(getattr(student_obj, getter_name))):
+                        return False
                 
-                # Check setter exists (optional for some attributes like typ and weiblich)
+                # Only check setter if it's in the required methods list
                 setter_name = f'set_{attr_name}'
-                if attr_name not in ['typ', 'weiblich']:
+                if setter_name in required_methods:
                     if not (hasattr(student_obj, setter_name) and callable(getattr(student_obj, setter_name))):
                         return False
             
@@ -2763,6 +3178,75 @@ class Spielfeld:
             return True
         except Exception:
             return False
+
+    def _validate_typ_attribute(self, expected_class_name: str, obj) -> bool:
+        """
+        Validate that an object's typ attribute matches the expected class name.
+        
+        For Hindernis, allows: 'Baum', 'Berg', 'Busch'
+        For other classes, expects exact match (e.g., 'Held', 'Knappe', 'Monster', etc.)
+        
+        Supports both public and private typ attributes. If typ is private and no getter
+        is available, validation is skipped (to avoid breaking levels like Level 40).
+        
+        Args:
+            expected_class_name: The canonical class name ('Held', 'Knappe', 'Hindernis', etc.)
+            obj: The object to validate
+            
+        Returns:
+            True if typ is valid or validation is skipped, False if typ is wrong
+        """
+        try:
+            # Get the student object if this is a wrapper
+            student_obj = obj
+            if hasattr(obj, '_student'):
+                student_obj = getattr(obj, '_student')
+            
+            typ_value = None
+            
+            # Try to get typ value in various ways
+            # 1. Try direct attribute access (public typ)
+            if hasattr(student_obj, 'typ'):
+                try:
+                    typ_value = getattr(student_obj, 'typ')
+                except AttributeError:
+                    pass
+            
+            # 2. If not found, try getter method
+            if typ_value is None and hasattr(student_obj, 'get_typ'):
+                try:
+                    getter = getattr(student_obj, 'get_typ')
+                    if callable(getter):
+                        typ_value = getter()
+                except Exception:
+                    pass
+            
+            # 3. If still not found, check if typ is private without getter
+            if typ_value is None:
+                student_class = student_obj.__class__
+                private_typ_name = f"_{student_class.__name__}__typ"
+                if hasattr(student_obj, private_typ_name):
+                    # typ is private and no getter available - skip validation
+                    # This is needed for levels like Level 40 which only require private attributes
+                    # without getters
+                    return True
+            
+            # 4. If we still can't get typ, it's missing - validation fails
+            if typ_value is None:
+                return False
+            
+            # Validate the typ value
+            if expected_class_name == 'Hindernis':
+                # Hindernis allows multiple valid types
+                valid_types = ['Baum', 'Berg', 'Busch']
+                return typ_value in valid_types
+            else:
+                # All other classes must have exact match
+                return typ_value == expected_class_name
+                
+        except Exception:
+            # On any error, default to True to avoid breaking existing levels
+            return True
 
     def check_victory(self) -> bool:
         """Evaluate configured victory conditions.
@@ -2844,14 +3328,34 @@ class Spielfeld:
                             if cn:
                                 needed.add(cn)
                     # for each needed canonical name, require _student_has_class True
-                    # BUT only if the class requires student implementation
+                    # if the class has ANY requirements defined (load flags, inheritance, methods, or attributes)
                     for cn in needed:
-                        # Check if this class requires student implementation
                         req = self.class_requirements.get(cn, {})
-                        requires_student = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        
+                        # Check if student implementation is required based on:
+                        # 1. Explicit load flags
+                        # 2. Inheritance requirement
+                        # 3. Method requirements
+                        # 4. Attribute requirements
+                        has_load_flags = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        has_inheritance = req.get('inherits') and req.get('inherits') != 'None'
+                        has_methods = bool(req.get('methods') or req.get('methods_private'))
+                        has_attributes = bool(req.get('attributes') or req.get('attributes_private'))
+                        
+                        requires_student = has_load_flags or has_inheritance or has_methods or has_attributes
                         
                         if requires_student:
                             has_class = self._student_has_class(cn)
+                            if not has_class:
+                                return False
+                    
+                    # Check for abstract classes (Spielobjekt, Charakter) if check_implementation is enabled
+                    abstract_classes = ["Spielobjekt", "Charakter"]
+                    for abstract_class in abstract_classes:
+                        req = self.class_requirements.get(abstract_class, {})
+                        if req.get('check_implementation', False):
+                            # Check if student has implemented this abstract class
+                            has_class = self._student_has_class(abstract_class)
                             if not has_class:
                                 return False
                     
@@ -2933,6 +3437,10 @@ class Spielfeld:
                             # Check privacy requirements (private attributes/methods with getters/setters)
                             if not self._check_privacy_requirements('Held', held):
                                 return False
+                            
+                            # Validate typ attribute matches 'Held'
+                            if not self._validate_typ_attribute('Held', held):
+                                return False
                     
                     # Remap 'Code' to 'Zettel' if Zettel student mode is active
                     if getattr(self, '_zettel_student_mode_enabled', False) and 'Code' in needed:
@@ -2949,8 +3457,13 @@ class Spielfeld:
                         if not req:
                             continue
                         
-                        # Check if it's student mode for this class
-                        student_mode = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        # Check if it's student mode for this class (same logic as spawn validation)
+                        has_load_flags = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+                        has_inheritance = req.get('inherits') and req.get('inherits') != 'None'
+                        has_methods = bool(req.get('methods') or req.get('methods_private'))
+                        has_attributes = bool(req.get('attributes') or req.get('attributes_private'))
+                        
+                        student_mode = has_load_flags or has_inheritance or has_methods or has_attributes
                         if not student_mode:
                             continue
                         # Find all objects of this class type
@@ -2979,18 +3492,65 @@ class Spielfeld:
                         # For Hindernis and Zettel, we already checked validation during spawn and stored result
                         # Don't check objects_to_check as they might be proxy objects
                         if class_name == 'Hindernis':
-                            # Already validated during spawn
+                            # Already validated during spawn - but also do functional test
+                            # Test that get_typ() returns correct values
+                            if 'get_typ' in req.get('methods', []):
+                                # Find at least one Hindernis object and check get_typ()
+                                hindernisse = [o for o in self.objekte if hasattr(o, '_student') and hasattr(o._student, 'get_typ')]
+                                if hindernisse:
+                                    # Test first Hindernis
+                                    h = hindernisse[0]._student
+                                    try:
+                                        typ_value = h.get_typ()
+                                        # Must return one of the valid obstacle types
+                                        if typ_value not in ['Baum', 'Berg', 'Busch']:
+                                            return False
+                                    except Exception:
+                                        # get_typ() threw an exception - fail
+                                        return False
                             continue
                         elif class_name == 'Zettel':
                             # Check validation result from spawn
                             if not getattr(self, '_zettel_class_valid', True):
                                 return False
+                            # Also do functional test for get_spruch() and set_spruch()
+                            if 'get_spruch' in req.get('methods', []) and 'set_spruch' in req.get('methods', []):
+                                # Find a Zettel object and test set/get
+                                zettel = [o for o in self.objekte if hasattr(o, 'get_spruch') and hasattr(o, 'set_spruch')]
+                                if zettel:
+                                    z = zettel[0]
+                                    try:
+                                        # Test set_spruch and get_spruch
+                                        original = z.get_spruch() if callable(getattr(z, 'get_spruch', None)) else None
+                                        test_text = "VICTORY_TEST"
+                                        z.set_spruch(test_text)
+                                        retrieved = z.get_spruch()
+                                        # Restore original
+                                        if original is not None:
+                                            z.set_spruch(original)
+                                        # Check if set/get worked
+                                        if retrieved != test_text:
+                                            return False
+                                    except Exception:
+                                        # set/get threw an exception - fail
+                                        return False
+                            continue
+                        elif class_name == 'Knappe':
+                            # Check validation result from spawn
+                            if not getattr(self, '_knappe_class_valid', True):
+                                return False
+                            # Movement functionality is tested via move_to if enabled
+                            # No additional functional test needed here
                             continue
                         else:
                             # Check privacy for at least one object of this class
                             if objects_to_check:
                                 # Check privacy requirements for the first object
                                 if not self._check_privacy_requirements(class_name, objects_to_check[0]):
+                                    return False
+                                
+                                # Validate typ attribute matches expected class name
+                                if not self._validate_typ_attribute(class_name, objects_to_check[0]):
                                     return False
                 
                 except Exception:

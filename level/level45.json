@@ -1,9 +1,10 @@
 {
   "tiles": [
-    "mbtw",
-    "kpww",
-    "wwww",
-    "wwww"
+    "ttttt",
+    "tpwwt",
+    "twwwt",
+    "twcwt",
+    "ttttt"
   ],
   "settings": {
     "Held": {
@@ -21,7 +22,7 @@
     "Tuer": {
       "public": true
     },
-    "Code": {
+    "Zettel": {
       "public": true
     },
     "Villager": {
@@ -30,16 +31,51 @@
     "Hindernis": {
       "public": true
     },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
     "victory": {
-      "collect_hearts": true,
+      "rebuild_mode": false,
+      "collect_hearts": false,
       "move_to": null,
-      "classes_present": false
+      "classes_present": true
     },
     "initial_gold": 0,
-    "quest_mode": "items",
     "quest_max_kosten": 0,
+    "quest_mode": "items",
     "quest_items_needed": 1,
-    "use_student_module": false,
-    "student_classes_in_subfolder": true
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Held": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [],
+        "attributes": []
+      },
+      "Zettel": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "get_spruch",
+          "set_spruch"
+        ],
+        "attributes": [],
+        "attributes_private": {
+          "x": true,
+          "y": true,
+          "typ": true,
+          "spruch": true
+        }
+      }
+    }
   }
 }

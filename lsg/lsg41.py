@@ -1,11 +1,9 @@
 from framework.grundlage import level
-level.lade(41)
+level.lade(41,weiblich=True)
 from framework.grundlage import *
 # Ab hier darfst du programmieren:
-
-# Einfach nur laden und prüfen ob die Hindernis-Klasse korrekt implementiert ist
-# Die Victory-Bedingung prüft classes_present für Hindernis
-
+# Level 41: Held mit privaten Attributen UND Getter-Methoden
+# Victory-Bedingung: classes_present - prüft private Attribute + Getter
 
 # Dieser Befehl muss immer am Ende stehen
 framework.starten()

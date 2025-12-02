@@ -6,7 +6,7 @@ Usage:
     -> it will prompt for a version number
   - Or pass version on command line: python scripts/make_framework_version_zip.py 6
 
-Produces: framework_version_<ver>.zip in the current working directory.
+Produces: framework_version_<ver>.zip in the dist/ directory.
 Includes:
  - framework/ folder, but excludes any __pycache__ directories and their contents
  - sprites/ folder completely
@@ -30,7 +30,7 @@ SPRITES_DIR = ROOT / "sprites"
 LEVELEDITOR = ROOT / "leveleditor.py"
 SCHUELER = ROOT / "schueler.py"
 SCHUELER_TEMPLATE = Path(__file__).parent / "schueler_template.py"  # Kanonische Vorlage
-README_SCHUELER = ROOT / "README_SCHUELER.md"
+README_SCHUELER = ROOT / "docs" / "README_SCHUELER.md"
 
 LEVEL_FILE_RE = re.compile(r"^level\d+\.json$")
 
@@ -118,8 +118,12 @@ def main(argv):
         print("Keine Versionsnummer angegeben. Abbruch.")
         return 2
 
+    # Create dist/ directory if it doesn't exist
+    dist_dir = ROOT / "dist"
+    dist_dir.mkdir(exist_ok=True)
+
     zipname = f"framework_version_{version}.zip"
-    zip_path = Path.cwd() / zipname
+    zip_path = dist_dir / zipname
     if zip_path.exists():
         ans = input(f"{zipname} existiert bereits. Überschreiben? [j/N]: ").strip().lower()
         if ans not in ('j', 'y'):

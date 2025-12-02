@@ -4,9 +4,39 @@ import pygame
 from .objekt import Objekt
 
 class Knappe(Objekt):
-    def __init__(self, framework, x=0, y=0, richtung="down",
+    def __init__(self, framework_or_x, x_or_y=0, y_or_richtung=0, richtung_or_sprite="down",
                  sprite_pfad="sprites/knappe.png", name=None,
                  steuerung_aktiv=False):
+        """
+        Flexible constructor supporting two signatures:
+        
+        Student signature (Level 341+):
+            Knappe(x, y, richtung, ...)
+            Example: Knappe(2, 2, "up")
+        
+        Framework signature (internal use):
+            Knappe(framework, x, y, richtung, ...)
+            Example: Knappe(fw, 2, 2, "up")
+        
+        Detection: If first arg is numeric, use student signature.
+        """
+        # Detect signature based on first parameter
+        if isinstance(framework_or_x, (int, float)):
+            # Student signature: Knappe(x, y, richtung, ...)
+            x = int(framework_or_x)
+            y = int(x_or_y)
+            richtung = y_or_richtung if isinstance(y_or_richtung, str) else "down"
+            framework = None
+            # sprite_pfad might be passed via richtung_or_sprite if it's a string starting with "sprites/"
+            if isinstance(richtung_or_sprite, str) and richtung_or_sprite.startswith("sprites/"):
+                sprite_pfad = richtung_or_sprite
+        else:
+            # Framework signature: Knappe(framework, x, y, richtung, ...)
+            framework = framework_or_x
+            x = int(x_or_y)
+            y = int(y_or_richtung) if isinstance(y_or_richtung, (int, float)) else 0
+            richtung = richtung_or_sprite if isinstance(richtung_or_sprite, str) else "down"
+        
         super().__init__(typ="Knappe", x=x, y=y, richtung=richtung,
                          sprite_pfad=sprite_pfad, name=name)
         self.framework = framework
@@ -21,21 +51,21 @@ class Knappe(Objekt):
         if name is None:
             got = None
             try:
-                # If framework looks like a Framework with a spielfeld
-                if self.framework is not None:
+                # If framework looks like a Framework with a spielfeld (only if framework exists)
+                if framework is not None:
                     # spielfeld.generate_knappe_name preferred
-                    sp = getattr(self.framework, 'spielfeld', None)
+                    sp = getattr(framework, 'spielfeld', None)
                     gen = None
                     if sp is not None:
                         gen = getattr(sp, 'generate_knappe_name', None)
                     # fallback: framework itself might expose generator
                     if gen is None:
-                        gen = getattr(self.framework, 'generate_knappe_name', None)
+                        gen = getattr(framework, 'generate_knappe_name', None)
                     if callable(gen):
                         got = gen()
                 # if framework itself is a Spielfeld-like object
-                if got is None and hasattr(self.framework, 'generate_knappe_name'):
-                    gen = getattr(self.framework, 'generate_knappe_name')
+                if got is None and framework is not None and hasattr(framework, 'generate_knappe_name'):
+                    gen = getattr(framework, 'generate_knappe_name')
                     if callable(gen):
                         got = gen()
             except Exception:
@@ -54,13 +84,15 @@ class Knappe(Objekt):
             else:
                 self.name = got
 
-        if steuerung_aktiv:
+        if steuerung_aktiv and framework is not None:
             self.aktiviere_steuerung()
 
 
 
 
     def aktiviere_steuerung(self):
+        if self.framework is None:
+            return  # No framework available (student-created Knappe)
         self.framework.taste_registrieren(pygame.K_a,  lambda: self.links(0))
         self.framework.taste_registrieren(pygame.K_d, lambda: self.rechts(0))
         self.framework.taste_registrieren(pygame.K_w,    lambda: self.geh(0))

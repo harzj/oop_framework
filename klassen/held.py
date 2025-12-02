@@ -2,72 +2,65 @@
 # Falsch: Alle Attribute öffentlich (kein __ Präfix)
 class Held:
     def __init__(self, x, y, richtung, weiblich):
-        self.__x = x
-        self.__y = y
-        self.__richtung = richtung
-        self.__weiblich = weiblich
+        self.x = x
+        self.y = y
+        self.richtung = richtung
+        self.weiblich = weiblich
         self.name = "Test Held"
-        self.__typ = "Held"
+        self.typ = "Held"
     
     def geh(self):
-        if self.__richtung == "up":
-            self.__y -= 1
-        elif self.__richtung == "down":
-            self.__y += 1
-        elif self.__richtung == "left":
-            self.__x -= 1
-        elif self.__richtung == "right":
-            self.__x += 1
+        if self.richtung == "up":
+            self.y -= 1
+        elif self.richtung == "down":
+            self.y += 1
+        elif self.richtung == "left":
+            self.x -= 1
+        elif self.richtung == "right":
+            self.x += 1
     
     def links(self):
-        if self.__richtung == "up":
-            self.__richtung = "left"
-        elif self.__richtung == "down":
-            self.__richtung = "right"
-        elif self.__richtung == "left":
-            self.__richtung = "down"
-        elif self.__richtung == "right":
-            self.__richtung = "up"
+        if self.richtung == "up":
+            self.richtung = "left"
+        elif self.richtung == "down":
+            self.richtung = "right"
+        elif self.richtung == "left":
+            self.richtung = "down"
+        elif self.richtung == "right":
+            self.richtung = "up"
     
     def rechts(self):
-        if self.__richtung == "up":
-            self.__richtung = "right"
-        elif self.__richtung == "down":
-            self.__richtung = "left"
-        elif self.__richtung == "left":
-            self.__richtung = "up"
-        elif self.__richtung == "right":
-            self.__richtung = "down"
-
-
+        if self.richtung == "up":
+            self.richtung = "right"
+        elif self.richtung == "down":
+            self.richtung = "left"
+        elif self.richtung == "left":
+            self.richtung = "up"
+        elif self.richtung == "right":
+            self.richtung = "down"
+    
+    # Getter methods exist but attributes are public - WRONG!
     def get_x(self):
-        return self.__x
-
+        return self.x
+    
     def get_y(self):
-        return self.__y
+        return self.y
     
     def get_richtung(self):
-        return self.__richtung
-    
+        return self.richtung
+   
     def get_weiblich(self):
-        return self.__weiblich
+        return self.weiblich
     
     def get_typ(self):
-        return self.__typ
-    def set_x(self, x):
-        self.__x = x
+        return self.typ
     
-    def set_y(self, y):
-        self.__y = y
-
-    def set_name(self,name):
-        if len(name<20):
-            self.name = name
-        else:
-            print("Name zu lang!")
-
-    def set_richtung(self, richtung):
-        if richtung in ["up","down","left","right"]:
-            self.__richtung = richtung
-        else:
-            print("Ungültige Richtung!")
+    # Setter methods
+    def set_x(self, value):
+        self.x = value
+    
+    def set_y(self, value):
+        self.y = value
+    
+    def set_richtung(self, value):
+        self.richtung = value

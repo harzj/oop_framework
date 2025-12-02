@@ -445,6 +445,13 @@ class LevelEditor2:
             except Exception:
                 return []
         attrs = [a for a in dir(cls) if not a.startswith('_') and not callable(getattr(cls,a, None))]
+        # Always include 'typ' as first attribute (standard for all classes)
+        if 'typ' not in attrs:
+            attrs.insert(0, 'typ')
+        elif attrs[0] != 'typ':
+            # Move typ to front
+            attrs.remove('typ')
+            attrs.insert(0, 'typ')
         # include methods optionally
         # methods = [m for m in dir(cls) if callable(getattr(cls,m, None)) and not m.startswith('_')]
         return attrs[:20]  # limit

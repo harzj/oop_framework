@@ -1,10 +1,9 @@
 {
   "tiles": [
-    "wyywyyyy",
-    "wtmwdgwh",
-    "pwwkwwww",
-    "wwwwwwcw",
-    "wwwcwwxw"
+    "tttttt",
+    "tpwkwt",
+    "twwwwt",
+    "tttttt"
   ],
   "settings": {
     "Held": {
@@ -22,7 +21,7 @@
     "Tuer": {
       "public": true
     },
-    "Code": {
+    "Zettel": {
       "public": true
     },
     "Villager": {
@@ -31,16 +30,57 @@
     "Hindernis": {
       "public": true
     },
-    "orientations": {
-      "3,2": "right",
-      "0,2": "right"
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
     },
     "victory": {
-      "collect_hearts": true,
-      "move_to": null,
-      "classes_present": false
+      "rebuild_mode": false,
+      "collect_hearts": false,
+      "move_to": {
+        "enabled": true,
+        "x": 4,
+        "y": 1
+      },
+      "classes_present": true
     },
-    "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "initial_gold": 0,
+    "quest_max_kosten": 0,
+    "quest_mode": "items",
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Held": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [],
+        "attributes": []
+      },
+      "Knappe": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [
+          "get_x",
+          "get_y",
+          "geh",
+          "links",
+          "rechts",
+          "set_richtung",
+          "get_richtung",
+          "get_typ"
+        ],
+        "attributes": [],
+        "attributes_private": {
+          "x": true,
+          "y": true,
+          "richtung": true
+        }
+      }
+    }
   }
 }

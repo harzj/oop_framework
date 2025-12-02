@@ -3,23 +3,74 @@ import pygame
 from .objekt import Objekt
 
 class Held(Objekt):
-    def __init__(self, framework, x=0, y=0, richtung="down",
-                 sprite_pfad="sprites/held.png", name="Namenloser Held",
-                 steuerung_aktiv=True,weiblich = False):
-        if weiblich:
-            sprite_pfad="sprites/held2.png"
+    def __init__(self, framework_or_x, x_or_y=0, y_or_richtung=0, richtung_or_weiblich="down",
+                 weiblich_or_sprite_positional=None, sprite_pfad="sprites/held.png", name="Namenloser Held",
+                 steuerung_aktiv=True, weiblich=None):
+        """
+        Flexible constructor supporting two signatures:
+        
+        Student signature (Level 341+):
+            Held(x, y, richtung, weiblich, ...)
+            Example: Held(3, 4, "down", False)
+        
+        Framework signature (internal use):
+            Held(framework, x, y, richtung, weiblich=False, ...)
+            Example: Held(fw, 3, 4, "down", weiblich=False)
+        
+        Detection: If first arg is numeric, use student signature.
+        """
+        # Detect signature based on first parameter
+        if isinstance(framework_or_x, (int, float)):
+            # Student signature: Held(x, y, richtung, weiblich, ...)
+            x = int(framework_or_x)
+            y = int(x_or_y)
+            richtung = y_or_richtung if isinstance(y_or_richtung, str) else "down"
+            # weiblich can be 4th positional arg or keyword arg
+            if isinstance(richtung_or_weiblich, bool):
+                weiblich_val = richtung_or_weiblich
+            elif weiblich_or_sprite_positional is not None and isinstance(weiblich_or_sprite_positional, bool):
+                weiblich_val = weiblich_or_sprite_positional
+            elif weiblich is not None:
+                weiblich_val = bool(weiblich)
+            else:
+                weiblich_val = False
+            framework = None
+            # sprite_pfad might be passed via weiblich_or_sprite_positional if it's a string
+            if isinstance(weiblich_or_sprite_positional, str):
+                sprite_pfad = weiblich_or_sprite_positional
+        else:
+            # Framework signature: Held(framework, x, y, richtung, weiblich=False, ...)
+            framework = framework_or_x
+            x = int(x_or_y)
+            y = int(y_or_richtung) if isinstance(y_or_richtung, (int, float)) else 0
+            richtung = richtung_or_weiblich if isinstance(richtung_or_weiblich, str) else "down"
+            # weiblich as keyword argument (framework usage)
+            if weiblich is not None:
+                weiblich_val = bool(weiblich)
+            elif weiblich_or_sprite_positional is not None and isinstance(weiblich_or_sprite_positional, bool):
+                weiblich_val = bool(weiblich_or_sprite_positional)
+            else:
+                weiblich_val = False
+        
+        # Apply weiblich sprite override
+        if weiblich_val:
+            sprite_pfad = "sprites/held2.png"
+        
         super().__init__(typ="Held", x=x, y=y, richtung=richtung,
                          sprite_pfad=sprite_pfad, name=name)
         self.framework = framework
         self.ist_held = True
         self.geheimer_code = None
-        self.weiblich = weiblich
+        self.weiblich = weiblich_val
         self.knappen = []
-        # Initialize gold from settings if available
+        # Initialize gold from settings if available (only if framework exists)
         try:
-            settings = getattr(framework.spielfeld, 'settings', {})
-            held_settings = settings.get('Held', {})
-            self.gold = held_settings.get('gold', 0)
+            if framework is not None:
+                settings = getattr(framework.spielfeld, 'settings', {})
+                held_settings = settings.get('Held', {})
+                self.gold = held_settings.get('gold', 0)
+            else:
+                self.gold = 0
         except Exception:
             self.gold = 0
         # Initialize inventar immediately for tests that expect it
@@ -29,7 +80,7 @@ class Held(Objekt):
         except Exception:
             self.inventar = None
 
-        if steuerung_aktiv:
+        if steuerung_aktiv and framework is not None:
             self.aktiviere_steuerung()
 
     def setze_position(self,x,y):
@@ -42,6 +93,8 @@ class Held(Objekt):
 
 
     def aktiviere_steuerung(self):
+        if self.framework is None:
+            return  # No framework available (student-created Held)
         self.framework.taste_registrieren(pygame.K_LEFT,  lambda: self.links(0))
         self.framework.taste_registrieren(pygame.K_RIGHT, lambda: self.rechts(0))
         self.framework.taste_registrieren(pygame.K_UP,    lambda: self.geh(0))

@@ -1,10 +1,9 @@
 {
   "tiles": [
-    "ttttt",
-    "tpwwt",
-    "twwwt",
-    "twcwt",
-    "ttttt"
+    "wwww",
+    "wpww",
+    "wwww",
+    "wwww"
   ],
   "settings": {
     "Held": {
@@ -40,12 +39,16 @@
     "victory": {
       "rebuild_mode": false,
       "collect_hearts": false,
-      "move_to": null,
+      "move_to": {
+        "enabled": true,
+        "x": 2,
+        "y": 2
+      },
       "classes_present": true
     },
     "initial_gold": 0,
-    "quest_mode": "items",
     "quest_max_kosten": 0,
+    "quest_mode": "items",
     "quest_items_needed": 1,
     "random_door": false,
     "random_keys": false,
@@ -54,27 +57,25 @@
         "inherits": "None",
         "load_from_schueler": false,
         "load_from_klassen": true,
-        "methods": [],
-        "attributes": []
-      },
-      "Zettel": {
-        "inherits": "None",
-        "load_from_schueler": false,
-        "load_from_klassen": true,
         "methods": [
           "get_x",
           "get_y",
-          "get_typ",
-          "get_spruch",
-          "set_spruch",
-          "ist_passierbar"
+          "geh",
+          "links",
+          "rechts",
+          "get_richtung",
+          "get_weiblich",
+          "get_typ"
         ],
-        "attributes": [],
+        "attributes": [
+          "name"
+        ],
         "attributes_private": {
           "x": true,
           "y": true,
+          "richtung": true,
           "typ": true,
-          "spruch": true
+          "weiblich": true
         }
       }
     }

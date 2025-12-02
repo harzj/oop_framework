@@ -39,16 +39,12 @@
     "victory": {
       "rebuild_mode": false,
       "collect_hearts": false,
-      "move_to": {
-        "enabled": true,
-        "x": 2,
-        "y": 2
-      },
+      "move_to": null,
       "classes_present": true
     },
     "initial_gold": 0,
-    "quest_mode": "items",
     "quest_max_kosten": 0,
+    "quest_mode": "items",
     "quest_items_needed": 1,
     "random_door": false,
     "random_keys": false,
@@ -57,13 +53,10 @@
         "inherits": "None",
         "load_from_schueler": false,
         "load_from_klassen": true,
-        "methods": [
-          "geh",
-          "links",
-          "rechts"
+        "methods": [],
+        "attributes": [
+          "name"
         ],
-        "methods_private": {},
-        "attributes": [],
         "attributes_private": {
           "x": true,
           "y": true,
