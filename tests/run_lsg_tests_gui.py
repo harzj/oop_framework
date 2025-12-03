@@ -175,6 +175,7 @@ class RunLsgGui:
             needs_schueler_replacement = name in ["lsg35.py", "lsg36.py", "lsg37.py"]
             needs_held_replacement = name == "lsg38.py"
             needs_framework_held_modification = name == "lsg31.py"
+            needs_level39_held_replacement = name.startswith("lsg39")
             needs_level40_held_replacement = name.startswith("lsg40")
             needs_level41_held_replacement = name.startswith("lsg41")
             needs_level42_held_replacement = name.startswith("lsg42")
@@ -244,6 +245,26 @@ class RunLsgGui:
                         self.queue.put(f"[info] Activated setze_position in framework/held.py for {name}\n")
                 except Exception as e:
                     self.queue.put(f"[warning] Could not modify framework/held.py for {name}: {e}\n")
+            
+            if needs_level39_held_replacement:
+                try:
+                    # Backup existing klassen/held.py
+                    if os.path.exists(held_klassen_path):
+                        with open(held_klassen_path, 'r', encoding='utf-8') as f:
+                            held_backup = f.read()
+                    
+                    # Copy held_38.py to klassen/held.py (Level 39 uses public attributes like Level 38)
+                    held_38_path = os.path.join(ROOT, "klassen", "held_38.py")
+                    if os.path.exists(held_38_path):
+                        with open(held_38_path, 'r', encoding='utf-8') as f:
+                            held_38_content = f.read()
+                        with open(held_klassen_path, 'w', encoding='utf-8') as f:
+                            f.write(held_38_content)
+                        self.queue.put(f"[info] Copied held_38.py to klassen/held.py for {name}\n")
+                    else:
+                        self.queue.put(f"[warning] held_38.py not found\n")
+                except Exception as e:
+                    self.queue.put(f"[warning] Could not replace klassen/held.py for {name}: {e}\n")
             
             if needs_level40_held_replacement:
                 try:
@@ -434,8 +455,8 @@ class RunLsgGui:
                 except Exception as e:
                     self.queue.put(f"[warning] Could not restore schueler.py: {e}\n")
             
-            # Restore klassen/held.py if it was replaced (lsg38 or lsg40-43)
-            if (needs_held_replacement or needs_level40_held_replacement or needs_level41_held_replacement or needs_level42_held_replacement or needs_level43_held_replacement) and held_backup is not None:
+            # Restore klassen/held.py if it was replaced (lsg38, lsg39, or lsg40-43)
+            if (needs_held_replacement or needs_level39_held_replacement or needs_level40_held_replacement or needs_level41_held_replacement or needs_level42_held_replacement or needs_level43_held_replacement) and held_backup is not None:
                 try:
                     with open(held_klassen_path, 'w', encoding='utf-8') as f:
                         f.write(held_backup)

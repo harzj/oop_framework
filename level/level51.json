@@ -1,0 +1,122 @@
+{
+  "tiles": [
+    "ttttttt",
+    "twwwwwt",
+    "twwwwwt",
+    "ttttttt"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Zettel": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "victory": {
+      "rebuild_mode": false,
+      "collect_hearts": false,
+      "move_to": null,
+      "classes_present": true
+    },
+    "initial_gold": 0,
+    "quest_max_kosten": 0,
+    "quest_mode": "items",
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Spielobjekt": {
+        "inherits": "None",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ"
+        ],
+        "check_implementation": true
+      },
+      "Charakter": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "get_x",
+          "get_y",
+          "geh",
+          "links",
+          "rechts",
+          "set_richtung",
+          "get_richtung",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ",
+          "richtung",
+          "name"
+        ],
+        "check_implementation": true,
+        "expects_set_level": false
+      },
+      "Hindernis": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ"
+        ]
+      },
+      "Zettel": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "get_spruch",
+          "set_spruch",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ",
+          "spruch"
+        ]
+      }
+    }
+  }
+}

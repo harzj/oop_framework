@@ -748,6 +748,18 @@ class LevelEditor:
             load_schueler_var = None
             load_klassen_var = None
             check_implementation_var = None
+            expects_set_level_var = None
+            
+            # Charakterklassen: Checkbox für "Level setzen" (ganz oben)
+            CHARACTER_CLASSES = ["Charakter", "Held", "Knappe", "Monster", "Bogenschuetze", "Villager"]
+            if class_name in CHARACTER_CLASSES:
+                ttk.Label(scrollable_frame, text="Framework-Integration:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(10,2))
+                expects_set_level_var = tk.BooleanVar(value=existing.get("expects_set_level", False))
+                ttk.Checkbutton(scrollable_frame, text="Level setzen (set_level Methode)", variable=expects_set_level_var).pack(anchor='w', padx=10)
+                ttk.Label(scrollable_frame, text="(Wenn aktiviert: Charakter hat 'level' Attribut und set_level(spielfeld) Methode,\n"
+                                                "Framework ruft set_level nach Erzeugung auf)", 
+                         font=("Consolas", 8)).pack(anchor='w', padx=10, pady=(0,5))
+                ttk.Separator(scrollable_frame, orient='horizontal').pack(fill='x', pady=5)
             
             # Special handling for abstract classes (Spielobjekt, Charakter)
             if class_name in ["Spielobjekt", "Charakter"]:
@@ -947,7 +959,8 @@ class LevelEditor:
                 "extra_private_attributes": extra_private_attrs_var,
                 "load_from_schueler": load_schueler_var,
                 "load_from_klassen": load_klassen_var,
-                "check_implementation": check_implementation_var
+                "check_implementation": check_implementation_var,
+                "expects_set_level": expects_set_level_var
             }
         
         # OK and Cancel buttons at bottom
@@ -1018,6 +1031,11 @@ class LevelEditor:
                 if class_name in ["Spielobjekt", "Charakter"] and vars_dict.get("check_implementation"):
                     config["check_implementation"] = vars_dict["check_implementation"].get()
                 
+                # Store expects_set_level flag for character classes
+                CHARACTER_CLASSES = ["Charakter", "Held", "Knappe", "Monster", "Bogenschuetze", "Villager"]
+                if class_name in CHARACTER_CLASSES and vars_dict.get("expects_set_level"):
+                    config["expects_set_level"] = vars_dict["expects_set_level"].get()
+                
                 # Store if anything is configured
                 if public_methods or private_methods or public_attrs or private_attrs or config["inherits"] != "None":
                     new_requirements[class_name] = config
@@ -1026,6 +1044,9 @@ class LevelEditor:
                     new_requirements[class_name] = config
                 # For abstract classes, store if check_implementation is set
                 elif class_name in ["Spielobjekt", "Charakter"] and config.get("check_implementation"):
+                    new_requirements[class_name] = config
+                # For character classes, store if expects_set_level is set
+                elif class_name in CHARACTER_CLASSES and config.get("expects_set_level"):
                     new_requirements[class_name] = config
             
             self.class_requirements = new_requirements

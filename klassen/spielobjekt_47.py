@@ -2,20 +2,20 @@
 # Korrekte Implementierung mit privaten Attributen
 class Spielobjekt:
     def __init__(self, x, y):
-        self.typ = "Spielobjekt"
-        self.x = x
-        self.y = y
+        self.__typ = "Spielobjekt"
+        self.__x = x
+        self.__y = y
 
     
     def get_typ(self):
-        return self.typ
+        return self.__typ
     
     
     def get_x(self):
-        return self.x
+        return self.__x
     
     def get_y(self):
-        return self.y
+        return self.__y
     
     def ist_passierbar(self):
         return False

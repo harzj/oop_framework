@@ -1,12 +1,11 @@
-
-# Level 40: Private Attribute ohne Getter (nur name ist öffentlich)
+# Test: Held mit privaten Attributen
 class Held:
     def __init__(self, x, y, richtung, weiblich):
         self.__x = x
         self.__y = y
         self.__richtung = richtung
         self.__weiblich = weiblich
-        self.name = "Namenloser Held"
+        self.name = "Privater Test Held"
         self.__typ = "Held"
     
     def geh(self):
@@ -38,5 +37,3 @@ class Held:
             self.__richtung = "up"
         elif self.__richtung == "right":
             self.__richtung = "down"
-
-

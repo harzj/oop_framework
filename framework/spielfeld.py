@@ -314,10 +314,16 @@ class Spielfeld:
                         self._hindernis_class_valid = False  # Will be set to True if validation passes
                 elif classes_present_mode:
                     # classes_present is true but no Hindernis requirements:
-                    # This means Hindernis is not required for this level
-                    # Don't render any Hindernisse (framework or student)
-                    student_mode_enabled = True  # Mark as student mode to prevent framework rendering
-                    self._hindernis_class_valid = False  # No class available
+                    # Check if Spielobjekt is implemented - if yes, try to load Hindernis (may inherit from it)
+                    spielobjekt_req = self.class_requirements.get('Spielobjekt', {})
+                    if spielobjekt_req.get('check_implementation', False):
+                        # Spielobjekt is implemented, try to load Hindernis as it may inherit from Spielobjekt
+                        student_mode_enabled = True
+                        self._hindernis_class_valid = False  # Will be validated below
+                    else:
+                        # No Spielobjekt and no Hindernis requirements - don't render
+                        student_mode_enabled = True  # Mark as student mode to prevent framework rendering
+                        self._hindernis_class_valid = False  # No class available
                 
                 # Store the student mode flag for rendering logic
                 self._hindernis_student_mode_enabled = student_mode_enabled
@@ -325,7 +331,39 @@ class Spielfeld:
                 # Try to get student Hindernis class and validate it ONCE
                 if student_mode_enabled:
                     try:
-                        HindernisClass = self._get_entity_class('Hindernis', None)
+                        # Special case: If no Hindernis requirements but Spielobjekt is implemented,
+                        # try to load Hindernis from klassen/ (it may inherit from Spielobjekt)
+                        HindernisClass = None
+                        if not hindernis_requirements and classes_present_mode:
+                            spielobjekt_req = self.class_requirements.get('Spielobjekt', {})
+                            if spielobjekt_req.get('check_implementation', False):
+                                # Try to load Hindernis from klassen/ directory directly
+                                try:
+                                    import sys
+                                    import importlib
+                                    # Try klassen.hindernis
+                                    try:
+                                        mod = importlib.import_module('klassen.hindernis')
+                                        HindernisClass = getattr(mod, 'Hindernis', None)
+                                    except Exception:
+                                        # Try klassen/hindernis.py directly
+                                        try:
+                                            import os
+                                            repo_root = os.path.dirname(os.path.dirname(__file__))
+                                            klassen_path = os.path.join(repo_root, 'klassen')
+                                            if klassen_path not in sys.path:
+                                                sys.path.insert(0, klassen_path)
+                                            mod = importlib.import_module('hindernis')
+                                            HindernisClass = getattr(mod, 'Hindernis', None)
+                                        except Exception:
+                                            pass
+                                except Exception:
+                                    pass
+                        
+                        # If not loaded via special case, use normal method
+                        if HindernisClass is None:
+                            HindernisClass = self._get_entity_class('Hindernis', None)
+                        
                         if HindernisClass is None:
                             print("Klasse Hindernis fehlt")
                         else:
@@ -915,6 +953,14 @@ class Spielfeld:
                     setattr(self.held, '_level_expected_richtung', richt)
                     setattr(self.held, '_class_requirements', req)
                     
+                    # Set allowed getters based on class_requirements methods
+                    # This enforces level-specific access control (e.g., Level 40 has no getters, Level 43 has all)
+                    if req and 'methods' in req:
+                        allowed_getters = set(req['methods'])
+                        setattr(self.held, '_allowed_getters', allowed_getters)
+                    else:
+                        setattr(self.held, '_allowed_getters', None)  # No restrictions
+                    
                     # Check if student's position matches level expectation and warn if not
                     if has_x and has_y:
                         # Try to get position via direct access or getter
@@ -948,12 +994,22 @@ class Spielfeld:
                         # Some critical attributes missing - don't render at all, but keep in inspector
                         setattr(self.held, '_dont_render', True)
                     
-                    # Add Level reference later via setze_level()
-                    if hasattr(student_inst, 'setze_level'):
-                        try:
-                            student_inst.setze_level(self)
-                        except Exception:
-                            pass
+                    # Add Level reference via set_level() if configured
+                    expects_set_level = req.get("expects_set_level", False) if req else False
+                    if expects_set_level:
+                        # New way: Call set_level(spielfeld) - student implements this method
+                        if hasattr(student_inst, 'set_level') and callable(getattr(student_inst, 'set_level')):
+                            try:
+                                student_inst.set_level(self)
+                            except Exception as e:
+                                print(f"[WARNUNG] Fehler beim Aufruf von Held.set_level(): {e}")
+                    else:
+                        # Legacy way: Try setze_level() for backwards compatibility
+                        if hasattr(student_inst, 'setze_level'):
+                            try:
+                                student_inst.setze_level(self)
+                            except Exception:
+                                pass
                     
                 else:
                     # Legacy mode: Use framework Held
@@ -1003,6 +1059,16 @@ class Spielfeld:
                     m.richtung = richt
                 except Exception:
                     pass
+                
+                # Call set_level() if configured
+                monster_req = self.class_requirements.get('Monster', {})
+                expects_set_level = monster_req.get("expects_set_level", False) if monster_req else False
+                if expects_set_level and hasattr(m, 'set_level') and callable(getattr(m, 'set_level')):
+                    try:
+                        m.set_level(self)
+                    except Exception as e:
+                        print(f"[WARNUNG] Fehler beim Aufruf von Monster.set_level(): {e}")
+                
                 self.objekte.append(m)
                 if sichtbar:
                     import framework.grundlage as grundlage
@@ -1026,6 +1092,16 @@ class Spielfeld:
                     m.richtung = richt
                 except Exception:
                     pass
+                
+                # Call set_level() if configured
+                bogenschuetze_req = self.class_requirements.get('Bogenschuetze', {})
+                expects_set_level = bogenschuetze_req.get("expects_set_level", False) if bogenschuetze_req else False
+                if expects_set_level and hasattr(m, 'set_level') and callable(getattr(m, 'set_level')):
+                    try:
+                        m.set_level(self)
+                    except Exception as e:
+                        print(f"[WARNUNG] Fehler beim Aufruf von Bogenschuetze.set_level(): {e}")
+                
                 self.objekte.append(m)
                 if sichtbar:
                     import framework.grundlage as grundlage
@@ -1156,6 +1232,16 @@ class Spielfeld:
                     except Exception:
                         vill = Villager(self.framework, x, y, richtung=richt, weiblich=weiblich_flag)
                     vill.framework = self.framework
+                    
+                    # Call set_level() if configured
+                    villager_req = self.class_requirements.get('Villager', {})
+                    expects_set_level = villager_req.get("expects_set_level", False) if villager_req else False
+                    if expects_set_level and hasattr(vill, 'set_level') and callable(getattr(vill, 'set_level')):
+                        try:
+                            vill.set_level(self)
+                        except Exception as e:
+                            print(f"[WARNUNG] Fehler beim Aufruf von Villager.set_level(): {e}")
+                    
                     self.objekte.append(vill)
                     # If quest mode==items, populate villager with random offers (2-5 items, 10-80 Gold)
                     if isinstance(quest_mode, str) and quest_mode.lower() == 'items':
@@ -1356,6 +1442,15 @@ class Spielfeld:
                 
                 # Only add to objekte if knappe was created
                 if self.knappe is not None:
+                    # Call set_level() if configured
+                    knappe_req = self.class_requirements.get('Knappe', {})
+                    expects_set_level = knappe_req.get("expects_set_level", False) if knappe_req else False
+                    if expects_set_level and hasattr(self.knappe, 'set_level') and callable(getattr(self.knappe, 'set_level')):
+                        try:
+                            self.knappe.set_level(self)
+                        except Exception as e:
+                            print(f"[WARNUNG] Fehler beim Aufruf von Knappe.set_level(): {e}")
+                    
                     self.objekte.append(self.knappe)
                     if sichtbar:
                         import framework.grundlage as grundlage
@@ -1839,10 +1934,69 @@ class Spielfeld:
                                     attr_name = item.name[4:]  # Remove 'get_' prefix
                                     getters.add(attr_name)
                         
-                        # Third pass: if not all attributes found, check parent classes
+                        # Third pass: if not all attributes found, check parent classes RECURSIVELY
+                        # Helper function to recursively collect attributes from parent chain
+                        def collect_parent_attrs(base_class_name, visited=None):
+                            """Recursively collect attributes from parent class and its parents"""
+                            if visited is None:
+                                visited = set()
+                            if base_class_name in visited:
+                                return set(), set()  # Avoid infinite loops
+                            visited.add(base_class_name)
+                            
+                            parent_attrs = set()
+                            parent_getters = set()
+                            
+                            try:
+                                parent_file = os.path.join(repo_root, 'klassen', f'{base_class_name.lower()}.py')
+                                if os.path.exists(parent_file):
+                                    parent_src = open(parent_file, 'r', encoding='utf-8').read()
+                                    parent_tree = ast.parse(parent_src, parent_file)
+                                    
+                                    for parent_node in parent_tree.body:
+                                        if isinstance(parent_node, ast.ClassDef) and parent_node.name == base_class_name:
+                                            # Get parent's attributes from __init__
+                                            for item in parent_node.body:
+                                                if isinstance(item, ast.FunctionDef) and item.name == '__init__':
+                                                    for stmt in ast.walk(item):
+                                                        if isinstance(stmt, ast.Assign):
+                                                            for t in stmt.targets:
+                                                                if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == 'self':
+                                                                    attr_name = t.attr
+                                                                    # Handle private attributes from parent
+                                                                    if attr_name.startswith('_' + base_class_name + '__'):
+                                                                        attr_name = attr_name[len('_' + base_class_name + '__'):]
+                                                                    elif attr_name.startswith('__'):
+                                                                        attr_name = attr_name[2:]
+                                                                    parent_attrs.add(attr_name)
+                                            
+                                            # Get parent's getter methods
+                                            for item in parent_node.body:
+                                                if isinstance(item, ast.FunctionDef):
+                                                    if item.name.startswith('get_'):
+                                                        attr_name = item.name[4:]
+                                                        parent_getters.add(attr_name)
+                                            
+                                            # RECURSIVELY check parent's parents
+                                            for grandparent_base in parent_node.bases:
+                                                grandparent_name = None
+                                                if isinstance(grandparent_base, ast.Name):
+                                                    grandparent_name = grandparent_base.id
+                                                elif isinstance(grandparent_base, ast.Attribute):
+                                                    grandparent_name = grandparent_base.attr
+                                                
+                                                if grandparent_name:
+                                                    gp_attrs, gp_getters = collect_parent_attrs(grandparent_name, visited)
+                                                    parent_attrs |= gp_attrs
+                                                    parent_getters |= gp_getters
+                            except Exception:
+                                pass
+                            
+                            return parent_attrs, parent_getters
+                        
                         available = found | getters
                         if not set(required).issubset(available):
-                            # Get base class names
+                            # Get base class names and recursively collect their attributes
                             for base in class_node.bases:
                                 base_name = None
                                 if isinstance(base, ast.Name):
@@ -1851,56 +2005,65 @@ class Spielfeld:
                                     base_name = base.attr
                                 
                                 if base_name:
-                                    # Try to find and parse the parent class file
-                                    try:
-                                        # Look for parent class in klassen/ directory
-                                        parent_file = os.path.join(repo_root, 'klassen', f'{base_name.lower()}.py')
-                                        if os.path.exists(parent_file):
-                                            parent_src = open(parent_file, 'r', encoding='utf-8').read()
-                                            parent_tree = ast.parse(parent_src, parent_file)
-                                            
-                                            # Find the parent class
-                                            for parent_node in parent_tree.body:
-                                                if isinstance(parent_node, ast.ClassDef) and parent_node.name == base_name:
-                                                    # Get parent's attributes from __init__
-                                                    for item in parent_node.body:
-                                                        if isinstance(item, ast.FunctionDef) and item.name == '__init__':
-                                                            for stmt in ast.walk(item):
-                                                                if isinstance(stmt, ast.Assign):
-                                                                    for t in stmt.targets:
-                                                                        if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == 'self':
-                                                                            attr_name = t.attr
-                                                                            # Handle private attributes from parent
-                                                                            if attr_name.startswith('_' + base_name + '__'):
-                                                                                attr_name = attr_name[len('_' + base_name + '__'):]
-                                                                            elif attr_name.startswith('__'):
-                                                                                attr_name = attr_name[2:]
-                                                                            found.add(attr_name)
-                                                    
-                                                    # Get parent's getter methods
-                                                    for item in parent_node.body:
-                                                        if isinstance(item, ast.FunctionDef):
-                                                            if item.name.startswith('get_'):
-                                                                attr_name = item.name[4:]
-                                                                getters.add(attr_name)
-                                    except Exception:
-                                        pass
+                                    parent_attrs, parent_getters = collect_parent_attrs(base_name)
+                                    found |= parent_attrs
+                                    getters |= parent_getters
                             
                             available = found | getters
                         
                         return set(required).issubset(available)
                     
-                    # helper: check whether the class has required methods (including inherited)
+                    # helper: check whether the class has required methods (including inherited) - RECURSIVE
                     def _class_has_required_methods(class_node, required_methods):
+                        # Helper function to recursively collect methods from parent chain
+                        def collect_parent_methods(base_class_name, visited=None):
+                            """Recursively collect methods from parent class and its parents"""
+                            if visited is None:
+                                visited = set()
+                            if base_class_name in visited:
+                                return set()  # Avoid infinite loops
+                            visited.add(base_class_name)
+                            
+                            parent_methods = set()
+                            
+                            try:
+                                parent_file = os.path.join(repo_root, 'klassen', f'{base_class_name.lower()}.py')
+                                if os.path.exists(parent_file):
+                                    parent_src = open(parent_file, 'r', encoding='utf-8').read()
+                                    parent_tree = ast.parse(parent_src, parent_file)
+                                    
+                                    for parent_node in parent_tree.body:
+                                        if isinstance(parent_node, ast.ClassDef) and parent_node.name == base_class_name:
+                                            # Get parent's methods
+                                            for item in parent_node.body:
+                                                if isinstance(item, ast.FunctionDef):
+                                                    parent_methods.add(item.name)
+                                            
+                                            # RECURSIVELY check parent's parents
+                                            for grandparent_base in parent_node.bases:
+                                                grandparent_name = None
+                                                if isinstance(grandparent_base, ast.Name):
+                                                    grandparent_name = grandparent_base.id
+                                                elif isinstance(grandparent_base, ast.Attribute):
+                                                    grandparent_name = grandparent_base.attr
+                                                
+                                                if grandparent_name:
+                                                    gp_methods = collect_parent_methods(grandparent_name, visited)
+                                                    parent_methods |= gp_methods
+                            except Exception:
+                                pass
+                            
+                            return parent_methods
+                        
                         found_methods = set()
                         # Check methods defined in this class
                         for item in class_node.body:
                             if isinstance(item, ast.FunctionDef):
                                 found_methods.add(item.name)
                         
-                        # If not all methods found, check parent classes
+                        # If not all methods found, check parent classes RECURSIVELY
                         if not set(required_methods).issubset(found_methods):
-                            # Get base class names
+                            # Get base class names and recursively collect their methods
                             for base in class_node.bases:
                                 base_name = None
                                 if isinstance(base, ast.Name):
@@ -1909,22 +2072,8 @@ class Spielfeld:
                                     base_name = base.attr
                                 
                                 if base_name:
-                                    # Try to find and parse the parent class file
-                                    try:
-                                        # Look for parent class in klassen/ directory
-                                        parent_file = os.path.join(repo_root, 'klassen', f'{base_name.lower()}.py')
-                                        if os.path.exists(parent_file):
-                                            parent_src = open(parent_file, 'r', encoding='utf-8').read()
-                                            parent_tree = ast.parse(parent_src, parent_file)
-                                            
-                                            # Find the parent class and its methods
-                                            for parent_node in parent_tree.body:
-                                                if isinstance(parent_node, ast.ClassDef) and parent_node.name == base_name:
-                                                    for item in parent_node.body:
-                                                        if isinstance(item, ast.FunctionDef):
-                                                            found_methods.add(item.name)
-                                    except Exception:
-                                        pass
+                                    parent_methods = collect_parent_methods(base_name)
+                                    found_methods |= parent_methods
                         
                         return set(required_methods).issubset(found_methods)
                     
@@ -2853,6 +3002,10 @@ class Spielfeld:
     # --- Kollisionen / Logik ---
     def innerhalb(self, x, y):
         return 0 <= x < self.level.breite and 0 <= y < self.level.hoehe
+    
+    def ist_weg(self,x,y):
+        if not self.innerhalb(x, y): return False
+        return self.level.tiles[y][x] == "w"
 
     def terrain_art_an(self, x, y):
         if not self.innerhalb(x, y): return None
@@ -3011,6 +3164,12 @@ class Spielfeld:
             if (o.x, o.y) == (x, y):
                 return o
         return None
+    
+    def ist_innerhalb(self, x, y):
+        return self.innerhalb(x, y)
+
+    def gib_objekt_bei(self,x,y):
+        return self.objekt_an(x,y)
     
     def finde_tuer(self, x, y):
         for o in self.objekte:
@@ -3358,6 +3517,45 @@ class Spielfeld:
                             has_class = self._student_has_class(abstract_class)
                             if not has_class:
                                 return False
+                            
+                            # Check privacy requirements for abstract classes even if no objects spawned
+                            # This is necessary for levels like Level 47 which only require Spielobjekt
+                            # implementation without spawning any Spielobjekt-derived objects
+                            private_attrs_req = req.get('attributes_private', {})
+                            if private_attrs_req:
+                                # Try to import and validate the class directly
+                                try:
+                                    import importlib
+                                    import sys
+                                    
+                                    # Determine module name based on class name
+                                    module_name = abstract_class.lower()
+                                    
+                                    # Try to import from klassen directory
+                                    if f'klassen.{module_name}' in sys.modules:
+                                        mod = sys.modules[f'klassen.{module_name}']
+                                    else:
+                                        mod = importlib.import_module(f'klassen.{module_name}')
+                                    
+                                    # Get the class
+                                    if hasattr(mod, abstract_class):
+                                        student_class = getattr(mod, abstract_class)
+                                        
+                                        # Create a dummy instance to check privacy
+                                        # For Spielobjekt, we need x, y parameters
+                                        if abstract_class == "Spielobjekt":
+                                            test_obj = student_class(0, 0)
+                                        elif abstract_class == "Charakter":
+                                            test_obj = student_class(0, 0, "up")
+                                        else:
+                                            continue
+                                        
+                                        # Check privacy requirements
+                                        if not self._check_privacy_requirements(abstract_class, test_obj):
+                                            return False
+                                except Exception as e:
+                                    # If we can't import/validate, fail the check
+                                    return False
                     
                     # Additional validation for student Held: check required attributes and values
                     if 'Held' in needed:
@@ -3404,35 +3602,47 @@ class Spielfeld:
                             # Check that position/direction values match level expectations
                             # ONLY if move_to victory is NOT enabled (if move_to is enabled,
                             # the student is supposed to move from initial to target position)
+                            # ALSO skip if attributes are private without getters (Level 40)
                             mv_enabled = mv and isinstance(mv, dict) and mv.get('enabled')
                             if not mv_enabled:
                                 expected_x = getattr(held, '_level_expected_x', None)
                                 expected_y = getattr(held, '_level_expected_y', None)
                                 expected_richtung = getattr(held, '_level_expected_richtung', None)
                                 
-                                if expected_x is not None:
-                                    try:
-                                        actual_x = getattr(held, 'x')
-                                    except AttributeError:
-                                        return False
-                                    if actual_x != expected_x:
-                                        return False
+                                # Only validate position if attributes are accessible (public or via getter)
+                                # For Level 40: private attributes without getters → skip validation
+                                required_methods = req.get('methods', [])
+                                has_position_getters = ('get_x' in required_methods or 'get_y' in required_methods)
                                 
-                                if expected_y is not None:
-                                    try:
-                                        actual_y = getattr(held, 'y')
-                                    except AttributeError:
-                                        return False
-                                    if actual_y != expected_y:
-                                        return False
+                                # Skip position validation if:
+                                # 1. No getter methods defined AND
+                                # 2. Attributes are private (can't access directly)
+                                skip_position_check = not has_position_getters and not hasattr(student_obj, 'x')
                                 
-                                if expected_richtung is not None:
-                                    try:
-                                        actual_richtung = getattr(held, 'richtung')
-                                    except AttributeError:
-                                        return False
-                                    if actual_richtung != expected_richtung:
-                                        return False
+                                if not skip_position_check:
+                                    if expected_x is not None:
+                                        try:
+                                            actual_x = getattr(held, 'x')
+                                        except AttributeError:
+                                            return False
+                                        if actual_x != expected_x:
+                                            return False
+                                    
+                                    if expected_y is not None:
+                                        try:
+                                            actual_y = getattr(held, 'y')
+                                        except AttributeError:
+                                            return False
+                                        if actual_y != expected_y:
+                                            return False
+                                    
+                                    if expected_richtung is not None:
+                                        try:
+                                            actual_richtung = getattr(held, 'richtung')
+                                        except AttributeError:
+                                            return False
+                                        if actual_richtung != expected_richtung:
+                                            return False
                             
                             # Check privacy requirements (private attributes/methods with getters/setters)
                             if not self._check_privacy_requirements('Held', held):

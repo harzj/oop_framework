@@ -440,6 +440,8 @@ class MetaHeld(Held):
         
         super().__init__(framework, student_x, student_y, student_richtung, steuerung_aktiv=False, weiblich=weiblich)
         object.__setattr__(self, '_student', student_obj)
+        # Initialize allowed getters (will be set by spawning code if class_requirements exist)
+        object.__setattr__(self, '_allowed_getters', None)
         
         # Monkey-patch student methods to trigger rendering after execution
         self._patch_student_methods()
@@ -507,30 +509,74 @@ class MetaHeld(Held):
         except Exception:
             pass
 
-    def __getattr__(self, name):
-        """Delegate attribute access to student object.
-        If attribute is private, try to use getter method (get_<name>).
+    def __getattribute__(self, name):
+        """Intercept ALL attribute access to prioritize student object.
+        
+        Priority:
+        1. Framework internal attributes (_student, framework methods, rendering, etc.)
+        2. Student object attributes (public or via getter)
+        3. MetaHeld/Held attributes as last resort (only for rendering internals)
+        
+        This ensures:
+        - Student public attributes override framework defaults (e.g., student's name)
+        - Student private attributes raise AttributeError (e.g., self.__x)
+        - Framework can still access internal state for rendering
         """
-        stud = object.__getattribute__(self, '_student')
+        # Allow access to framework internals (rendering, sprite management, etc.)
+        # This list includes all attributes needed for framework operation
+        framework_internals = {
+            '_student', '_patch_student_methods', 'aktiviere_steuerung',
+            '_render_and_delay', '_update_sprite_richtung', 'framework',
+            'typ', 'sprite', 'inventar', '__class__', '__dict__', '__init__',
+            # Add rendering-related attributes that framework needs
+            'image', 'rect', 'animationen', 'aktuelle_animation', 'animation_frame',
+            '_show_error_sprite', '_dont_render', '_student_mode', '_level_expected_x',
+            '_level_expected_y', '_level_expected_richtung', '_class_requirements',
+            '_allowed_getters',  # Level-specific getter restrictions
+            # Sprite-related attributes for directional rendering
+            'sprite_pfad', 'bild', 'tot', '_herzen', '_kills', 'ist_held', 'geheimer_code',
+            'weiblich', 'knappen', 'gold', '_privatmodus'
+        }
         
-        # Try direct attribute access first
-        if hasattr(stud, name):
+        if name in framework_internals:
+            return object.__getattribute__(self, name)
+        
+        # For all other attributes, try student first
+        try:
+            stud = object.__getattribute__(self, '_student')
+        except AttributeError:
+            # No student object yet (during __init__) - use framework
+            return object.__getattribute__(self, name)
+        
+        # Try direct attribute access on student object
+        try:
+            return getattr(stud, name)
+        except AttributeError:
+            # Attribute is private or doesn't exist - try getter method
+            getter_name = f'get_{name}'
+            
+            # Check if getter is allowed by level requirements
+            allowed_getters = None
             try:
-                return getattr(stud, name)
+                allowed_getters = object.__getattribute__(self, '_allowed_getters')
             except AttributeError:
+                # _allowed_getters not set - allow all getters
                 pass
-        
-        # If direct access fails, try getter method
-        getter_name = f'get_{name}'
-        if hasattr(stud, getter_name):
-            try:
-                getter = getattr(stud, getter_name)
-                if callable(getter):
-                    return getter()
-            except Exception:
-                pass
-        
-        raise AttributeError(f"Attribut {name} privat und kein getter vorhanden")
+            
+            if allowed_getters is not None and getter_name not in allowed_getters:
+                # Getter exists but not allowed for this level
+                raise AttributeError(f"'{type(stud).__name__}' object has no attribute '{name}'")
+            
+            if hasattr(stud, getter_name):
+                try:
+                    getter = getattr(stud, getter_name)
+                    if callable(getter):
+                        return getter()
+                except Exception:
+                    pass
+            
+            # No attribute and no getter - raise AttributeError
+            raise AttributeError(f"'{type(stud).__name__}' object has no attribute '{name}'")
 
     def __setattr__(self, name, value):
         """Set attributes on both wrapper and student object.
