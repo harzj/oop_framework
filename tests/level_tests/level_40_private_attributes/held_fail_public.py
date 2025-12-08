@@ -1,13 +1,13 @@
 
-# Falsch: Alle Attribute öffentlich (kein __ Präfix)
+# FAIL: Öffentliche Attribute statt private (sollte fehlschlagen)
 class Held:
     def __init__(self, x, y, richtung, weiblich):
-        self.x = x
-        self.y = y
-        self.richtung = richtung
-        self.weiblich = weiblich
+        self.x = x  # Sollte __x sein
+        self.y = y  # Sollte __y sein
+        self.richtung = richtung  # Sollte __richtung sein
+        self.weiblich = weiblich  # Sollte __weiblich sein
         self.name = "Test Held"
-        self.typ = "Held"
+        self.typ = "Held"  # Sollte __typ sein
     
     def geh(self):
         if self.richtung == "up":
@@ -38,29 +38,3 @@ class Held:
             self.richtung = "up"
         elif self.richtung == "right":
             self.richtung = "down"
-    
-    # Getter methods exist but attributes are public - WRONG!
-    def get_x(self):
-        return self.x
-    
-    def get_y(self):
-        return self.y
-    
-    def get_richtung(self):
-        return self.richtung
-   
-    def get_weiblich(self):
-        return self.weiblich
-    
-    def get_typ(self):
-        return self.typ
-    
-    # Setter methods
-    def set_x(self, value):
-        self.x = value
-    
-    def set_y(self, value):
-        self.y = value
-    
-    def set_richtung(self, value):
-        self.richtung = value

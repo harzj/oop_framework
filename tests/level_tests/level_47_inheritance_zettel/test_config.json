@@ -1,0 +1,43 @@
+{
+  "level": 47,
+  "description": "Level 47 - Zettel inherits from Spielobjekt with private attributes",
+  "functional_tests": [
+    {
+      "description": "Test Spielobjekt privacy - attributes should be private",
+      "level_number": 47,
+      "initial_state": {
+        "spielobjekt": {"x": 2, "y": 3}
+      },
+      "assertions": [
+        {"type": "privacy", "class": "Spielobjekt", "attribute": "x", "should_be_private": true},
+        {"type": "privacy", "class": "Spielobjekt", "attribute": "y", "should_be_private": true},
+        {"type": "privacy", "class": "Spielobjekt", "attribute": "typ", "should_be_private": true}
+      ]
+    },
+    {
+      "description": "Test Zettel inheritance and privacy",
+      "level_number": 47,
+      "initial_state": {
+        "zettel": {"x": 1, "y": 2}
+      },
+      "assertions": [
+        {"type": "inheritance", "class": "Zettel", "parent": "Spielobjekt"},
+        {"type": "privacy", "class": "Zettel", "attribute": "spruch", "should_be_private": true},
+        {"type": "method_exists", "class": "Zettel", "method": "get_spruch"},
+        {"type": "method_exists", "class": "Zettel", "method": "set_spruch"}
+      ]
+    },
+    {
+      "description": "Test Zettel getter/setter functionality",
+      "level_number": 47,
+      "test_type": "unit",
+      "class": "Zettel",
+      "actions": [
+        {"type": "create_instance", "args": [1, 2]},
+        {"type": "method_call", "method": "get_spruch", "expected_return": "Sesam öffne dich"},
+        {"type": "method_call", "method": "set_spruch", "args": ["Neuer Spruch"]},
+        {"type": "method_call", "method": "get_spruch", "expected_return": "Neuer Spruch"}
+      ]
+    }
+  ]
+}

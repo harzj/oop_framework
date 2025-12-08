@@ -1,0 +1,59 @@
+{
+  "level": 40,
+  "description": "Level 40 - Private Attribute ohne Getter",
+  "functional_tests": [
+    {
+      "description": "Test geh() method - hero moves down from (1,1)",
+      "level_number": 40,
+      "initial_state": {
+        "held": {"x": 1, "y": 1, "richtung": "down"}
+      },
+      "actions": [
+        {"type": "method_call", "target": "held", "method": "geh"}
+      ],
+      "assertions": [
+        {"type": "position", "x": 1, "y": 2}
+      ]
+    },
+    {
+      "description": "Test links() method - hero turns from down to right",
+      "level_number": 40,
+      "initial_state": {
+        "held": {"x": 1, "y": 1, "richtung": "down"}
+      },
+      "actions": [
+        {"type": "method_call", "target": "held", "method": "links"}
+      ],
+      "assertions": [
+        {"type": "attribute", "name": "richtung", "value": "right"}
+      ]
+    },
+    {
+      "description": "Test rechts() method - hero turns from down to left",
+      "level_number": 40,
+      "initial_state": {
+        "held": {"x": 1, "y": 1, "richtung": "down"}
+      },
+      "actions": [
+        {"type": "method_call", "target": "held", "method": "rechts"}
+      ],
+      "assertions": [
+        {"type": "attribute", "name": "richtung", "value": "left"}
+      ]
+    },
+    {
+      "description": "Test privacy - attributes should not be directly accessible",
+      "level_number": 40,
+      "initial_state": {
+        "held": {"x": 1, "y": 1, "richtung": "down"}
+      },
+      "assertions": [
+        {"type": "privacy", "attribute": "x", "should_be_private": true},
+        {"type": "privacy", "attribute": "y", "should_be_private": true},
+        {"type": "privacy", "attribute": "richtung", "should_be_private": true},
+        {"type": "privacy", "attribute": "weiblich", "should_be_private": true},
+        {"type": "privacy", "attribute": "name", "should_be_private": false}
+      ]
+    }
+  ]
+}

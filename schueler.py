@@ -1,5 +1,5 @@
 from framework.grundlage import level
-level.lade(54,weiblich=True)
+level.lade("_ka_nt",weiblich=True)
 from framework.grundlage import *
 # Ab hier darfst du programmieren:
 
