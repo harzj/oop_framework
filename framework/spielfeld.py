@@ -64,8 +64,17 @@ class Spielfeld:
         #self.zufallscode = str(randint(1000,9999))
         self.zufallscode = self.random_zauberwort()
         self.orc_names = []
+        
+        # Initialize class validation state (will be set after spawning)
+        self._class_validation_passed = False
+        
+        # Flag to prevent repeated victory messages
+        self._victory_message_shown = False
+        
         if auto_erzeuge_objekte:
             self._spawn_aus_level()
+            # Validate student classes ONCE after spawning
+            self._validate_classes_at_level_start()
             
     def random_zauberwort(self):
         zauberwoerter = [
@@ -320,10 +329,8 @@ class Spielfeld:
                         # Spielobjekt is implemented, try to load Hindernis as it may inherit from Spielobjekt
                         student_mode_enabled = True
                         self._hindernis_class_valid = False  # Will be validated below
-                    else:
-                        # No Spielobjekt and no Hindernis requirements - don't render
-                        student_mode_enabled = True  # Mark as student mode to prevent framework rendering
-                        self._hindernis_class_valid = False  # No class available
+                    # else: No Spielobjekt and no Hindernis requirements - use framework implementation
+                    # student_mode_enabled remains False, framework tiles will be rendered
                 
                 # Store the student mode flag for rendering logic
                 self._hindernis_student_mode_enabled = student_mode_enabled
@@ -776,10 +783,14 @@ class Spielfeld:
                     self._knappe_class_valid = False  # Will be set to True if validation passes
             elif classes_present_mode:
                 # classes_present is true but no Knappe requirements:
-                # This means Knappe is not required for this level
-                # Don't render any Knappe (framework or student)
-                knappe_student_mode_enabled = True
-                self._knappe_class_valid = False
+                # Check if Charakter is implemented - if yes, try to load Knappe (may inherit from it)
+                charakter_req = self.class_requirements.get('Charakter', {})
+                if charakter_req.get('check_implementation', False):
+                    # Charakter is implemented, try to load Knappe as it may inherit from Charakter
+                    knappe_student_mode_enabled = True
+                    self._knappe_class_valid = False  # Will be validated below
+                # else: No Charakter and no Knappe requirements - use framework implementation
+                # knappe_student_mode_enabled remains False
             
             # Try to get student Knappe class and validate it
             if knappe_student_mode_enabled:
@@ -3002,6 +3013,9 @@ class Spielfeld:
     # --- Kollisionen / Logik ---
     def innerhalb(self, x, y):
         return 0 <= x < self.level.breite and 0 <= y < self.level.hoehe
+
+    def ist_innerhalb(self, x, y):
+        return 0 <= x < self.level.breite and 0 <= y < self.level.hoehe
     
     def ist_weg(self,x,y):
         if not self.innerhalb(x, y): return False
@@ -3407,8 +3421,10 @@ class Spielfeld:
             # On any error, default to True to avoid breaking existing levels
             return True
 
-    def check_victory(self) -> bool:
-        """Evaluate configured victory conditions.
+    def check_victory_backup(self) -> bool:
+        """BACKUP: Original victory check - kept for rollback if needed.
+        
+        Evaluate configured victory conditions.
 
         The configured conditions are combined with logical AND: all enabled
         conditions must be satisfied for the level to be considered won.
@@ -3816,6 +3832,1007 @@ class Spielfeld:
             return True
         except Exception:
             return False
+    
+    def check_victory(self) -> bool:
+        """NEW: Try-except based victory check with precise error messages.
+        
+        Phase 1: Framework not blocked + hearts collected (kept from original)
+        Phase 2: Check if class validation passed (validated once at level start)
+        """
+        try:
+            vs = self.victory_settings or {}
+            
+            # ===== PHASE 1: Basic Victory Conditions (from original) =====
+            # 1) Collect hearts requirement
+            collect_req = True if 'collect_hearts' not in vs else bool(vs.get('collect_hearts', True))
+            if collect_req:
+                if self.gibt_noch_herzen():
+                    return False
+            
+            # 2) Move to coordinate requirement
+            mv = vs.get('move_to') if isinstance(vs, dict) else None
+            if mv and isinstance(mv, dict) and mv.get('enabled'):
+                try:
+                    tx = int(mv.get('x', -999))
+                    ty = int(mv.get('y', -999))
+                except Exception:
+                    return False
+                
+                held = getattr(self, 'held', None)
+                if held is None:
+                    return False
+                
+                hx = self._get_attribute_value(held, 'x', None)
+                hy = self._get_attribute_value(held, 'y', None)
+                if hx is None or hy is None:
+                    return False
+                
+                hx, hy = int(hx), int(hy)
+                if hx != tx or hy != ty:
+                    return False
+                
+                if getattr(self.framework, '_aktion_blockiert', False):
+                    return False
+            
+            # ===== PHASE 2: Class Implementation Check =====
+            # Check if class validation passed (set during level initialization)
+            if bool(vs.get('classes_present', False)):
+                if not getattr(self, '_class_validation_passed', False):
+                    # Class validation failed - error messages already printed during init
+                    return False
+            
+            # 3) rebuild_mode check (kept from original)
+            if bool(vs.get('rebuild_mode', False)):
+                if not self._check_rebuild_mode():
+                    return False
+            
+            # All checks passed - print message only once
+            if not self._victory_message_shown:
+                print("[VICTORY] Alle Siegbedingungen erfüllt!")
+                self._victory_message_shown = True
+            return True
+            
+        except Exception as e:
+            import os
+            if os.getenv("OOP_TEST", "") == "1":
+                print(f"[VICTORY ERROR] Unerwarteter Fehler in check_victory(): {e}")
+                import traceback
+                traceback.print_exc()
+            return False
+    
+    def _get_needed_classes(self):
+        """Ermittelt alle benötigten Klassen für das Level."""
+        mapping = {
+            'p': 'Held', 'k': 'Knappe', 'x': 'Monster', 'h': 'Herz',
+            'd': 'Tuer', 'v': 'Villager', 'g': 'Tor',
+            's': 'Schluessel', 'q': 'Questgeber',
+            't': 'Hindernis', 'm': 'Hindernis', 'b': 'Hindernis'
+        }
+        
+        if getattr(self, '_zettel_student_mode_enabled', False):
+            mapping['c'] = 'Zettel'
+        else:
+            mapping['c'] = 'Code'
+        
+        needed = getattr(self, '_required_spawn_classes', None)
+        if not needed:
+            needed = set()
+            # Check spawn_entities
+            for typ, x, y, sichtbar in self.level.iter_entity_spawns():
+                if isinstance(typ, str):
+                    cn = mapping.get(typ.lower())
+                    if cn:
+                        needed.add(cn)
+            
+            # Also check tiles for Hindernis, Zettel, etc.
+            for row in self.level.tiles:
+                for code in row:
+                    if code in mapping:
+                        needed.add(mapping[code])
+        
+        # Add abstract/utility classes if check_implementation enabled
+        for abstract_class in ["Spielobjekt", "Charakter", "Inventar", "Gegenstand"]:
+            req = self.class_requirements.get(abstract_class, {})
+            if req.get('check_implementation', False):
+                needed.add(abstract_class)
+        
+        return needed
+    
+    def _requires_student_implementation(self, class_name, req):
+        """Prüft ob Schüler-Implementierung erforderlich ist."""
+        # For utility classes (Inventar, Gegenstand), only check if check_implementation is explicitly set
+        if class_name in ["Inventar", "Gegenstand"]:
+            return bool(req.get('check_implementation', False))
+        
+        has_load_flags = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
+        has_inheritance = req.get('inherits') and req.get('inherits') != 'None'
+        has_methods = bool(req.get('methods') or req.get('methods_private'))
+        has_attributes = bool(req.get('attributes') or req.get('attributes_private'))
+        
+        return has_load_flags or has_inheritance or has_methods or has_attributes
+    
+    def _get_test_objects_for_class(self, class_name):
+        """Holt vorhandene Objekte der Klasse aus dem Level."""
+        if class_name == 'Held':
+            held = getattr(self, 'held', None)
+            if held:
+                # Get student object from MetaHeld wrapper
+                student_obj = getattr(held, '_student', held)
+                return [student_obj]
+        
+        # Search in self.objekte
+        objects = []
+        for obj in self.objekte:
+            if obj.__class__.__name__ == class_name:
+                # Unwrap if it's a proxy
+                student_obj = getattr(obj, '_student', obj)
+                objects.append(student_obj)
+        
+        return objects
+    
+    def _create_test_object(self, class_name, req):
+        """Erstellt ein Test-Objekt der Klasse für Validierung."""
+        try:
+            import importlib
+            import sys
+            
+            module_name = class_name.lower()
+            if f'klassen.{module_name}' in sys.modules:
+                mod = sys.modules[f'klassen.{module_name}']
+            else:
+                mod = importlib.import_module(f'klassen.{module_name}')
+            
+            if not hasattr(mod, class_name):
+                return None
+            
+            student_class = getattr(mod, class_name)
+            
+            # Create test instance with default parameters
+            if class_name == "Spielobjekt":
+                return student_class(0, 0)
+            elif class_name == "Charakter":
+                return student_class(0, 0, "up")
+            elif class_name == "Held":
+                return student_class(0, 0, "up", False)
+            elif class_name == "Knappe":
+                return student_class(0, 0, "up")
+            elif class_name == "Hindernis":
+                return student_class(0, 0, "Baum")
+            elif class_name == "Zettel":
+                return student_class(0, 0)
+            elif class_name == "Inventar":
+                return student_class()
+            elif class_name == "Gegenstand":
+                return student_class("TestItem")
+            else:
+                # Try with minimal params
+                return student_class(0, 0)
+                
+        except Exception as e:
+            print(f"[VICTORY] Konnte Test-Objekt für '{class_name}' nicht erstellen: {e}")
+            return None
+    
+    def _validate_classes_at_level_start(self):
+        """Validates student classes ONCE at level start.
+        
+        Runs functional tests on SEPARATE test objects (not game objects!).
+        Called once after _spawn_aus_level() in __init__.
+        """
+        import os
+        
+        vs = self.victory_settings or {}
+        
+        # Only validate if classes_present is enabled
+        if not bool(vs.get('classes_present', False)):
+            self._class_validation_passed = True
+            return
+        
+        try:
+            # Get required classes
+            needed_classes = self._get_needed_classes()
+            
+            # Check each required class
+            for class_name in needed_classes:
+                req = self.class_requirements.get(class_name, {})
+                
+                # Skip if no requirements
+                if not self._requires_student_implementation(class_name, req):
+                    continue
+                
+                # Check if class exists
+                if not self._student_has_class(class_name):
+                    print(f"[VICTORY] Klasse '{class_name}' nicht gefunden.")
+                    self._class_validation_passed = False
+                    return
+                
+                # ALWAYS create a SEPARATE test object for validation
+                # Never use game objects (self.held, etc.) for functional tests!
+                test_obj = self._create_test_object(class_name, req)
+                
+                if not test_obj:
+                    print(f"[VICTORY] Konnte Test-Objekt für Klasse '{class_name}' nicht erstellen.")
+                    self._class_validation_passed = False
+                    return
+                
+                # Check attributes (public and private)
+                if not self._check_attributes_new(class_name, test_obj, req):
+                    self._class_validation_passed = False
+                    return
+                
+                # Check methods (including functional tests)
+                if not self._check_methods_new(class_name, test_obj, req):
+                    self._class_validation_passed = False
+                    return
+                
+                # Check inheritance
+                if not self._check_inheritance_new(class_name, test_obj, req):
+                    self._class_validation_passed = False
+                    return
+            
+            # All validations passed
+            self._class_validation_passed = True
+            if os.getenv("OOP_TEST", "") == "1":
+                print("[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.")
+                
+        except Exception as e:
+            print(f"[VICTORY ERROR] Fehler bei Klassenvalidierung: {e}")
+            import traceback
+            traceback.print_exc()
+            self._class_validation_passed = False
+    
+    def _check_attributes_new(self, class_name, test_obj, req):
+        """Prüft Attribute mit try-except für präzise Fehlermeldungen."""
+        # Public attributes
+        public_attrs = req.get('attributes', [])
+        for attr in public_attrs:
+            try:
+                # Try to access attribute directly
+                value = getattr(test_obj, attr)
+                
+                # Special validation for 'rucksack' attribute (Inventar)
+                if attr == 'rucksack' and value is not None:
+                    # Check if it's an Inventar instance
+                    if not hasattr(value, 'items') or not hasattr(value, 'item_hinzufuegen'):
+                        print(f"[VICTORY] Klasse '{class_name}': Attribut 'rucksack' ist kein gültiges Inventar-Objekt.")
+                        return False
+                    
+                    # Held-specific check: must have a Schwert in inventory
+                    if class_name == 'Held':
+                        has_schwert = False
+                        try:
+                            for item in value.items:
+                                if hasattr(item, 'art') and item.art == 'Schwert':
+                                    has_schwert = True
+                                    break
+                        except Exception:
+                            pass
+                        
+                        if not has_schwert:
+                            print(f"[VICTORY] Klasse 'Held': Inventar (rucksack) muss ein Schwert enthalten.")
+                            return False
+                    
+                    # Knappe-specific check: inventory must be empty
+                    elif class_name == 'Knappe':
+                        try:
+                            if len(value.items) > 0:
+                                print(f"[VICTORY] Klasse 'Knappe': Inventar (rucksack) muss leer sein.")
+                                return False
+                        except Exception:
+                            pass
+                
+                # Success - attribute is accessible
+            except AttributeError:
+                print(f"[VICTORY] Klasse '{class_name}': Öffentliches Attribut '{attr}' nicht vorhanden oder nicht erreichbar.")
+                return False
+        
+        # Private attributes
+        # Note: attributes_private: {x: true} only means "x should be private (__x)"
+        # It does NOT mean "x needs a getter" - getters are checked in methods list
+        private_attrs = req.get('attributes_private', {})
+        for attr, is_private in private_attrs.items():
+            # Only check if is_private is True (it's just a flag)
+            if not is_private:
+                continue
+                
+            # First check: attribute should NOT be directly accessible
+            try:
+                value = getattr(test_obj, attr)
+                # If we get here, attribute is public (BAD!)
+                print(f"[VICTORY] Klasse '{class_name}': Attribut '{attr}' sollte privat sein (mit __), ist aber öffentlich zugänglich.")
+                return False
+            except AttributeError:
+                # Good - attribute is not directly accessible
+                # Now check if it exists as private attribute via name mangling
+                mangled_name = f"_{class_name}__{attr}"
+                if not hasattr(test_obj, mangled_name):
+                    print(f"[VICTORY] Klasse '{class_name}': Privates Attribut '__{attr}' nicht vorhanden.")
+                    return False
+        
+        return True
+    
+    def _check_methods_new(self, class_name, test_obj, req):
+        """Prüft Methoden mit funktionalen Tests."""
+        # Public methods
+        public_methods = req.get('methods', [])
+        for method_name in public_methods:
+            if not hasattr(test_obj, method_name):
+                print(f"[VICTORY] Klasse '{class_name}': Methode '{method_name}()' nicht vorhanden.")
+                return False
+            
+            method = getattr(test_obj, method_name)
+            if not callable(method):
+                print(f"[VICTORY] Klasse '{class_name}': '{method_name}' ist keine Methode.")
+                return False
+        
+        # Private methods with setters
+        private_methods = req.get('methods_private', {})
+        for method_name, should_have_setter in private_methods.items():
+            # Check if method exists
+            if not hasattr(test_obj, method_name):
+                print(f"[VICTORY] Klasse '{class_name}': Methode '{method_name}()' nicht vorhanden.")
+                return False
+        
+        # Functional tests for movement methods
+        if class_name in ['Held', 'Knappe', 'Charakter']:
+            if not self._test_movement_methods(class_name, test_obj, req):
+                return False
+        
+        # Functional tests for setter/getter methods
+        if not self._test_setter_getter_methods(class_name, test_obj, req):
+            return False
+        
+        return True
+    
+    def _test_geh_realistic_collision(self, class_name, test_obj, req):
+        """Testet ob geh() korrekt Kollisionen mit Level-Objekten erkennt.
+        
+        Testet mit den tatsächlichen Objekten aus dem Level:
+        1. Kann Level-Grenzen nicht verlassen
+        2. Wird von nicht-passierbaren Objekten blockiert (außer Zettel - Polymorphie-Beispiel)
+        3. Kann durch passierbare Objekte laufen
+        
+        NOTE: set_level() wurde bereits in _test_movement_methods() aufgerufen!
+        """
+        try:
+            # Collect unique object types from level (excluding Zettel for polymorphism teaching)
+            level_object_types = set()
+            for obj in self.objekte:
+                obj_type = getattr(obj, 'typ', None) or obj.__class__.__name__
+                if obj_type and obj_type.lower() != 'zettel':
+                    level_object_types.add(obj_type)
+            
+            # Debug: Print object types found
+            # print(f"[DEBUG] Testing {class_name} collision with object types: {level_object_types}")
+            
+            # Test 1: Cannot leave level bounds
+            if not self._test_level_boundary_collision(class_name, test_obj):
+                return False
+            
+            # Test 2: Check collision with each object type in level (except Zettel)
+            for obj_type in level_object_types:
+                if not self._test_object_type_collision(class_name, test_obj, obj_type):
+                    return False
+            
+            return True
+            
+        except Exception as e:
+            print(f"[VICTORY] Klasse '{class_name}': Kollisionstest fehlgeschlagen: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _test_level_boundary_collision(self, class_name, test_obj):
+        """Testet ob Test-Objekt die Level-Grenzen respektiert."""
+        try:
+            # Save original position
+            original_x = self._get_attr_value(test_obj, 'x', class_name)
+            original_y = self._get_attr_value(test_obj, 'y', class_name)
+            original_richtung = self._get_attr_value(test_obj, 'richtung', class_name)
+            
+            # Test boundary: Try to move outside level to the left (x=-1)
+            try:
+                if hasattr(test_obj, 'x'):
+                    test_obj.x = 0
+                    test_obj.richtung = 'left'
+                else:
+                    test_obj.set_x(0)
+                    test_obj.set_richtung('left')
+                
+                test_obj.geh()
+                
+                new_x = self._get_attr_value(test_obj, 'x', class_name)
+                if new_x < 0:
+                    # Restore position
+                    if hasattr(test_obj, 'x'):
+                        test_obj.x = original_x
+                        test_obj.y = original_y
+                        test_obj.richtung = original_richtung
+                    print(f"[VICTORY] Klasse '{class_name}': {class_name} kann das Level verlassen (x={new_x} ist außerhalb).")
+                    return False
+            except Exception as e:
+                # Restore position
+                if hasattr(test_obj, 'x'):
+                    test_obj.x = original_x
+                    test_obj.y = original_y
+                    test_obj.richtung = original_richtung
+                print(f"[VICTORY] Klasse '{class_name}': geh() wirft Fehler beim Boundary-Test: {e}")
+                return False
+            
+            # Restore original position
+            if hasattr(test_obj, 'x'):
+                test_obj.x = original_x
+                test_obj.y = original_y
+                test_obj.richtung = original_richtung
+            else:
+                test_obj.set_x(original_x)
+                test_obj.set_y(original_y)
+                test_obj.set_richtung(original_richtung)
+            
+            return True
+            
+        except Exception as e:
+            print(f"[VICTORY] Klasse '{class_name}': Boundary-Test fehlgeschlagen: {e}")
+            return False
+    
+    def _test_object_type_collision(self, class_name, test_obj, obj_type):
+        """Testet Kollision mit einem bestimmten Objekt-Typ."""
+        try:
+            # Find an object of this type in the level
+            target_obj = None
+            for obj in self.objekte:
+                obj_t = getattr(obj, 'typ', None) or obj.__class__.__name__
+                if obj_t == obj_type:
+                    target_obj = obj
+                    break
+            
+            if not target_obj:
+                return True  # No object of this type, skip
+            
+            # Get target position
+            target_x = self._get_attr_value(target_obj, 'x', obj_type)
+            target_y = self._get_attr_value(target_obj, 'y', obj_type)
+            
+            # Check if object is passable
+            is_passable = False
+            if hasattr(target_obj, 'ist_passierbar') and callable(getattr(target_obj, 'ist_passierbar')):
+                try:
+                    is_passable = target_obj.ist_passierbar()
+                except:
+                    is_passable = False
+            
+            # Save original position
+            original_x = self._get_attr_value(test_obj, 'x', class_name)
+            original_y = self._get_attr_value(test_obj, 'y', class_name)
+            original_richtung = self._get_attr_value(test_obj, 'richtung', class_name)
+            
+            # Position test object next to target and face it
+            test_x, test_y, direction = target_x - 1, target_y, 'right'
+            if test_x < 0:  # Try from right
+                test_x, test_y, direction = target_x + 1, target_y, 'left'
+            if test_x >= self.level.breite:  # Try from top
+                test_x, test_y, direction = target_x, target_y - 1, 'down'
+            if test_y < 0:  # Try from bottom
+                test_x, test_y, direction = target_x, target_y + 1, 'up'
+            
+            # Set test position
+            try:
+                if hasattr(test_obj, 'x'):
+                    test_obj.x = test_x
+                    test_obj.y = test_y
+                    test_obj.richtung = direction
+                else:
+                    test_obj.set_x(test_x)
+                    test_obj.set_y(test_y)
+                    test_obj.set_richtung(direction)
+            except Exception as e:
+                # Restore and skip this test
+                if hasattr(test_obj, 'x'):
+                    test_obj.x = original_x
+                    test_obj.y = original_y
+                    test_obj.richtung = original_richtung
+                return True
+            
+            # Try to move into target object
+            try:
+                test_obj.geh()
+            except Exception as e:
+                # Restore position
+                if hasattr(test_obj, 'x'):
+                    test_obj.x = original_x
+                    test_obj.y = original_y
+                    test_obj.richtung = original_richtung
+                print(f"[VICTORY] Klasse '{class_name}': geh() wirft Fehler beim Test mit {obj_type}: {e}")
+                return False
+            
+            # Check new position
+            new_x = self._get_attr_value(test_obj, 'x', class_name)
+            new_y = self._get_attr_value(test_obj, 'y', class_name)
+            
+            # Verify behavior based on passability
+            if is_passable:
+                # Should have moved into target position
+                if new_x != target_x or new_y != target_y:
+                    # Restore position
+                    if hasattr(test_obj, 'x'):
+                        test_obj.x = original_x
+                        test_obj.y = original_y
+                        test_obj.richtung = original_richtung
+                    print(f"[VICTORY] Klasse '{class_name}': {class_name} kann nicht durch passierbares Objekt '{obj_type}' laufen.")
+                    return False
+            else:
+                # Should NOT have moved
+                if new_x != test_x or new_y != test_y:
+                    # Restore position
+                    if hasattr(test_obj, 'x'):
+                        test_obj.x = original_x
+                        test_obj.y = original_y
+                        test_obj.richtung = original_richtung
+                    print(f"[VICTORY] Klasse '{class_name}': {class_name} kann in nicht-passierbare Objekte vom Typ '{obj_type}' laufen.")
+                    return False
+            
+            # Restore original position
+            if hasattr(test_obj, 'x'):
+                test_obj.x = original_x
+                test_obj.y = original_y
+                test_obj.richtung = original_richtung
+            else:
+                test_obj.set_x(original_x)
+                test_obj.set_y(original_y)
+                test_obj.set_richtung(original_richtung)
+            
+            return True
+            
+        except Exception as e:
+            print(f"[VICTORY] Klasse '{class_name}': Test mit Objekt-Typ '{obj_type}' fehlgeschlagen: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _test_geh_collision_detection_NEW(self, class_name, test_obj, req):
+        """ALTE VERSION - wird nicht mehr verwendet. Testet ob geh() korrekt Hindernisse erkennt (nur wenn expects_set_level=true).
+        
+        Erstellt ein Pseudo-Level mit Hindernissen und prüft, ob das Objekt:
+        1. set_level() Methode hat und aufrufen kann
+        2. Korrekt Hindernisse erkennt und Position nicht ändert
+        """
+        # Check if set_level method exists
+        if not hasattr(test_obj, 'set_level') or not callable(getattr(test_obj, 'set_level')):
+            print(f"[VICTORY] Klasse '{class_name}': 'set_level()' Methode fehlt (erwartet für Kollisionserkennung).")
+            return False
+        
+        try:
+            # Create a pseudo-level with obstacles
+            # Layout: 3x3 grid with obstacle in front of character
+            #   0 1 2
+            # 0 . . .
+            # 1 . C H  (Character at 1,1 facing right, Hindernis at 2,1)
+            # 2 . . .
+            
+            # Import Hindernis class
+            try:
+                from klassen.hindernis import Hindernis
+            except ImportError:
+                try:
+                    from hindernis import Hindernis
+                except ImportError:
+                    print(f"[VICTORY] Klasse '{class_name}': Konnte Hindernis-Klasse nicht importieren für Kollisionstest.")
+                    return False
+            
+            # Create obstacle
+            obstacle = Hindernis(2, 1, "Baum")
+            
+            # Temporarily add obstacle to spielfeld objects for gib_objekt_bei() to find
+            original_objekte = self.objekte[:]
+            self.objekte.append(obstacle)
+            
+            # Set character to position 1,1 facing right (towards obstacle)
+            try:
+                if hasattr(test_obj, 'x'):
+                    test_obj.x = 1
+                elif hasattr(test_obj, 'set_x'):
+                    test_obj.set_x(1)
+                    
+                if hasattr(test_obj, 'y'):
+                    test_obj.y = 1
+                elif hasattr(test_obj, 'set_y'):
+                    test_obj.set_y(1)
+                    
+                if hasattr(test_obj, 'richtung'):
+                    test_obj.richtung = 'right'
+                elif hasattr(test_obj, 'set_richtung'):
+                    test_obj.set_richtung('right')
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': Konnte Test-Position nicht setzen: {e}")
+                return False
+            
+            # Call set_level with the actual spielfeld (which has gib_objekt_bei method)
+            # or with a list of objects (for older implementations)
+            try:
+                # Try passing the spielfeld first (for implementations expecting level.gib_objekt_bei())
+                test_obj.set_level(self)
+            except Exception as e:
+                # If that fails, try passing a list of objects (for older implementations)
+                try:
+                    test_obj.set_level([obstacle])
+                except Exception as e2:
+                    self.objekte = original_objekte
+                    print(f"[VICTORY] Klasse '{class_name}': set_level() wirft Fehler: {e}")
+                    return False
+            
+            # Get position before geh()
+            try:
+                before_x = self._get_attr_value(test_obj, 'x', class_name)
+                before_y = self._get_attr_value(test_obj, 'y', class_name)
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': Konnte Position vor geh() nicht ermitteln: {e}")
+                return False
+            
+            # Call geh() - should NOT move because obstacle blocks
+            try:
+                test_obj.geh()
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': geh() wirft Fehler bei Kollision: {e}")
+                return False
+            
+            # Get position after geh()
+            try:
+                after_x = self._get_attr_value(test_obj, 'x', class_name)
+                after_y = self._get_attr_value(test_obj, 'y', class_name)
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': Konnte Position nach geh() nicht ermitteln: {e}")
+                return False
+            
+            # Verify position did NOT change (obstacle should block)
+            if before_x != after_x or before_y != after_y:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': geh() erkennt Hindernis nicht. Position änderte sich von ({before_x},{before_y}) zu ({after_x},{after_y}), sollte aber gleich bleiben.")
+                return False
+            
+            # Test 2: Movement in free direction should work
+            # Turn character to face up (free space)
+            try:
+                if hasattr(test_obj, 'richtung'):
+                    test_obj.richtung = 'up'
+                elif hasattr(test_obj, 'set_richtung'):
+                    test_obj.set_richtung('up')
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': Konnte Richtung nicht auf 'up' setzen: {e}")
+                return False
+            
+            # Get position before free movement
+            try:
+                before_x = self._get_attr_value(test_obj, 'x', class_name)
+                before_y = self._get_attr_value(test_obj, 'y', class_name)
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': Konnte Position vor freier Bewegung nicht ermitteln: {e}")
+                return False
+            
+            # Call geh() - should move up (no obstacle)
+            try:
+                test_obj.geh()
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': geh() wirft Fehler bei freier Bewegung: {e}")
+                return False
+            
+            # Get position after free movement
+            try:
+                after_x = self._get_attr_value(test_obj, 'x', class_name)
+                after_y = self._get_attr_value(test_obj, 'y', class_name)
+            except Exception as e:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': Konnte Position nach freier Bewegung nicht ermitteln: {e}")
+                return False
+            
+            # Verify position DID change (should move up)
+            expected_y = before_y - 1
+            if after_x != before_x or after_y != expected_y:
+                self.objekte = original_objekte
+                print(f"[VICTORY] Klasse '{class_name}': geh() bewegt sich nicht korrekt im freien Raum. Position: ({before_x},{before_y}) -> ({after_x},{after_y}), erwartet: ({before_x},{expected_y})")
+                return False
+            
+            # Restore original objects
+            self.objekte = original_objekte
+            return True
+            
+        except Exception as e:
+            # Restore original objects in case of exception
+            if 'original_objekte' in locals():
+                self.objekte = original_objekte
+            print(f"[VICTORY] Klasse '{class_name}': Kollisionstest fehlgeschlagen: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _test_movement_methods(self, class_name, test_obj, req):
+        """Testet Bewegungsmethoden funktional."""
+        methods = req.get('methods', [])
+        expects_set_level = req.get('expects_set_level', False)
+        
+        # If expects_set_level is true, call set_level BEFORE any tests
+        if expects_set_level:
+            if not hasattr(test_obj, 'set_level') or not callable(getattr(test_obj, 'set_level')):
+                print(f"[VICTORY] Klasse '{class_name}': 'set_level()' Methode fehlt (erwartet für Kollisionserkennung).")
+                return False
+            try:
+                test_obj.set_level(self)
+            except Exception as e:
+                print(f"[VICTORY] Klasse '{class_name}': set_level() wirft Fehler: {e}")
+                return False
+        
+        # Test geh() method
+        if 'geh' in methods:
+            # If expects_set_level=true, skip basic movement test and only do realistic collision test
+            if expects_set_level:
+                if not self._test_geh_realistic_collision(class_name, test_obj, req):
+                    return False
+            else:
+                # Test 1: Basic movement (only for implementations WITHOUT collision detection)
+                try:
+                    initial_x = self._get_attr_value(test_obj, 'x', class_name)
+                    initial_y = self._get_attr_value(test_obj, 'y', class_name)
+                    richtung = self._get_attr_value(test_obj, 'richtung', class_name)
+                except Exception as e:
+                    print(f"[VICTORY] Klasse '{class_name}': Konnte Anfangsposition nicht ermitteln: {e}")
+                    return False
+                
+                # Call geh()
+                try:
+                    test_obj.geh()
+                except Exception as e:
+                    print(f"[VICTORY] Klasse '{class_name}': Methode 'geh()' wirft Fehler: {e}")
+                    return False
+                
+                # Check new position
+                try:
+                    new_x = self._get_attr_value(test_obj, 'x', class_name)
+                    new_y = self._get_attr_value(test_obj, 'y', class_name)
+                    
+                    # Verify movement based on direction
+                    expected_x, expected_y = initial_x, initial_y
+                    if richtung == 'up':
+                        expected_y -= 1
+                    elif richtung == 'down':
+                        expected_y += 1
+                    elif richtung == 'left':
+                        expected_x -= 1
+                    elif richtung == 'right':
+                        expected_x += 1
+                    
+                    if new_x != expected_x or new_y != expected_y:
+                        print(f"[VICTORY] Klasse '{class_name}': geh() bewegt nicht korrekt. Richtung: {richtung}, Alt: ({initial_x},{initial_y}), Neu: ({new_x},{new_y}), Erwartet: ({expected_x},{expected_y})")
+                        return False
+                        
+                except Exception as e:
+                    print(f"[VICTORY] Klasse '{class_name}': Konnte neue Position nach geh() nicht ermitteln: {e}")
+                    return False
+        
+        # Test links() and rechts() methods
+        if 'links' in methods:
+            try:
+                initial_richt = self._get_attr_value(test_obj, 'richtung', class_name)
+                test_obj.links()
+                new_richt = self._get_attr_value(test_obj, 'richtung', class_name)
+                
+                # Verify rotation
+                rotation_map = {'up': 'left', 'left': 'down', 'down': 'right', 'right': 'up'}
+                expected_richt = rotation_map.get(initial_richt)
+                if new_richt != expected_richt:
+                    print(f"[VICTORY] Klasse '{class_name}': links() dreht nicht korrekt. Alt: {initial_richt}, Neu: {new_richt}, Erwartet: {expected_richt}")
+                    return False
+            except Exception as e:
+                print(f"[VICTORY] Klasse '{class_name}': links() Test fehlgeschlagen: {e}")
+                return False
+        
+        if 'rechts' in methods:
+            try:
+                initial_richt = self._get_attr_value(test_obj, 'richtung', class_name)
+                test_obj.rechts()
+                new_richt = self._get_attr_value(test_obj, 'richtung', class_name)
+                
+                # Verify rotation
+                rotation_map = {'up': 'right', 'right': 'down', 'down': 'left', 'left': 'up'}
+                expected_richt = rotation_map.get(initial_richt)
+                if new_richt != expected_richt:
+                    print(f"[VICTORY] Klasse '{class_name}': rechts() dreht nicht korrekt. Alt: {initial_richt}, Neu: {new_richt}, Erwartet: {expected_richt}")
+                    return False
+            except Exception as e:
+                print(f"[VICTORY] Klasse '{class_name}': rechts() Test fehlgeschlagen: {e}")
+                return False
+        
+        return True
+    
+    def _test_setter_getter_methods(self, class_name, test_obj, req):
+        """Testet Setter/Getter Methoden funktional.
+        
+        Only tests attributes that have BOTH getter AND setter in methods list.
+        """
+        private_attrs = req.get('attributes_private', {})
+        methods = req.get('methods', [])
+        
+        for attr, is_private in private_attrs.items():
+            getter_name = f'get_{attr}'
+            setter_name = f'set_{attr}'
+            
+            # Only test if BOTH getter AND setter are in methods list
+            has_getter = getter_name in methods
+            has_setter = setter_name in methods
+            
+            if has_getter and has_setter:
+                try:
+                    # Get original value
+                    original = getattr(test_obj, getter_name)()
+                    
+                    # Choose test value based on attribute type
+                    if attr == 'richtung':
+                        # Richtung must be valid direction string
+                        test_value = "left" if original != "left" else "right"
+                    elif attr == 'weiblich':
+                        # Boolean attribute
+                        test_value = not original
+                    elif isinstance(original, str):
+                        test_value = "TEST_VALUE"
+                    elif isinstance(original, bool):
+                        test_value = not original
+                    elif isinstance(original, int):
+                        test_value = 999
+                    else:
+                        test_value = original  # Skip test if type unknown
+                    
+                    # Set test value
+                    getattr(test_obj, setter_name)(test_value)
+                    
+                    # Get new value
+                    new_value = getattr(test_obj, getter_name)()
+                    
+                    # Restore original
+                    getattr(test_obj, setter_name)(original)
+                    
+                    # Verify
+                    if new_value != test_value:
+                        print(f"[VICTORY] Klasse '{class_name}': {setter_name}()/{getter_name}() funktionieren nicht korrekt zusammen.")
+                        return False
+                        
+                except Exception as e:
+                    print(f"[VICTORY] Klasse '{class_name}': {setter_name}()/{getter_name}() Test fehlgeschlagen: {e}")
+                    return False
+        
+        return True
+    
+    def _get_attr_value(self, obj, attr, class_name):
+        """Holt Attributwert (öffentlich, privat oder via Getter)."""
+        # Try direct access
+        try:
+            return getattr(obj, attr)
+        except AttributeError:
+            pass
+        
+        # Try getter
+        getter_name = f'get_{attr}'
+        if hasattr(obj, getter_name):
+            try:
+                return getattr(obj, getter_name)()
+            except Exception:
+                pass
+        
+        # Try name mangling
+        mangled_name = f"_{class_name}__{attr}"
+        if hasattr(obj, mangled_name):
+            return getattr(obj, mangled_name)
+        
+        raise AttributeError(f"Attribut '{attr}' nicht gefunden")
+    
+    def _check_inheritance_new(self, class_name, test_obj, req):
+        """Prüft Vererbungsbeziehungen mit isinstance() und MRO-Fallback."""
+        inherits = req.get('inherits')
+        if not inherits or inherits == 'None':
+            return True
+        
+        parent_class_name = inherits
+        
+        try:
+            import importlib
+            import sys
+            
+            # Try to load parent class from klassen module
+            module_name = parent_class_name.lower()
+            parent_class = None
+            
+            # Try klassen.{module_name}
+            if f'klassen.{module_name}' in sys.modules:
+                mod = sys.modules[f'klassen.{module_name}']
+                if hasattr(mod, parent_class_name):
+                    parent_class = getattr(mod, parent_class_name)
+            
+            # Try direct import if not found
+            if parent_class is None:
+                try:
+                    mod = importlib.import_module(f'klassen.{module_name}')
+                    if hasattr(mod, parent_class_name):
+                        parent_class = getattr(mod, parent_class_name)
+                except Exception:
+                    pass
+            
+            # Method 1: isinstance() check (works if same class object)
+            if parent_class is not None:
+                if isinstance(test_obj, parent_class):
+                    return True
+            
+            # Method 2: Check MRO (Method Resolution Order) for class name
+            # This works even if parent class was imported differently
+            obj_class = test_obj.__class__
+            mro = obj_class.__mro__  # All parent classes
+            
+            # Check if any parent class has the expected name
+            for base_class in mro:
+                if base_class.__name__ == parent_class_name:
+                    return True
+            
+            # If we get here, inheritance not found
+            print(f"[VICTORY] Klasse '{class_name}': Erbt nicht von '{parent_class_name}'.")
+            return False
+            
+        except Exception as e:
+            print(f"[VICTORY] Klasse '{class_name}': Vererbungsprüfung fehlgeschlagen: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _check_rebuild_mode(self):
+        """Prüft rebuild_mode Bedingungen."""
+        if not self.template_objects:
+            print("[VICTORY] Rebuild-Mode: Keine Template-Objekte definiert.")
+            return False
+        
+        for tpl in self.template_objects:
+            try:
+                x, y = tpl.get('x'), tpl.get('y')
+                expected_typ = tpl.get('typ')
+                
+                def get_obj_attr(obj, attr_name):
+                    try:
+                        return getattr(obj, attr_name)
+                    except AttributeError:
+                        getter_name = f'get_{attr_name}'
+                        if hasattr(obj, getter_name):
+                            getter = getattr(obj, getter_name)
+                            if callable(getter):
+                                return getter()
+                    return None
+                
+                found = False
+                for obj in self.objekte:
+                    obj_x = get_obj_attr(obj, 'x')
+                    obj_y = get_obj_attr(obj, 'y')
+                    
+                    if obj_x == x and obj_y == y:
+                        obj_typ = getattr(obj, 'typ', None) or obj.__class__.__name__
+                        if obj_typ == expected_typ:
+                            found = True
+                            
+                            # Check optional attributes like richtung
+                            if 'richtung' in tpl:
+                                expected_richt = tpl.get('richtung')
+                                actual_richt = get_obj_attr(obj, 'richtung')
+                                if actual_richt != expected_richt:
+                                    print(f"[VICTORY] Rebuild-Mode: Objekt bei ({x},{y}) hat falsche Richtung. Ist: {actual_richt}, Soll: {expected_richt}")
+                                    return False
+                            break
+                
+                if not found:
+                    print(f"[VICTORY] Rebuild-Mode: Objekt '{expected_typ}' fehlt bei Position ({x},{y}).")
+                    return False
+            except Exception as e:
+                print(f"[VICTORY] Rebuild-Mode: Fehler beim Prüfen von Template: {e}")
+                return False
+        
+        return True
     
     def objekt_hinzufuegen(self, objekt):
         """

@@ -73,12 +73,7 @@
           "get_typ",
           "ist_passierbar"
         ],
-        "attributes": [],
-        "attributes_private": {
-          "x": true,
-          "y": true,
-          "typ": true
-        }
+        "attributes": []
       }
     }
   }

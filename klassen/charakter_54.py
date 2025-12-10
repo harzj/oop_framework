@@ -6,10 +6,6 @@ class Charakter(Spielobjekt):
         self.richtung = richtung
         self.name = "Namenloser Charakter"
         self.typ = "Charakter"
-        self.level = None
-    
-    def set_level(self,level):
-        self.level = level
     
     def geh(self):
         if self.richtung == "up":

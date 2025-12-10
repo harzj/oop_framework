@@ -1,0 +1,412 @@
+=== Test Run Started: 2025-12-10 03:08:19 ===
+Selected files: 42
+Delay: 0ms, Timeout: 2s
+
+
+=== Running lsg35.py ===
+[info] Extracted Held class to schueler.py for lsg35.py
+=> TIMEOUT
+
+=== Running lsg37.py ===
+[info] Extracted Held class to schueler.py for lsg37.py
+=> TIMEOUT
+
+=== Running lsg38.py ===
+[info] Copied held_lsg_38.py to klassen/held.py for lsg38.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 38 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg38.py
+
+=== Running lsg39.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 39 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg39.py
+
+=== Running lsg39_expected_fail_missing_import.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39_expected_fail_missing_import.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 39 erfolgreich geladen.
+Traceback (most recent call last):
+  File "d:\git\oop_framework\lsg\lsg39_expected_fail_missing_import.py", line 7, in <module>
+    held = Held(3, 2, "left", weiblich=True)
+NameError: name 'Held' is not defined. Did you mean: 'held'?
+=> FAIL (code 1)
+[info] Restored klassen/held.py after lsg39_expected_fail_missing_import.py
+
+=== Running lsg39_expected_fail_wrong_position.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39_expected_fail_wrong_position.py
+=> TIMEOUT
+
+=== Running lsg40.py ===
+[info] Copied held_variant_correct.py to klassen/held.py for lsg40.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 40 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg40.py
+
+=== Running lsg40_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg40_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg41.py ===
+[info] Copied held_lsg41.py to klassen/held.py for lsg41.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 41 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg41.py
+
+=== Running lsg41_expected_fail_missing_getters.py ===
+[info] Copied held_variant_missing_getters.py to klassen/held.py for lsg41_expected_fail_missing_getters.py
+=> TIMEOUT
+
+=== Running lsg41_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg41_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg42.py ===
+[info] Copied held_lsg42.py to klassen/held.py for lsg42.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 42 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg42.py
+
+=== Running lsg42_expected_fail_missing_getters.py ===
+[info] Copied held_variant_missing_getters.py to klassen/held.py for lsg42_expected_fail_missing_getters.py
+=> TIMEOUT
+
+=== Running lsg42_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg42_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg42_held.py ===
+[info] Copied held_lsg42.py to klassen/held.py for lsg42_held.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 42 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg42_held.py
+
+=== Running lsg43.py ===
+[info] Copied held_lsg43.py to klassen/held.py for lsg43.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 43 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg43.py
+
+=== Running lsg43_held.py ===
+[info] Copied held_lsg43.py to klassen/held.py for lsg43_held.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 43 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg43_held.py
+
+=== Running lsg44.py ===
+[info] Copied hindernis_correct.py to klassen/hindernis.py for lsg44.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 44 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/hindernis.py after lsg44.py
+
+=== Running lsg45.py ===
+[info] Copied zettel_correct.py to klassen/zettel.py for lsg45.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 45 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/zettel.py after lsg45.py
+
+=== Running lsg50.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50.py
+[info] Copied hindernis_50.py to klassen/hindernis.py for lsg50.py
+[info] Copied zettel_50.py to klassen/zettel.py for lsg50.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 50 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/hindernis.py after lsg50.py
+[info] Restored klassen/zettel.py after lsg50.py
+[info] Restored klassen/spielobjekt.py after lsg50.py
+[info] Restored klassen/spielobjekt.py after lsg50.py
+
+=== Running lsg50_expected_fail_hindernis_missing_typ.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50_expected_fail_hindernis_missing_typ.py
+[info] Copied hindernis_50_missing_typ.py to klassen/hindernis.py for lsg50_expected_fail_hindernis_missing_typ.py
+[info] Copied zettel_50.py to klassen/zettel.py for lsg50_expected_fail_hindernis_missing_typ.py
+=> TIMEOUT
+
+=== Running lsg50_expected_fail_no_inheritance.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50_expected_fail_no_inheritance.py
+[info] Copied hindernis_50_no_inherit.py to klassen/hindernis.py for lsg50_expected_fail_no_inheritance.py
+[info] Copied zettel_50_no_inherit.py to klassen/zettel.py for lsg50_expected_fail_no_inheritance.py
+=> TIMEOUT
+
+=== Running lsg50_expected_fail_spielobjekt_private.py ===
+[info] Copied spielobjekt_50_private.py to klassen/spielobjekt.py for lsg50_expected_fail_spielobjekt_private.py
+[info] Copied hindernis_50.py to klassen/hindernis.py for lsg50_expected_fail_spielobjekt_private.py
+[info] Copied zettel_50.py to klassen/zettel.py for lsg50_expected_fail_spielobjekt_private.py
+=> TIMEOUT
+
+=== Running lsg50_expected_fail_zettel49.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50_expected_fail_zettel49.py
+[info] Copied hindernis_50.py to klassen/hindernis.py for lsg50_expected_fail_zettel49.py
+[info] Copied zettel_49.py to klassen/zettel.py for lsg50_expected_fail_zettel49.py
+=> TIMEOUT
+
+=== Running lsg56.py ===
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg56.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg56.py
+=> TIMEOUT
+
+=== Running lsg56_expected_fail_gegenstand_missing_art.py ===
+[info] Copied gegenstand_56_missing_art.py to klassen/gegenstand.py for lsg56_expected_fail_gegenstand_missing_art.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg56_expected_fail_gegenstand_missing_art.py
+=> TIMEOUT
+
+=== Running lsg56_expected_fail_gegenstand_missing_sammeln.py ===
+[info] Copied gegenstand_56_missing_sammeln.py to klassen/gegenstand.py for lsg56_expected_fail_gegenstand_missing_sammeln.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg56_expected_fail_gegenstand_missing_sammeln.py
+=> TIMEOUT
+
+=== Running lsg56_expected_fail_inventar_missing_items.py ===
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg56_expected_fail_inventar_missing_items.py
+[info] Copied inventar_56_missing_items.py to klassen/inventar.py for lsg56_expected_fail_inventar_missing_items.py
+=> TIMEOUT
+
+=== Running lsg56_expected_fail_inventar_missing_method.py ===
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg56_expected_fail_inventar_missing_method.py
+[info] Copied inventar_56_missing_method.py to klassen/inventar.py for lsg56_expected_fail_inventar_missing_method.py
+=> TIMEOUT
+
+=== Running lsg56_gegenstand.py ===
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg56_gegenstand.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg56_gegenstand.py
+=> TIMEOUT
+
+=== Running lsg56_inventar.py ===
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg56_inventar.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg56_inventar.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+  File "d:\git\oop_framework\lsg\lsg56_inventar.py", line 11
+    def anzahl_items(self):
+IndentationError: unexpected indent
+=> FAIL (code 1)
+[info] Restored klassen/inventar.py after lsg56_inventar.py
+[info] Restored klassen/gegenstand.py after lsg56_inventar.py
+
+=== Running lsg57.py ===
+[info] Copied held_57.py to klassen/held.py for lsg57.py
+[info] Copied knappe_57.py to klassen/knappe.py for lsg57.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57.py
+=> TIMEOUT
+
+=== Running lsg57_expected_fail_held_no_rucksack.py ===
+[info] Copied held_57_no_rucksack.py to klassen/held.py for lsg57_expected_fail_held_no_rucksack.py
+[info] Copied knappe_57.py to klassen/knappe.py for lsg57_expected_fail_held_no_rucksack.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57_expected_fail_held_no_rucksack.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57_expected_fail_held_no_rucksack.py
+=> TIMEOUT
+
+=== Running lsg57_expected_fail_held_no_schwert.py ===
+[info] Copied held_57_no_schwert.py to klassen/held.py for lsg57_expected_fail_held_no_schwert.py
+[info] Copied knappe_57.py to klassen/knappe.py for lsg57_expected_fail_held_no_schwert.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57_expected_fail_held_no_schwert.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57_expected_fail_held_no_schwert.py
+=> TIMEOUT
+
+=== Running lsg57_expected_fail_knappe_no_rucksack.py ===
+[info] Copied held_57.py to klassen/held.py for lsg57_expected_fail_knappe_no_rucksack.py
+[info] Copied knappe_57_no_rucksack.py to klassen/knappe.py for lsg57_expected_fail_knappe_no_rucksack.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57_expected_fail_knappe_no_rucksack.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57_expected_fail_knappe_no_rucksack.py
+=> TIMEOUT
+
+=== Running lsg57_expected_fail_knappe_with_items.py ===
+[info] Copied held_57.py to klassen/held.py for lsg57_expected_fail_knappe_with_items.py
+[info] Copied knappe_57_with_items.py to klassen/knappe.py for lsg57_expected_fail_knappe_with_items.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57_expected_fail_knappe_with_items.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57_expected_fail_knappe_with_items.py
+=> TIMEOUT
+
+=== Running lsg57_held.py ===
+[info] Copied held_57.py to klassen/held.py for lsg57_held.py
+[info] Copied knappe_57.py to klassen/knappe.py for lsg57_held.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57_held.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57_held.py
+=> TIMEOUT
+
+=== Running lsg57_knappe.py ===
+[info] Copied held_57.py to klassen/held.py for lsg57_knappe.py
+[info] Copied knappe_57.py to klassen/knappe.py for lsg57_knappe.py
+[info] Copied inventar_56.py to klassen/inventar.py for lsg57_knappe.py
+[info] Copied gegenstand_56.py to klassen/gegenstand.py for lsg57_knappe.py
+=> TIMEOUT
+
+=== Running lsg_46_knappe.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_47_spielobjekt.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_48_hindernis.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_48_spielobjekt.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+--- summary ---
+lsg35.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg37.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg38.py: OK
+lsg39.py: OK
+lsg39_expected_fail_missing_import.py: FAIL (1)
+lsg39_expected_fail_wrong_position.py: FAIL (124)
+lsg40.py: OK
+lsg40_expected_fail_public_attributes.py: FAIL (124)
+lsg41.py: OK
+lsg41_expected_fail_missing_getters.py: FAIL (124)
+lsg41_expected_fail_public_attributes.py: FAIL (124)
+lsg42.py: OK
+lsg42_expected_fail_missing_getters.py: FAIL (124)
+lsg42_expected_fail_public_attributes.py: FAIL (124)
+lsg42_held.py: OK
+lsg43.py: OK
+lsg43_held.py: OK
+lsg44.py: OK
+lsg45.py: OK
+lsg50.py: OK
+lsg50_expected_fail_hindernis_missing_typ.py: FAIL (124)
+lsg50_expected_fail_no_inheritance.py: FAIL (124)
+lsg50_expected_fail_spielobjekt_private.py: FAIL (124)
+lsg50_expected_fail_zettel49.py: FAIL (124)
+lsg56.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg56_expected_fail_gegenstand_missing_art.py: FAIL (124)
+lsg56_expected_fail_gegenstand_missing_sammeln.py: FAIL (124)
+lsg56_expected_fail_inventar_missing_items.py: FAIL (124)
+lsg56_expected_fail_inventar_missing_method.py: FAIL (124)
+lsg56_gegenstand.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg56_inventar.py: FAIL (1) [DEVIATION: Expected PASS, got FAIL]
+lsg57.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg57_expected_fail_held_no_rucksack.py: FAIL (124)
+lsg57_expected_fail_held_no_schwert.py: FAIL (124)
+lsg57_expected_fail_knappe_no_rucksack.py: FAIL (124)
+lsg57_expected_fail_knappe_with_items.py: FAIL (124)
+lsg57_held.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg57_knappe.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg_46_knappe.py: OK
+lsg_47_spielobjekt.py: OK
+lsg_48_hindernis.py: OK
+lsg_48_spielobjekt.py: OK
+
+--- DEVIATIONS (8/42) ---
+lsg35.py: Expected PASS, got FAIL
+lsg37.py: Expected PASS, got FAIL
+lsg56.py: Expected PASS, got FAIL
+lsg56_gegenstand.py: Expected PASS, got FAIL
+lsg56_inventar.py: Expected PASS, got FAIL
+lsg57.py: Expected PASS, got FAIL
+lsg57_held.py: Expected PASS, got FAIL
+lsg57_knappe.py: Expected PASS, got FAIL
+
+=== Test Run Finished: 2025-12-10 03:09:24 ===

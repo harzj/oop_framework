@@ -1,0 +1,11 @@
+
+# Basis Hindernis-Klasse für Tests
+from spielobjekt import *
+
+class Hindernis(Spielobjekt):
+    def __init__(self, x, y, art):
+        super().__init__(x, y)
+        self.typ = art
+    
+    def ist_passierbar(self):
+        return False

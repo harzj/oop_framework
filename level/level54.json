@@ -1,9 +1,9 @@
 {
   "tiles": [
-    "ttttttt",
-    "twpwwwt",
-    "twwwwwt",
-    "ttttttt"
+    "tttttt",
+    "twpwkt",
+    "twwcwt",
+    "tttttt"
   ],
   "settings": {
     "Held": {
@@ -43,30 +43,106 @@
       "classes_present": true
     },
     "initial_gold": 0,
-    "quest_mode": "items",
     "quest_max_kosten": 0,
+    "quest_mode": "items",
     "quest_items_needed": 1,
     "random_door": false,
     "random_keys": false,
     "class_requirements": {
+      "Spielobjekt": {
+        "inherits": "None",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ"
+        ],
+        "check_implementation": true
+      },
       "Charakter": {
         "inherits": "Spielobjekt",
         "methods": [
+          "get_x",
+          "get_y",
+          "links",
+          "rechts",
+          "set_richtung",
+          "get_richtung",
           "set_level"
         ],
         "attributes": [
+          "x",
+          "y",
+          "typ",
+          "richtung",
+          "name",
           "level"
         ],
         "check_implementation": true,
         "expects_set_level": true
       },
       "Held": {
-        "inherits": "None",
+        "inherits": "Charakter",
         "load_from_schueler": false,
         "load_from_klassen": true,
+        "methods": [
+          "get_weiblich"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "richtung",
+          "typ",
+          "name",
+          "weiblich"
+        ],
+        "expects_set_level": false
+      },
+      "Hindernis": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ"
+        ]
+      },
+      "Knappe": {
+        "inherits": "Charakter",
         "methods": [],
-        "attributes": [],
-        "expects_set_level": true
+        "attributes": [
+          "x",
+          "y",
+          "richtung",
+          "name"
+        ],
+        "expects_set_level": false
+      },
+      "Zettel": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "get_spruch",
+          "set_spruch"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ",
+          "spruch"
+        ]
       }
     }
   }

@@ -1,9 +1,9 @@
 {
   "tiles": [
-    "ttttttt",
-    "twwwwwt",
-    "twwwcwt",
-    "ttttttt"
+    "tttttt",
+    "twwwwt",
+    "twwcwt",
+    "tttttt"
   ],
   "settings": {
     "Held": {
@@ -85,8 +85,7 @@
           "get_y",
           "get_typ",
           "get_spruch",
-          "set_spruch",
-          "ist_passierbar"
+          "set_spruch"
         ],
         "attributes": [
           "x",

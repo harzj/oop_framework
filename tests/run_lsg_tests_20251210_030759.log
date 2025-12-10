@@ -1,0 +1,79 @@
+=== Test Run Started: 2025-12-10 03:07:59 ===
+Selected files: 42
+Delay: 0ms, Timeout: 1s
+
+
+=== Running lsg35.py ===
+[info] Extracted Held class to schueler.py for lsg35.py
+=> TIMEOUT
+
+=== Running lsg37.py ===
+[info] Extracted Held class to schueler.py for lsg37.py
+=> TIMEOUT
+
+=== Running lsg38.py ===
+[info] Copied held_lsg_38.py to klassen/held.py for lsg38.py
+=> TIMEOUT
+
+=== Running lsg39.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39.py
+=> TIMEOUT
+
+=== Running lsg39_expected_fail_missing_import.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39_expected_fail_missing_import.py
+=> TIMEOUT
+
+=== Running lsg39_expected_fail_wrong_position.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39_expected_fail_wrong_position.py
+=> TIMEOUT
+
+=== Running lsg40.py ===
+[info] Copied held_variant_correct.py to klassen/held.py for lsg40.py
+=> TIMEOUT
+
+=== Running lsg40_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg40_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg41.py ===
+[info] Copied held_lsg41.py to klassen/held.py for lsg41.py
+=> TIMEOUT
+
+=== Running lsg41_expected_fail_missing_getters.py ===
+[info] Copied held_variant_missing_getters.py to klassen/held.py for lsg41_expected_fail_missing_getters.py
+=> TIMEOUT
+
+=== Running lsg41_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg41_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg42.py ===
+[info] Copied held_lsg42.py to klassen/held.py for lsg42.py
+=> TIMEOUT
+
+[STOPPED] Test run stopped by user
+
+--- summary ---
+lsg35.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg37.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg38.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg39.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg39_expected_fail_missing_import.py: FAIL (124)
+lsg39_expected_fail_wrong_position.py: FAIL (124)
+lsg40.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg40_expected_fail_public_attributes.py: FAIL (124)
+lsg41.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg41_expected_fail_missing_getters.py: FAIL (124)
+lsg41_expected_fail_public_attributes.py: FAIL (124)
+lsg42.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+
+--- DEVIATIONS (7/12) ---
+lsg35.py: Expected PASS, got FAIL
+lsg37.py: Expected PASS, got FAIL
+lsg38.py: Expected PASS, got FAIL
+lsg39.py: Expected PASS, got FAIL
+lsg40.py: Expected PASS, got FAIL
+lsg41.py: Expected PASS, got FAIL
+lsg42.py: Expected PASS, got FAIL
+
+=== Test Run Finished: 2025-12-10 03:08:12 ===

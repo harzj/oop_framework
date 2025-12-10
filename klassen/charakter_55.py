@@ -25,8 +25,12 @@ class Charakter(Spielobjekt):
             ziel_x = self.x + 1
             ziel_y = self.y
 
+        if not self.level.ist_innerhalb(ziel_x,ziel_y):
+            return
+
         target = self.level.gib_objekt_bei(ziel_x, ziel_y)
-        if target != None and target.ist_passierbar():
+
+        if target == None or target.ist_passierbar():
             self.x = ziel_x
             self.y = ziel_y
             

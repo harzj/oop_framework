@@ -636,14 +636,14 @@ class LevelEditor:
         """
         # Define all classes that can be implemented by students (Code renamed to Zettel)
         # Spielobjekt and Charakter are abstract base classes
-        CLASSES = ["Spielobjekt", "Charakter", "Held", "Herz", "Tuer", "Tor", "Hindernis", "Knappe", "Monster", "Bogenschuetze", "Schluessel", "Zettel", "Villager"]
+        CLASSES = ["Spielobjekt", "Charakter", "Held", "Herz", "Tuer", "Tor", "Hindernis", "Knappe", "Monster", "Bogenschuetze", "Schluessel", "Zettel", "Villager", "Inventar", "Gegenstand"]
         
         # Define core attributes as checkboxes (only x, y, typ, richtung, name, weiblich)
         CORE_ATTRIBUTES = {
             "Spielobjekt": ["x", "y", "typ"],
             "Charakter": ["x", "y", "typ", "richtung", "name"],
-            "Held": ["x", "y", "richtung", "typ", "name", "weiblich"],
-            "Knappe": ["x", "y", "richtung", "name"],
+            "Held": ["x", "y", "richtung", "typ", "name", "weiblich", "rucksack"],
+            "Knappe": ["x", "y", "richtung", "name", "rucksack"],
             "Monster": ["x", "y", "richtung", "name"],
             "Bogenschuetze": ["x", "y", "richtung", "name"],
             "Herz": ["x", "y"],
@@ -653,6 +653,8 @@ class LevelEditor:
             "Hindernis": ["x", "y", "typ"],
             "Zettel": ["x", "y", "typ", "spruch"],
             "Villager": ["x", "y", "name"],
+            "Inventar": ["items", "kapazitaet", "gold"],
+            "Gegenstand": ["art", "typ", "im_inventar"],
         }
         
         # Define standard methods as checkboxes
@@ -690,6 +692,9 @@ class LevelEditor:
                         "gib_objekt_vor_dir", "was_ist_vorn", "was_ist_links", "was_ist_rechts",
                         "ist_auf_herz", "herzen_vor_mir", "set_richtung", "get_richtung",
                         "get_name", "set_name", "ist_passierbar"],
+            "Inventar": ["item_hinzufuegen", "hat_item", "anzahl_items", "gib_item_nummer", 
+                        "gib_kapazitaet", "gib_gold", "gold_sammeln", "ist_voll"],
+            "Gegenstand": ["sammeln"],
         }
         
         # Define inheritance options per class (framework base classes)
@@ -706,6 +711,8 @@ class LevelEditor:
             "Schluessel": ["Spielobjekt", "Gegenstand", "None"],
             "Hindernis": ["Spielobjekt", "None"],
             "Zettel": ["Spielobjekt", "Gegenstand", "None"],
+            "Inventar": ["None"],
+            "Gegenstand": ["None"],
             "Villager": ["Spielobjekt", "Charakter", "None"],
         }
         
@@ -761,12 +768,21 @@ class LevelEditor:
                          font=("Consolas", 8)).pack(anchor='w', padx=10, pady=(0,5))
                 ttk.Separator(scrollable_frame, orient='horizontal').pack(fill='x', pady=5)
             
-            # Special handling for abstract classes (Spielobjekt, Charakter)
-            if class_name in ["Spielobjekt", "Charakter"]:
-                ttk.Label(scrollable_frame, text=f"{class_name} ist eine abstrakte Klasse:", font=("Consolas", 10, "bold")).pack(anchor='w', pady=(10,2))
+            # Special handling for abstract/utility classes
+            if class_name in ["Spielobjekt", "Charakter", "Inventar", "Gegenstand"]:
+                if class_name in ["Spielobjekt", "Charakter"]:
+                    label_text = f"{class_name} ist eine abstrakte Klasse:"
+                    checkbox_text = "Prüfe, ob implementiert"
+                    help_text = "(Wenn aktiviert: Prüft, ob Schüler diese Klasse selbst implementiert hat)"
+                else:
+                    label_text = f"{class_name} Validierung:"
+                    checkbox_text = "Klasse prüfen"
+                    help_text = "(Kommt nicht natürlich im Level vor - Checkbox aktivieren, um zu prüfen)"
+                
+                ttk.Label(scrollable_frame, text=label_text, font=("Consolas", 10, "bold")).pack(anchor='w', pady=(10,2))
                 check_implementation_var = tk.BooleanVar(value=existing.get("check_implementation", False))
-                ttk.Checkbutton(scrollable_frame, text="Prüfe, ob implementiert", variable=check_implementation_var).pack(anchor='w', padx=10)
-                ttk.Label(scrollable_frame, text="(Wenn aktiviert: Prüft, ob Schüler diese Klasse selbst implementiert hat)", 
+                ttk.Checkbutton(scrollable_frame, text=checkbox_text, variable=check_implementation_var).pack(anchor='w', padx=10)
+                ttk.Label(scrollable_frame, text=help_text, 
                          font=("Consolas", 8)).pack(anchor='w', padx=10, pady=(0,5))
             
             if class_name == "Held":
@@ -1027,8 +1043,8 @@ class LevelEditor:
                 if private_attrs:
                     config["attributes_private"] = private_attrs
                 
-                # Store check_implementation flag for abstract classes
-                if class_name in ["Spielobjekt", "Charakter"] and vars_dict.get("check_implementation"):
+                # Store check_implementation flag for abstract/utility classes
+                if class_name in ["Spielobjekt", "Charakter", "Inventar", "Gegenstand"] and vars_dict.get("check_implementation"):
                     config["check_implementation"] = vars_dict["check_implementation"].get()
                 
                 # Store expects_set_level flag for character classes

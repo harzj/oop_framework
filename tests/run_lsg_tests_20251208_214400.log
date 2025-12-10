@@ -1,0 +1,834 @@
+=== Test Run Started: 2025-12-08 21:44:00 ===
+Selected files: 69
+Delay: 0ms, Timeout: 3s
+
+
+=== Running lsg0_hand.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 0 erfolgreich geladen.
+[Held] Spruch Silencio Ignis notiert.
+[Held] Silencio Ignis!
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg1.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 1 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg10.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 10 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg104.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 104 erfolgreich geladen.
+<Surface(128x128x32 SW)> <Surface(128x128x32 SW)> left
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg11_12.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 12 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg13_14.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 13 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg15.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 15 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg16.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 16 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg17.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 17 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg18.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 18 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg19.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 19 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg2.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 2 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg20.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 20 erfolgreich geladen.
+Impervius Accio
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg21.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 21 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg21_expected_fail.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 21 erfolgreich geladen.
+Traceback (most recent call last):
+  File "d:\git\oop_framework\lsg\lsg21_expected_fail.py", line 6, in <module>
+    print(zettel.gib_spruch())
+NameError: name 'zettel' is not defined
+=> FAIL (code 1)
+
+=== Running lsg22.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 22 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg23.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 23 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg24.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 24 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg25.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 25 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg25_expected_fail.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 25 erfolgreich geladen.
+Traceback (most recent call last):
+  File "d:\git\oop_framework\lsg\lsg25_expected_fail.py", line 7, in <module>
+    held.y=5
+  File "d:\git\oop_framework\framework\objekt.py", line 194, in __setattr__
+    raise AttributeError(f"Attribut '{name}' ist privat – Schreiben nicht erlaubt")
+AttributeError: Attribut 'y' ist privat – Schreiben nicht erlaubt
+=> FAIL (code 1)
+
+=== Running lsg26.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 26 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg26_expected_fail.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 26 erfolgreich geladen.
+Traceback (most recent call last):
+  File "d:\git\oop_framework\sitecustomize.py", line 28, in _wrapped
+    return orig(self, delay_ms=RUN_LSG_DELAY_MS)
+  File "d:\git\oop_framework\framework\objekt.py", line 301, in geh
+    dx, dy = richtung_offset(self.richtung)
+TypeError: cannot unpack non-iterable NoneType object
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\git\oop_framework\sitecustomize.py", line 32, in _wrapped
+    return orig(self, RUN_LSG_DELAY_MS)
+  File "d:\git\oop_framework\framework\objekt.py", line 301, in geh
+    dx, dy = richtung_offset(self.richtung)
+TypeError: cannot unpack non-iterable NoneType object
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\git\oop_framework\lsg\lsg26_expected_fail.py", line 7, in <module>
+    held.geh()
+  File "d:\git\oop_framework\sitecustomize.py", line 35, in _wrapped
+    return orig(self, *args, **kwargs)
+  File "d:\git\oop_framework\framework\objekt.py", line 301, in geh
+    dx, dy = richtung_offset(self.richtung)
+TypeError: cannot unpack non-iterable NoneType object
+=> FAIL (code 1)
+
+=== Running lsg27.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 27 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg28.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 28 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg29.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 29 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg3.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 3 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg30.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 30 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg31.py ===
+[info] Activated setze_position in framework/held.py for lsg31.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 31 erfolgreich geladen.
+[Held] wurde nach (3,0) gesetzt.
+[Held] wurde nach (5,0) gesetzt.
+[Held] wurde nach (7,0) gesetzt.
+[Held] wurde nach (9,0) gesetzt.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored framework/held.py after lsg31.py
+
+=== Running lsg32.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 32 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg33.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 33 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg34.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 34 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg341.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 341 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg341_expected_fail.py ===
+=> TIMEOUT
+
+=== Running lsg35.py ===
+[info] Extracted Held class to schueler.py for lsg35.py
+=> TIMEOUT
+
+=== Running lsg37.py ===
+[info] Extracted Held class to schueler.py for lsg37.py
+=> TIMEOUT
+
+=== Running lsg38.py ===
+[warning] Could not replace klassen/held.py for lsg38.py: local variable 'held_38_content' referenced before assignment
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+[FEHLER] Helden Klasse fehlt
+Level 38 erfolgreich geladen.
+[VICTORY] Klasse 'Held' nicht gefunden.
+Traceback (most recent call last):
+  File "d:\git\oop_framework\lsg\lsg38.py", line 6, in <module>
+    held.geh()
+AttributeError: 'NoneType' object has no attribute 'geh'
+=> FAIL (code 1)
+[info] Restored klassen/held.py after lsg38.py
+
+=== Running lsg39.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 39 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg39.py
+
+=== Running lsg39_expected_fail_missing_import.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39_expected_fail_missing_import.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 39 erfolgreich geladen.
+Traceback (most recent call last):
+  File "d:\git\oop_framework\lsg\lsg39_expected_fail_missing_import.py", line 7, in <module>
+    held = Held(3, 2, "left", weiblich=True)
+NameError: name 'Held' is not defined. Did you mean: 'held'?
+=> FAIL (code 1)
+[info] Restored klassen/held.py after lsg39_expected_fail_missing_import.py
+
+=== Running lsg39_expected_fail_wrong_position.py ===
+[info] Copied held_38.py to klassen/held.py for lsg39_expected_fail_wrong_position.py
+=> TIMEOUT
+
+=== Running lsg4.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 4 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg40.py ===
+[info] Copied held_variant_correct.py to klassen/held.py for lsg40.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 40 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg40.py
+
+=== Running lsg40_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg40_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg41.py ===
+[info] Copied held_lsg41.py to klassen/held.py for lsg41.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 41 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg41.py
+
+=== Running lsg41_expected_fail_missing_getters.py ===
+[info] Copied held_variant_missing_getters.py to klassen/held.py for lsg41_expected_fail_missing_getters.py
+=> TIMEOUT
+
+=== Running lsg41_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg41_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg42.py ===
+[info] Copied held_lsg42.py to klassen/held.py for lsg42.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 42 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg42.py
+
+=== Running lsg42_expected_fail_missing_getters.py ===
+[info] Copied held_variant_missing_getters.py to klassen/held.py for lsg42_expected_fail_missing_getters.py
+=> TIMEOUT
+
+=== Running lsg42_expected_fail_public_attributes.py ===
+[info] Copied held_variant_public_attributes.py to klassen/held.py for lsg42_expected_fail_public_attributes.py
+=> TIMEOUT
+
+=== Running lsg42_held.py ===
+[info] Copied held_lsg42.py to klassen/held.py for lsg42_held.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 42 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg42_held.py
+
+=== Running lsg43.py ===
+[info] Copied held_lsg43.py to klassen/held.py for lsg43.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 43 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg43.py
+
+=== Running lsg43_held.py ===
+[info] Copied held_lsg43.py to klassen/held.py for lsg43_held.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 43 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/held.py after lsg43_held.py
+
+=== Running lsg44.py ===
+[info] Copied hindernis_correct.py to klassen/hindernis.py for lsg44.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Knappe fehlt
+Level 44 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/hindernis.py after lsg44.py
+
+=== Running lsg45.py ===
+[info] Copied zettel_correct.py to klassen/zettel.py for lsg45.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Hindernis fehlt
+Klasse Knappe fehlt
+Level 45 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/zettel.py after lsg45.py
+
+=== Running lsg5.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 5 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg50.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50.py
+[info] Copied hindernis_50.py to klassen/hindernis.py for lsg50.py
+[info] Copied zettel_50.py to klassen/zettel.py for lsg50.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Knappe fehlt
+Level 50 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/hindernis.py after lsg50.py
+[info] Restored klassen/zettel.py after lsg50.py
+[info] Restored klassen/spielobjekt.py after lsg50.py
+
+=== Running lsg50_expected_fail_hindernis48.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50_expected_fail_hindernis48.py
+[info] Copied hindernis_48.py to klassen/hindernis.py for lsg50_expected_fail_hindernis48.py
+[info] Copied zettel_50.py to klassen/zettel.py for lsg50_expected_fail_hindernis48.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Klasse Knappe fehlt
+Level 50 erfolgreich geladen.
+[VICTORY] Klassenvalidierung erfolgreich abgeschlossen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+[info] Restored klassen/hindernis.py after lsg50_expected_fail_hindernis48.py
+[info] Restored klassen/zettel.py after lsg50_expected_fail_hindernis48.py
+[info] Restored klassen/spielobjekt.py after lsg50_expected_fail_hindernis48.py
+
+=== Running lsg50_expected_fail_no_inheritance.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50_expected_fail_no_inheritance.py
+[info] Copied hindernis_50_no_inherit.py to klassen/hindernis.py for lsg50_expected_fail_no_inheritance.py
+[info] Copied zettel_50_no_inherit.py to klassen/zettel.py for lsg50_expected_fail_no_inheritance.py
+=> TIMEOUT
+
+=== Running lsg50_expected_fail_spielobjekt_private.py ===
+[info] Copied spielobjekt_50_private.py to klassen/spielobjekt.py for lsg50_expected_fail_spielobjekt_private.py
+[info] Copied hindernis_50.py to klassen/hindernis.py for lsg50_expected_fail_spielobjekt_private.py
+[info] Copied zettel_50.py to klassen/zettel.py for lsg50_expected_fail_spielobjekt_private.py
+=> TIMEOUT
+
+=== Running lsg50_expected_fail_zettel49.py ===
+[info] Copied spielobjekt_50.py to klassen/spielobjekt.py for lsg50_expected_fail_zettel49.py
+[info] Copied hindernis_50.py to klassen/hindernis.py for lsg50_expected_fail_zettel49.py
+[info] Copied zettel_49.py to klassen/zettel.py for lsg50_expected_fail_zettel49.py
+=> TIMEOUT
+
+=== Running lsg6.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 6 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg7.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 7 erfolgreich geladen.
+[Held] Spruch Silencio Accio notiert.
+[Held] Silencio Accio!
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg8.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 8 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg9.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 9 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg_0_expected_fail.py ===
+=> TIMEOUT
+
+=== Running lsg_46_knappe.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_47_spielobjekt.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_48_hindernis.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_48_spielobjekt.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+=> OK
+
+=== Running lsg_4_expected_fail.py ===
+=> TIMEOUT
+
+--- summary ---
+lsg0_hand.py: OK
+lsg1.py: OK
+lsg10.py: OK
+lsg104.py: OK
+lsg11_12.py: OK
+lsg13_14.py: OK
+lsg15.py: OK
+lsg16.py: OK
+lsg17.py: OK
+lsg18.py: OK
+lsg19.py: OK
+lsg2.py: OK
+lsg20.py: OK
+lsg21.py: OK
+lsg21_expected_fail.py: FAIL (1)
+lsg22.py: OK
+lsg23.py: OK
+lsg24.py: OK
+lsg25.py: OK
+lsg25_expected_fail.py: FAIL (1)
+lsg26.py: OK
+lsg26_expected_fail.py: FAIL (1)
+lsg27.py: OK
+lsg28.py: OK
+lsg29.py: OK
+lsg3.py: OK
+lsg30.py: OK
+lsg31.py: OK
+lsg32.py: OK
+lsg33.py: OK
+lsg34.py: OK
+lsg341.py: OK
+lsg341_expected_fail.py: FAIL (124)
+lsg35.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg37.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg38.py: FAIL (1) [DEVIATION: Expected PASS, got FAIL]
+lsg39.py: OK
+lsg39_expected_fail_missing_import.py: FAIL (1)
+lsg39_expected_fail_wrong_position.py: FAIL (124)
+lsg4.py: OK
+lsg40.py: OK
+lsg40_expected_fail_public_attributes.py: FAIL (124)
+lsg41.py: OK
+lsg41_expected_fail_missing_getters.py: FAIL (124)
+lsg41_expected_fail_public_attributes.py: FAIL (124)
+lsg42.py: OK
+lsg42_expected_fail_missing_getters.py: FAIL (124)
+lsg42_expected_fail_public_attributes.py: FAIL (124)
+lsg42_held.py: OK
+lsg43.py: OK
+lsg43_held.py: OK
+lsg44.py: OK
+lsg45.py: OK
+lsg5.py: OK
+lsg50.py: OK
+lsg50_expected_fail_hindernis48.py: OK [DEVIATION: Expected FAIL, got PASS]
+lsg50_expected_fail_no_inheritance.py: FAIL (124)
+lsg50_expected_fail_spielobjekt_private.py: FAIL (124)
+lsg50_expected_fail_zettel49.py: FAIL (124)
+lsg6.py: OK
+lsg7.py: OK
+lsg8.py: OK
+lsg9.py: OK
+lsg_0_expected_fail.py: FAIL (124)
+lsg_46_knappe.py: OK
+lsg_47_spielobjekt.py: OK
+lsg_48_hindernis.py: OK
+lsg_48_spielobjekt.py: OK
+lsg_4_expected_fail.py: FAIL (124)
+
+--- DEVIATIONS (4/69) ---
+lsg35.py: Expected PASS, got FAIL
+lsg37.py: Expected PASS, got FAIL
+lsg38.py: Expected PASS, got FAIL
+lsg50_expected_fail_hindernis48.py: Expected FAIL, got PASS
+
+=== Test Run Finished: 2025-12-08 21:45:46 ===

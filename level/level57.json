@@ -1,0 +1,101 @@
+{
+  "tiles": [
+    "tttttttt",
+    "twpwwkwt",
+    "twwwwwwt",
+    "tttttttt"
+  ],
+  "settings": {
+    "Held": {
+      "public": false
+    },
+    "Knappe": {
+      "public": false
+    },
+    "Monster": {
+      "public": false
+    },
+    "Herz": {
+      "public": false
+    },
+    "Tuer": {
+      "public": false
+    },
+    "Zettel": {
+      "public": false
+    },
+    "Villager": {
+      "public": false
+    },
+    "Hindernis": {
+      "public": false
+    },
+    "Schluessel": {
+      "public": false
+    },
+    "Bogenschuetze": {
+      "public": false
+    },
+    "victory": {
+      "rebuild_mode": false,
+      "collect_hearts": false,
+      "move_to": null,
+      "classes_present": true
+    },
+    "initial_gold": 0,
+    "quest_max_kosten": 0,
+    "quest_mode": "items",
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Held": {
+        "inherits": "None",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [],
+        "attributes": [
+          "rucksack"
+        ],
+        "expects_set_level": false
+      },
+      "Knappe": {
+        "inherits": "None",
+        "methods": [],
+        "attributes": [
+          "rucksack"
+        ],
+        "expects_set_level": false
+      },
+      "Inventar": {
+        "inherits": "None",
+        "methods": [
+          "item_hinzufuegen",
+          "hat_item",
+          "anzahl_items",
+          "gib_item_nummer",
+          "gold_sammeln",
+          "ist_voll"
+        ],
+        "attributes": [
+          "items",
+          "kapazitaet",
+          "gold"
+        ],
+        "check_implementation": true
+      },
+      "Gegenstand": {
+        "inherits": "None",
+        "methods": [
+          "sammeln"
+        ],
+        "attributes": [
+          "art",
+          "typ",
+          "im_inventar"
+        ],
+        "check_implementation": true
+      }
+    }
+  }
+}

@@ -347,7 +347,7 @@ class Framework:
                         pass
                     # After showing richtung, draw Held-Inventar (if any) below it
                     try:
-                        inv = getattr(held, 'inventar', None)
+                        inv = getattr(held, 'rucksack', None) or getattr(held, 'inventar', None)
                         if inv:
                             item_x = panel_x
                             item_y = y
@@ -357,9 +357,12 @@ class Framework:
                             self.screen.blit(lbl, (item_x, item_y))
                             item_y += 18
                             ix = 0
-                            for it in list(inv):
+                            # Support both old Inventar format (iterable) and new format (items list)
+                            items_to_render = list(inv) if hasattr(inv, '__iter__') and not hasattr(inv, 'items') else getattr(inv, 'items', [])
+                            for it in items_to_render:
                                 try:
                                     color = getattr(it, 'farbe', None) or getattr(it, 'color', None) or getattr(it, 'key_color', None)
+                                    art = getattr(it, 'art', None)
                                     surf = None
                                     try:
                                         if hasattr(it, 'bild') and getattr(it, 'bild', None) is not None:
@@ -367,7 +370,27 @@ class Framework:
                                         else:
                                             import os, pygame as _pg
                                             cand = None
-                                            if color:
+                                            
+                                            # Try art-based sprite mapping first (for Gegenstand items)
+                                            if art:
+                                                sprite_map = {
+                                                    'Schwert': 'sprites/schwert.png',
+                                                    'Schluessel': 'sprites/key_green.png',
+                                                }
+                                                sprite_path = sprite_map.get(art)
+                                                if sprite_path:
+                                                    bases = [
+                                                        os.getcwd(),
+                                                        os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                                                    ]
+                                                    for b in bases:
+                                                        p = os.path.join(b, sprite_path)
+                                                        if os.path.exists(p):
+                                                            cand = p
+                                                            break
+                                            
+                                            # Fall back to color-based key sprites
+                                            if not cand and color:
                                                 bases = [
                                                     os.getcwd(),
                                                     os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
@@ -378,6 +401,7 @@ class Framework:
                                                     if os.path.exists(p):
                                                         cand = p
                                                         break
+                                            
                                             if cand:
                                                 try:
                                                     surf = _pg.image.load(cand).convert_alpha()
@@ -396,8 +420,8 @@ class Framework:
                                         if color:
                                             pygame.draw.rect(self.screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
                                         else:
-                                            nm = getattr(it, 'name', str(it))[:10]
-                                            s = self.font.render(nm, True, (200,200,200))
+                                            nm = art if art else getattr(it, 'name', str(it))[:10]
+                                            s = self.font.render(nm[:3], True, (200,200,200))
                                             self.screen.blit(s, (item_x + ix * spacing, item_y))
 
                                     ix += 1
@@ -445,6 +469,69 @@ class Framework:
                     self.screen.blit(r_txt, (panel_x, y)); y += 20
                 except Exception:
                     pass
+                
+                # Render Knappe's inventory if present (rucksack attribute)
+                try:
+                    inv = getattr(kn, 'rucksack', None) or getattr(kn, 'inventar', None)
+                    if inv and hasattr(inv, 'items'):
+                        item_x = panel_x
+                        item_y = y
+                        icon_size = 16
+                        spacing = icon_size + 4
+                        lbl = self.font.render("Inventar:", True, (220,220,160))
+                        self.screen.blit(lbl, (item_x, item_y))
+                        item_y += 18
+                        ix = 0
+                        items_list = getattr(inv, 'items', [])
+                        for it in items_list:
+                            try:
+                                # Try to load sprite for item based on art attribute
+                                art = getattr(it, 'art', None)
+                                surf = None
+                                if art:
+                                    import os
+                                    sprite_map = {
+                                        'Schwert': 'sprites/schwert.png',
+                                        'Schluessel': 'sprites/key_green.png',
+                                    }
+                                    sprite_path = sprite_map.get(art)
+                                    if sprite_path:
+                                        bases = [
+                                            os.getcwd(),
+                                            os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                                        ]
+                                        for b in bases:
+                                            p = os.path.join(b, sprite_path)
+                                            if os.path.exists(p):
+                                                try:
+                                                    surf = pygame.image.load(p).convert_alpha()
+                                                    break
+                                                except Exception:
+                                                    pass
+                                
+                                if surf:
+                                    try:
+                                        surf_small = pygame.transform.smoothscale(surf, (icon_size, icon_size))
+                                        self.screen.blit(surf_small, (item_x + ix * spacing, item_y))
+                                    except Exception:
+                                        pygame.draw.rect(self.screen, (200,200,0), (item_x + ix * spacing, item_y, icon_size, icon_size))
+                                else:
+                                    # Fallback: draw colored rectangle or text
+                                    nm = art if art else str(it)[:10]
+                                    s = self.font.render(nm[:3], True, (200,200,200))
+                                    self.screen.blit(s, (item_x + ix * spacing, item_y))
+                                
+                                ix += 1
+                                if ix >= 5:
+                                    ix = 0
+                                    item_y += icon_size + 6
+                            except Exception:
+                                continue
+                        if items_list:
+                            y = item_y + icon_size + 6
+                except Exception:
+                    pass
+                
                 # separator after knappe
                 draw_sep(y); y += 10
 

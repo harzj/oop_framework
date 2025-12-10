@@ -15,8 +15,17 @@ import os
 from pathlib import Path
 
 def setup_local_pygame():
-    """Fügt lokales lib/ Verzeichnis zum sys.path hinzu, wenn pygame dort gefunden wird."""
-    # Finde das Projektverzeichnis (Parent von framework/)
+    """Versucht erst system-pygame, dann lokales lib/ Verzeichnis als Fallback."""
+    # Prüfe zuerst, ob pygame bereits im System installiert ist
+    try:
+        import pygame as _pygame_test
+        # pygame ist bereits verfügbar - verwende System-Installation
+        print(f"[Framework] Verwende system-installiertes pygame {_pygame_test.version.ver}")
+        return True
+    except ImportError:
+        pass
+    
+    # pygame nicht gefunden - versuche lokales lib/ Verzeichnis als Fallback
     current_dir = Path(__file__).parent.parent.absolute()
     lib_dir = current_dir / 'lib'
     
@@ -24,12 +33,13 @@ def setup_local_pygame():
     if lib_dir.exists() and (lib_dir / 'pygame').exists():
         lib_dir_str = str(lib_dir)
         
-        # Füge lib/ am Anfang des sys.path hinzu (höchste Priorität)
+        # Füge lib/ am Anfang des sys.path hinzu (für Fallback)
         if lib_dir_str not in sys.path:
             sys.path.insert(0, lib_dir_str)
-            print(f"[Framework] Verwende gebündeltes pygame aus: {lib_dir}")
+            print(f"[Framework] System-pygame nicht gefunden - verwende gebündeltes pygame aus: {lib_dir}")
             return True
     
+    print("[Framework] Warnung: Weder system-pygame noch gebündeltes pygame gefunden!")
     return False
 
 # Automatisch beim Import ausführen
