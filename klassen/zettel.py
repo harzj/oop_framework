@@ -5,11 +5,11 @@ from spielobjekt import *
 class Zettel(Spielobjekt):
     def __init__(self, x, y):
         super().__init__(x, y)  
-        self._Spielobjekt__typ = "Zettel"
-        self.__spruch = "Sesam öffne dich"
+        self.typ = "Zettel"
+        self.spruch = "Sesam öffne dich"
 
     def get_spruch(self):
-        return self.__spruch
+        return self.spruch
     
     def set_spruch(self, spruch):
-        self.__spruch = spruch
+        self.spruch = spruch

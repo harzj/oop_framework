@@ -1,7 +1,7 @@
 # Projekt OOPventure
 # Objektorientierte Programmierung spielerisch lernen
 
-Ein interaktives Lernframework zum Erlernen der objektorientierten Programmierung in Python. Schülerinnen und Schüler steuern einen Helden durch verschiedene Level, sammeln Herzen und lösen Rätsel – zunächst durch einfache Befehlssequenzen, später durch die Implementierung eigener Klassen.
+Ein interaktives Lernframework zum Erlernen der objektorientierten Programmierung in Python. Schülerinnen und Schüler steuern einen Helden durch verschiedene Level, sammeln Herzen und lösen Rätsel – zunächst durch einfache Befehlssequenzen, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
 
 Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt.
 
@@ -34,6 +34,8 @@ In dieser Phase lernen die Schüler:
 
 **Alle Programmierung erfolgt zunächst in der Datei `schueler.py`.**
 
+![Gameplay](docs/prog.png)
+
 ### Phase 2: Klassen implementieren (Level 35–58)
 
 In dieser Phase implementieren die Schüler eigene Klassen:
@@ -42,6 +44,8 @@ In dieser Phase implementieren die Schüler eigene Klassen:
 - Schließlich Vererbungshierarchien und komplexe Klassensysteme
 
 **Die Klassen werden im Ordner `klassen/` erstellt. In der `schueler.py` werden nur noch die passenden Level geladen.**
+
+![Gameplay](docs/phase2.png)
 
 ---
 
