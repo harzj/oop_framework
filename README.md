@@ -1,19 +1,26 @@
-# OOP Framework - Objektorientierte Programmierung spielerisch lernen
+# Projekt OOPventure
+# Objektorientierte Programmierung spielerisch lernen
 
 Ein interaktives Lernframework zum Erlernen der objektorientierten Programmierung in Python. Schülerinnen und Schüler steuern einen Helden durch verschiedene Level, sammeln Herzen und lösen Rätsel – zunächst durch einfache Befehlssequenzen, später durch die Implementierung eigener Klassen.
 
+Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt.
+
+![Gameplay](docs/gameplay.png)
+
 ## 🎯 Zielsetzung und Zweck
 
-Dieses Framework wurde für den Informatikunterricht entwickelt, um:
+Dieses Framework wurde für den Informatikunterricht in der Oberstufe (Leistungskurs) entwickelt, um:
 
-- **Grundlagen der Programmierung** vermitteln (Schleifen, Bedingungen, Funktionsaufrufe)
-- **Objektorientierte Konzepte** schrittweise einführen (Objekte, Attribute, Methoden)
-- **Klassendesign** praktisch üben (Vererbung, Kapselung, Getter/Setter)
-- **Problemlösendes Denken** fördern durch immer komplexere Level
+- **Grundlagen der Programmierung** zu vermitteln (Schleifen, Bedingungen, Funktionsaufrufe)
+- **Objektorientierte Konzepte** schrittweise einzuführen (Objekte, Attribute, Methoden)
+- **Klassendesign** praktisch zu üben (Vererbung, Kapselung, Getter/Setter)
+- **Problemlösendes Denken** zu fördern durch immer komplexere Level
 
 Das Framework enthält über 50 Level mit steigendem Schwierigkeitsgrad sowie einen integrierten **Level-Editor** zum Erstellen eigener Aufgaben.
 
 ---
+
+
 
 ## 📚 Die zwei Phasen
 
@@ -25,7 +32,7 @@ In dieser Phase lernen die Schüler:
 - Mit Schleifen und Bedingungen zu arbeiten
 - Objekte zu manipulieren und miteinander interagieren zu lassen
 
-**Alle Programmierung erfolgt in der Datei `schueler.py`.**
+**Alle Programmierung erfolgt zunächst in der Datei `schueler.py`.**
 
 ### Phase 2: Klassen implementieren (Level 35–58)
 
@@ -34,7 +41,7 @@ In dieser Phase implementieren die Schüler eigene Klassen:
 - Dann Klassen mit privaten Attributen und Getter/Setter
 - Schließlich Vererbungshierarchien und komplexe Klassensysteme
 
-**Die Klassen werden im Ordner `klassen/` erstellt.**
+**Die Klassen werden im Ordner `klassen/` erstellt. In der `schueler.py` werden nur noch die passenden Level geladen.**
 
 ---
 
@@ -80,7 +87,7 @@ held.nimm_herz()        # Herz aufsammeln
 held.ist_auf_herz()     # Prüfen, ob auf einem Herz
 
 # Mit Animationsverzögerung (in Millisekunden)
-held.geh(100)           # Langsamer gehen für sichtbare Animation
+held.geh(0)           # Schneller gehen für schnelleres Testen
 ```
 
 ### Interaktion mit Objekten
@@ -121,9 +128,9 @@ while not held.ist_auf_herz():
 
 ## 🏗️ Klassen implementieren (Phase 2)
 
-Ab Level 35 müssen eigene Klassen im Ordner `klassen/` erstellt werden.
+Ab Level 35 müssen eigene Klassen erstellt und ab Level 38 im Ordner `klassen/` erstellt werden.
 
-### Beispiel: Einfache Held-Klasse (Level 35)
+### Beispiel: Einfache Held-Klasse (Level 38)
 
 ```python
 # Datei: klassen/held.py
@@ -133,7 +140,7 @@ class Held:
         self.y = y
         self.richtung = richtung
         self.weiblich = weiblich
-        self.name = "Held"
+        self.name = "Namenloser Held"
         self.typ = "Held"
 ```
 
@@ -197,6 +204,8 @@ class Hindernis(Spielobjekt):
 
 ### Level-Editor
 
+![Gameplay](docs/editor.png)
+
 Der Level-Editor (`leveleditor.py`) ermöglicht:
 - Erstellen neuer Level mit Drag & Drop
 - Konfiguration von Siegbedingungen
@@ -244,16 +253,40 @@ oop_framework/
 
 ## 🚀 Installation
 
-1. Python 3.8+ installieren
-2. Pygame installieren: `pip install pygame`
-3. Framework starten: `python schueler.py`
+1. Framework Distribution herunterladen (aktuell 1.0) und entpacken
+2. `schueler.py` mit beliebiger Python IDE öffnen, bearbeiten und ausführen
+
+**Alternativ**:
+Repository herunterladen und anpassen
+Mit `make_distribution.py` eine eigene Distribution erzeugen.
 
 ---
 
 ## 📝 Lizenz
 
-Entwickelt für den Informatikunterricht.
+**Bildungslizenz für OOPventure**
 
-© 2025 Johannes Harz  
-Fachkonferenz Informatik  
-Cusanus Gymnasium St. Wendel
+Copyright © 2025 Johannes Harz, Cusanus Gymnasium St. Wendel
+CC BY-NC-SA 4.0
+
+### Erlaubnisse:
+
+1. ✅ **Schulische Nutzung**: Dieses Framework darf frei für schulische und Bildungszwecke verwendet werden
+2. ✅ **Weitergabe**: Das Projekt darf kopiert und weitergegeben werden
+3. ✅ **Anpassung**: Level und Unterrichtsmaterial dürfen angepasst werden
+4. ✅ **Namensnennung**: Bei Weitergabe muss der Urheber genannt werden
+
+### Einschränkungen:
+
+1. ❌ **Keine kommerzielle Nutzung**: Das Framework darf nicht verkauft oder kommerziell verbreitet werden
+2. ❌ **Keine Haftung**: Das Framework wird "wie besehen" bereitgestellt, ohne Gewährleistung
+3. ✅ **Weitergabe unter gleichen Bedingungen**: Angepasste Versionen müssen unter denselben Lizenzbedingungen veröffentlicht werden
+
+### Kontakt:
+
+Für kommerzielle Anfragen oder spezielle Nutzungsrechte kontaktieren Sie bitte:  
+Johannes Harz - [j.harz@schule.saarland]
+
+---
+
+**Entwickelt mit KI-Unterstützung für den Informatikunterricht**
