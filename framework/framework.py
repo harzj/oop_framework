@@ -80,7 +80,7 @@ class Framework:
         breite = self.spielfeld.level.breite * feldgroesse + 280
         hoehe  = self.spielfeld.level.hoehe  * feldgroesse
         self.screen = pygame.display.set_mode((breite, hoehe))
-        pygame.display.set_caption("OOP-Framework")
+        pygame.display.set_caption("OOPventure")
 
         self.font = pygame.font.SysFont("consolas", 18)
         self.big  = pygame.font.SysFont("consolas", 32, bold=True)

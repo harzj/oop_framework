@@ -1,7 +1,7 @@
 # Projekt OOPventure
 # Objektorientierte Programmierung spielerisch lernen
 
-Ein interaktives Lernframework zum Erlernen der objektorientierten Programmierung in Python. Schülerinnen und Schüler steuern einen Helden durch verschiedene Level, sammeln Herzen und lösen Rätsel – zunächst durch einfache Befehlssequenzen, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
+Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen der objektorientierten Programmierung in Python. Schülerinnen und Schüler steuern einen Helden durch verschiedene Level, sammeln Herzen und lösen Rätsel – zunächst durch einfache Befehlssequenzen, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
 
 Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt.
 
@@ -211,7 +211,7 @@ class Hindernis(Spielobjekt):
 ![Gameplay](docs/editor.png)
 
 Der Level-Editor (`leveleditor.py`) ermöglicht:
-- Erstellen neuer Level mit Drag & Drop
+- Einfaches Erstellen neuer Level
 - Konfiguration von Siegbedingungen
 - Definition von Klassenanforderungen für Phase 2
 - Export und Import von Level-Dateien
@@ -261,8 +261,8 @@ oop_framework/
 2. `schueler.py` mit beliebiger Python IDE öffnen, bearbeiten und ausführen
 
 **Alternativ**:
-Repository herunterladen und anpassen
-Mit `make_distribution.py` eine eigene Distribution erzeugen.
+1. Repository herunterladen und anpassen
+2. Mit `make_distribution.py` eine eigene Distribution erzeugen.
 
 ---
 
