@@ -1,0 +1,72 @@
+{
+  "tiles": [
+    "mttmtmttbbmm",
+    "mphhwhwhhhhm",
+    "tmmtttbmbtbt"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Zettel": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "victory": {
+      "rebuild_mode": false,
+      "collect_hearts": true,
+      "move_to": null,
+      "classes_present": true
+    },
+    "initial_gold": 0,
+    "quest_max_kosten": 0,
+    "quest_mode": "items",
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "use_student_module": false,
+    "student_classes_in_subfolder": false,
+    "class_requirements": {
+      "Charakter": {
+        "expects_set_level": true
+      },
+      "Held": {
+        "expects_set_level": true,
+        "load_from_klassen": true
+      },
+      "Knappe": {
+        "expects_set_level": true,
+        "load_from_klassen": true
+      },
+      "Monster": {
+        "expects_set_level": true
+      },
+      "Bogenschuetze": {
+        "expects_set_level": true
+      }
+    }
+  }
+}

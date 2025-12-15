@@ -1,11 +1,19 @@
-# Held-Klasse für Level 35-37 (ohne Charakter-Vererbung)
-class Held:
-    """Student implementation of Held class for basic levels."""
-    
+# Musterlösung Level 57: Held mit Inventar
+from charakter import Charakter
+from inventar import Inventar
+from gegenstand import Gegenstand
+
+class Held(Charakter):
     def __init__(self, x, y, richtung, weiblich):
-        self.x = x
-        self.y = y
-        self.richtung = richtung
+        super().__init__(x, y, richtung)
         self.weiblich = weiblich
         self.name = "Namenloser Held"
         self.typ = "Held"
+        # Komposition: Held hat ein Inventar
+        self.rucksack = Inventar()
+        # Held startet mit einem Schwert
+        schwert = Gegenstand("Schwert")
+        self.rucksack.item_hinzufuegen(schwert)
+        
+    def get_weiblich(self):
+        return self.weiblich

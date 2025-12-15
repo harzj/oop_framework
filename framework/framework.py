@@ -351,7 +351,7 @@ class Framework:
                         if inv:
                             item_x = panel_x
                             item_y = y
-                            icon_size = 16
+                            icon_size = 24
                             spacing = icon_size + 4
                             lbl = self.font.render("Inventar:", True, (220,220,160))
                             self.screen.blit(lbl, (item_x, item_y))
@@ -476,7 +476,7 @@ class Framework:
                     if inv and hasattr(inv, 'items'):
                         item_x = panel_x
                         item_y = y
-                        icon_size = 16
+                        icon_size = 24
                         spacing = icon_size + 4
                         lbl = self.font.render("Inventar:", True, (220,220,160))
                         self.screen.blit(lbl, (item_x, item_y))

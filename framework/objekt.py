@@ -301,15 +301,21 @@ class Objekt:
         dx, dy = richtung_offset(self.richtung)
         nx, ny = self.x + dx, self.y + dy
 
+        # Prüfe ob classes_present_mode aktiv ist
+        classes_present = getattr(sp, 'classes_present_mode', False)
+
         # 1️⃣ Prüfe, ob das Ziel betretbar ist
         if not sp.kann_betreten(self, nx, ny):
             mon = sp.finde_monster(nx, ny)
             if mon and self.typ == "Held" and sp.ist_frontal_zu_monster(self, mon):
-                # Held läuft in Monster hinein → stirbt
-                self.tot = True
-                self._update_sprite_richtung()
-                self._render_and_delay(100)
-                return
+                # Held läuft in Monster hinein
+                # Im classes_present_mode stirbt der Held NICHT automatisch
+                if not classes_present:
+                    self.tot = True
+                    self._update_sprite_richtung()
+                    self._render_and_delay(100)
+                    return
+                # Im classes_present_mode: Bewegung blockiert, aber Held stirbt nicht
             # Ungültige Bewegung (z. B. Wand, Baum, Tür)
             if not getattr(fw, '_aus_tastatur', False):
                 try:
@@ -346,14 +352,20 @@ class Objekt:
         dx, dy = richtung_offset2(self.richtung)
         nx, ny = self.x + dx, self.y + dy
 
+        # Prüfe ob classes_present_mode aktiv ist
+        classes_present = getattr(sp, 'classes_present_mode', False)
+
         # 1️⃣ Prüfe, ob das Ziel betretbar ist
         if not sp.kann_betreten(self, nx, ny):
             mon = sp.finde_monster(nx, ny)
             if mon and self.typ == "Held" and sp.ist_frontal_zu_monster(self, mon):
-                self.tot = True
-                self._update_sprite_richtung()  # 🔧 KO-Grafik laden
-                self._render_and_delay(delay_ms)
-                return
+                # Im classes_present_mode stirbt der Held NICHT automatisch
+                if not classes_present:
+                    self.tot = True
+                    self._update_sprite_richtung()  # 🔧 KO-Grafik laden
+                    self._render_and_delay(delay_ms)
+                    return
+                # Im classes_present_mode: Bewegung blockiert, aber Held stirbt nicht
 
             # Ungültige Bewegung (z. B. Wand, Baum, Tür)
             if not getattr(fw, '_aus_tastatur', False):

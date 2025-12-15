@@ -32,11 +32,9 @@ class Held:
         idx = richtungen.index(self.richtung)
         self.richtung = richtungen[(idx + 1) % 4]
 
-
+# Dieser Befehl muss immer am Ende stehen
 held.geh()
 held.geh()
 held.links()
 held.geh()
-
-# Dieser Befehl muss immer am Ende stehen
 framework.starten()

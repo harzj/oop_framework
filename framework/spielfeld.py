@@ -71,6 +71,11 @@ class Spielfeld:
         # Flag to prevent repeated victory messages
         self._victory_message_shown = False
         
+        # classes_present_mode: Wenn True, wird keine automatische Spiellogik ausgeführt
+        # (Monster greifen nicht an, Held-Angriff tötet nicht automatisch, etc.)
+        # Die Framework-Klassen dienen nur zur Darstellung, Schüler implementieren die Logik selbst
+        self.classes_present_mode = bool(self.victory_settings.get('classes_present', False)) if self.victory_settings else False
+        
         if auto_erzeuge_objekte:
             self._spawn_aus_level()
             # Validate student classes ONCE after spawning
@@ -234,8 +239,9 @@ class Spielfeld:
         # entity spawn independently: if a student class for that entity is
         # missing, we skip spawning that entity. The hero (Held) will be drawn
         # if its student class exists.
+        # Bei classes_present_mode werden IMMER Schülerklassen erwartet!
         try:
-            student_mode_enabled = bool(self.settings.get('import_pfad') or self.settings.get('use_student_module') or self.settings.get('student_classes_in_subfolder'))
+            student_mode_enabled = bool(self.settings.get('import_pfad') or self.settings.get('use_student_module') or self.settings.get('student_classes_in_subfolder') or self.classes_present_mode)
         except Exception:
             student_mode_enabled = False
         
@@ -634,6 +640,9 @@ class Spielfeld:
                 zettel_requirements = self.class_requirements.get('Zettel', {})
                 zettel_class_valid = False
                 
+                # Check if classes_present is enabled
+                classes_present_mode = self.victory_settings.get('classes_present', False)
+                
                 # Initialize validation flag (True if not in student mode, False if in student mode until validated)
                 self._zettel_class_valid = True  # Default: valid if no requirements
                 
@@ -649,6 +658,11 @@ class Spielfeld:
                     zettel_student_mode_enabled = prefer_schueler or prefer_klassen or has_methods or has_attrs or has_inheritance
                     if zettel_student_mode_enabled:
                         self._zettel_class_valid = False  # Will be set to True if validation passes
+                elif classes_present_mode:
+                    # classes_present is true but no Zettel requirements:
+                    # Try to load Zettel class from student folder
+                    zettel_student_mode_enabled = True
+                    self._zettel_class_valid = False  # Will be validated below
                 
                 # Try to get student Zettel class and validate it ONCE
                 if zettel_student_mode_enabled:
@@ -901,6 +915,10 @@ class Spielfeld:
                 req = self.class_requirements.get("Held", {})
                 student_mode_for_held = bool(req.get('load_from_schueler') or req.get('load_from_klassen'))
                 
+                # Im classes_present_mode wird IMMER die Schülerklasse erwartet
+                if self.classes_present_mode and not student_mode_for_held:
+                    student_mode_for_held = True
+                
                 if student_mode_for_held:
                     # Student mode enabled for Held - different behavior required
                     if cls is None or cls == FrameworkHeld:
@@ -1038,12 +1056,28 @@ class Spielfeld:
 
             elif t == "h":
                 cls = self._get_entity_class("Herz", Herz)
+                if self.classes_present_mode and cls is None:
+                    # Im classes_present_mode: Schülerklasse fehlt
+                    print("Klasse Herz fehlt - Objekt wird nicht angezeigt")
+                    continue
                 if student_mode_enabled and cls is None:
                     # level explicitly requests student classes but none provided for Herz
                     continue
                 try:
                     obj = cls(x, y)
-                except Exception:
+                    # Prüfe ob Mindestattribute vorhanden sind
+                    if self.classes_present_mode:
+                        try:
+                            _ = obj.x
+                            _ = obj.y
+                            _ = obj.typ
+                        except AttributeError as e:
+                            print(f"Herz: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                            continue
+                except Exception as e:
+                    if self.classes_present_mode:
+                        print(f"Herz: Konnte Objekt nicht erzeugen ({e})")
+                        continue
                     obj = Herz(x, y)
                 obj.framework = self.framework
                 cfg = self.settings.get(obj.typ, {})
@@ -1058,11 +1092,27 @@ class Spielfeld:
                     n = self.generate_orc_name()
                 self.orc_names.append(n)
                 cls = self._get_entity_class("Monster", Monster)
+                if self.classes_present_mode and cls is None:
+                    print("Klasse Monster fehlt - Objekt wird nicht angezeigt")
+                    continue
                 if student_mode_enabled and cls is None:
                     continue
                 try:
                     m = cls(x, y, name=n)
-                except Exception:
+                    # Prüfe ob Mindestattribute vorhanden sind
+                    if self.classes_present_mode:
+                        try:
+                            _ = m.x
+                            _ = m.y
+                            _ = m.typ
+                            _ = m.richtung
+                        except AttributeError as e:
+                            print(f"Monster: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                            continue
+                except Exception as e:
+                    if self.classes_present_mode:
+                        print(f"Monster: Konnte Objekt nicht erzeugen ({e})")
+                        continue
                     m = Monster(x, y, name=n)
                 m.framework = self.framework
                 # setze Richtung falls unterstützt
@@ -1092,11 +1142,27 @@ class Spielfeld:
                     n = self.generate_orc_name()
                 self.orc_names.append(n)
                 cls = self._get_entity_class("Bogenschuetze", Bogenschuetze)
+                if self.classes_present_mode and cls is None:
+                    print("Klasse Bogenschuetze fehlt - Objekt wird nicht angezeigt")
+                    continue
                 if student_mode_enabled and cls is None:
                     continue
                 try:
                     m = cls(x, y, name=n)
-                except Exception:
+                    # Prüfe ob Mindestattribute vorhanden sind
+                    if self.classes_present_mode:
+                        try:
+                            _ = m.x
+                            _ = m.y
+                            _ = m.typ
+                            _ = m.richtung
+                        except AttributeError as e:
+                            print(f"Bogenschuetze: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                            continue
+                except Exception as e:
+                    if self.classes_present_mode:
+                        print(f"Bogenschuetze: Konnte Objekt nicht erzeugen ({e})")
+                        continue
                     m = Bogenschuetze(x, y, name=n)
                 m.framework = self.framework
                 try:
@@ -1165,9 +1231,15 @@ class Spielfeld:
                     # else: Zettel class can't render (x,y not accessible) - don't spawn
                 elif use_zettel_class:
                     # Zettel class required but not found - don't spawn
-                    pass
+                    if self.classes_present_mode:
+                        print("Klasse Zettel fehlt - Objekt wird nicht angezeigt")
+                    continue
                 else:
-                    # Use framework Code class
+                    # Use framework Code class (only when not in classes_present_mode)
+                    if self.classes_present_mode:
+                        # In classes_present_mode, we should use Zettel from student, not Code
+                        print("Klasse Zettel fehlt - Objekt wird nicht angezeigt")
+                        continue
                     cls = self._get_entity_class("Code", Code)
                     if student_mode_enabled and cls is None:
                         continue
@@ -1186,6 +1258,9 @@ class Spielfeld:
                 color = colors_override.get(f"{x},{y}")
                 # Wenn color gesetzt, erstelle farbige, schlüssel-verschlossene Tür
                 cls = self._get_entity_class("Tuer", Tuer)
+                if self.classes_present_mode and cls is None:
+                    print("Klasse Tuer fehlt - Objekt wird nicht angezeigt")
+                    continue
                 if student_mode_enabled and cls is None:
                     continue
                 try:
@@ -1193,7 +1268,19 @@ class Spielfeld:
                         tuer = cls(x, y, code=None, color=color)
                     else:
                         tuer = cls(x, y, code=self.zufallscode)
-                except Exception:
+                    # Prüfe ob Mindestattribute vorhanden sind
+                    if self.classes_present_mode:
+                        try:
+                            _ = tuer.x
+                            _ = tuer.y
+                            _ = tuer.typ
+                        except AttributeError as e:
+                            print(f"Tuer: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                            continue
+                except Exception as e:
+                    if self.classes_present_mode:
+                        print(f"Tuer: Konnte Objekt nicht erzeugen ({e})")
+                        continue
                     if color:
                         tuer = Tuer(x, y, code=None, color=color)
                     else:
@@ -1213,11 +1300,27 @@ class Spielfeld:
                 # Schlüssel-Spawn: Farbe aus settings oder default 'green' (ggf. überschrieben durch random)
                 color = colors_override.get(f"{x},{y}", "green")
                 cls = self._get_entity_class("Schluessel", Schluessel)
+                if self.classes_present_mode and cls is None:
+                    print("Klasse Schluessel fehlt - Objekt wird nicht angezeigt")
+                    continue
                 if student_mode_enabled and cls is None:
                     continue
                 try:
                     sch = cls(x, y, color=color)
-                except Exception:
+                    # Prüfe ob Mindestattribute vorhanden sind
+                    if self.classes_present_mode:
+                        try:
+                            _ = sch.x
+                            _ = sch.y
+                            _ = sch.typ
+                            _ = sch.farbe  # Schlüssel braucht auch Farbe
+                        except AttributeError as e:
+                            print(f"Schluessel: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                            continue
+                except Exception as e:
+                    if self.classes_present_mode:
+                        print(f"Schluessel: Konnte Objekt nicht erzeugen ({e})")
+                        continue
                     sch = Schluessel(x, y, color=color)
                 sch.framework = self.framework
                 self.objekte.append(sch)
@@ -1236,11 +1339,26 @@ class Spielfeld:
                 try:
                     from .villager import Villager
                     cls = self._get_entity_class("Villager", Villager)
+                    if self.classes_present_mode and cls is None:
+                        print("Klasse Villager fehlt - Objekt wird nicht angezeigt")
+                        continue
                     if student_mode_enabled and cls is None:
                         continue
                     try:
                         vill = cls(self.framework, x, y, richtung=richt, weiblich=weiblich_flag)
-                    except Exception:
+                        # Prüfe ob Mindestattribute vorhanden sind
+                        if self.classes_present_mode:
+                            try:
+                                _ = vill.x
+                                _ = vill.y
+                                _ = vill.typ
+                            except AttributeError as e:
+                                print(f"Villager: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                                continue
+                    except Exception as e:
+                        if self.classes_present_mode:
+                            print(f"Villager: Konnte Objekt nicht erzeugen ({e})")
+                            continue
                         vill = Villager(self.framework, x, y, richtung=richt, weiblich=weiblich_flag)
                     vill.framework = self.framework
                     
@@ -1314,11 +1432,26 @@ class Spielfeld:
                             initial_raetsel = (f"{a}{op}{b}=", sol)
                             break
                     cls = self._get_entity_class("Questgeber", Questgeber)
+                    if self.classes_present_mode and cls is None:
+                        print("Klasse Questgeber fehlt - Objekt wird nicht angezeigt")
+                        continue
                     if student_mode_enabled and cls is None:
                         continue
                     try:
                         quest = cls(self.framework, x, y, richtung=richt, modus=modus, wuensche=wuensche, anzahl_items=anzahl, weiblich=weiblich_flag)
-                    except Exception:
+                        # Prüfe ob Mindestattribute vorhanden sind
+                        if self.classes_present_mode:
+                            try:
+                                _ = quest.x
+                                _ = quest.y
+                                _ = quest.typ
+                            except AttributeError as e:
+                                print(f"Questgeber: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                                continue
+                    except Exception as e:
+                        if self.classes_present_mode:
+                            print(f"Questgeber: Konnte Objekt nicht erzeugen ({e})")
+                            continue
                         quest = Questgeber(self.framework, x, y, richtung=richt, modus=modus, wuensche=wuensche, anzahl_items=anzahl, weiblich=weiblich_flag)
                     # Ensure the Questgeber uses the dedicated quest sprite if available
                     try:
@@ -1356,11 +1489,26 @@ class Spielfeld:
 
             elif t == "g":
                 cls = self._get_entity_class("Tor", Tor)
+                if self.classes_present_mode and cls is None:
+                    print("Klasse Tor fehlt - Objekt wird nicht angezeigt")
+                    continue
                 if student_mode_enabled and cls is None:
                     continue
                 try:
                     tor = cls(x, y, offen=False)
-                except Exception:
+                    # Prüfe ob Mindestattribute vorhanden sind
+                    if self.classes_present_mode:
+                        try:
+                            _ = tor.x
+                            _ = tor.y
+                            _ = tor.typ
+                        except AttributeError as e:
+                            print(f"Tor: Mindestattribut fehlt ({e}) - Objekt wird nicht angezeigt")
+                            continue
+                except Exception as e:
+                    if self.classes_present_mode:
+                        print(f"Tor: Konnte Objekt nicht erzeugen ({e})")
+                        continue
                     tor = Tor(x, y, offen=False)
                 tor.framework = self.framework
                 self.objekte.append(tor)
@@ -1625,11 +1773,19 @@ class Spielfeld:
 
             use_student_flag = bool(settings.get('use_student_module', False))
             subfolder_flag = bool(settings.get('student_classes_in_subfolder', False))
+            
+            # Bei classes_present_mode werden Schülerklassen aus klassen/ erwartet
+            classes_present = getattr(self, 'classes_present_mode', False)
 
             # If nothing requests student classes (neither explicit import path nor
-            # the student flags nor class_requirements), return the framework class.
-            if not import_pfad and not (use_student_flag or subfolder_flag) and not load_student_from_requirements:
+            # the student flags nor class_requirements nor classes_present), return the framework class.
+            if not import_pfad and not (use_student_flag or subfolder_flag) and not load_student_from_requirements and not classes_present:
                 return framework_cls
+            
+            # Bei classes_present_mode: Versuche aus klassen/ zu laden (falls keine andere Quelle angegeben)
+            if classes_present and not load_student_from_requirements:
+                prefer_klassen = True
+                load_student_from_requirements = True
 
             # Helper: import module with caching per module name
             if not hasattr(self, '_student_module_cache'):
@@ -2712,36 +2868,38 @@ class Spielfeld:
                         t = float(now - st) / float(max(1, dur))
                         if t >= 1.0:
                             # finalize: mark victim KO and load KO-sprite
-                            victim = p.get('victim')
-                            attacker = p.get('attacker')
-                            try:
-                                if victim is not None:
-                                    victim.tot = True
-                                    try:
-                                        victim._update_sprite_richtung()
-                                    except Exception:
-                                        pass
-                                    # load KO sprite if available
-                                    try:
-                                        base_opf = os.path.splitext(victim.sprite_pfad)[0]
-                                        ko_pfad = f"{base_opf}_ko.png"
-                                        if os.path.exists(ko_pfad):
-                                            victim.bild = pygame.image.load(ko_pfad).convert_alpha()
-                                    except Exception:
-                                        pass
-                                    # set framework hint / block actions for hero/knappe
-                                    try:
-                                        vtyp = (getattr(victim, 'typ', '') or '').lower()
-                                        if vtyp in ('held', 'knappe'):
-                                            try:
-                                                fw._hinweis = f"{victim.name} wurde von {getattr(attacker,'name', 'Bogenschütze')} überrascht!"
-                                            except Exception:
-                                                fw._hinweis = "Ein Schütze hat getroffen!"
-                                            fw._aktion_blockiert = True
-                                    except Exception:
-                                        pass
-                            except Exception:
-                                pass
+                            # Im classes_present_mode wird das Opfer NICHT automatisch getötet
+                            if not self.classes_present_mode:
+                                victim = p.get('victim')
+                                attacker = p.get('attacker')
+                                try:
+                                    if victim is not None:
+                                        victim.tot = True
+                                        try:
+                                            victim._update_sprite_richtung()
+                                        except Exception:
+                                            pass
+                                        # load KO sprite if available
+                                        try:
+                                            base_opf = os.path.splitext(victim.sprite_pfad)[0]
+                                            ko_pfad = f"{base_opf}_ko.png"
+                                            if os.path.exists(ko_pfad):
+                                                victim.bild = pygame.image.load(ko_pfad).convert_alpha()
+                                        except Exception:
+                                            pass
+                                        # set framework hint / block actions for hero/knappe
+                                        try:
+                                            vtyp = (getattr(victim, 'typ', '') or '').lower()
+                                            if vtyp in ('held', 'knappe'):
+                                                try:
+                                                    fw._hinweis = f"{victim.name} wurde von {getattr(attacker,'name', 'Bogenschütze')} überrascht!"
+                                                except Exception:
+                                                    fw._hinweis = "Ein Schütze hat getroffen!"
+                                                fw._aktion_blockiert = True
+                                        except Exception:
+                                            pass
+                                except Exception:
+                                    pass
                             # projectile finished; don't re-add
                             continue
 
@@ -3217,6 +3375,185 @@ class Spielfeld:
             return list(self.objekte)
         except Exception:
             return []
+
+    def gib_groesse_x(self):
+        """Gibt die Breite des Spielfelds zurück."""
+        try:
+            return self.level.breite
+        except Exception:
+            return 0
+
+    def gib_groesse_y(self):
+        """Gibt die Höhe des Spielfelds zurück."""
+        try:
+            return self.level.hoehe
+        except Exception:
+            return 0
+
+    def angriffs_animation(self, char):
+        """Spielt die Angriffsanimation für den übergebenen Charakter ab.
+        
+        Args:
+            char: Ein Charakter-Objekt (Held oder Monster)
+            
+        Hinweis:
+            - Bei Knappe erscheint eine Fehlermeldung
+            - Bei Held und Monster wird die Animation abgespielt
+            - Keine weitere Logik wird ausgeführt (nur Animation)
+        """
+        import os
+        import pygame
+        
+        # Prüfe Charaktertyp
+        char_typ = getattr(char, 'typ', None) or getattr(char, 'name', None)
+        
+        if char_typ == 'Knappe':
+            print("[FEHLER] Knappe kann keine Angriffsanimation abspielen!")
+            return
+        
+        if char_typ not in ['Held', 'Monster', 'Orc', 'Bogenschuetze']:
+            print(f"[FEHLER] Unbekannter Charaktertyp: {char_typ}")
+            return
+        
+        # Prüfe ob Charakter tot ist
+        if getattr(char, 'tot', False):
+            return
+        
+        # Merke aktuellen Zustand
+        prev_richtung = getattr(char, 'richtung', 'down')
+        prev_bild = getattr(char, 'bild', None)
+        
+        # Hole Sprite-Pfad
+        sprite_pfad = getattr(char, 'sprite_pfad', None)
+        if not sprite_pfad:
+            print(f"[FEHLER] Charakter hat keinen sprite_pfad!")
+            return
+        
+        base = os.path.splitext(sprite_pfad)[0]
+        
+        # Bestimme Angriffs-Frames (analog zu Held/Monster Implementierung)
+        if char_typ == 'Held':
+            # Held: 3 Frames att1, att2, att3
+            frames = [
+                f"{base}_att1.png",
+                f"{base}_att2.png",
+                f"{base}_att3.png",
+            ]
+        else:
+            # Monster: Richtungsabhängiges oder generisches Angriffssprite
+            dir_frames = [f"{base}_{prev_richtung}_att.png"]
+            gen_frames = [f"{base}_att.png"]
+            
+            frames = []
+            if any(os.path.exists(p) for p in dir_frames):
+                frames = [p for p in dir_frames if os.path.exists(p)]
+            elif any(os.path.exists(p) for p in gen_frames):
+                frames = [p for p in gen_frames if os.path.exists(p)]
+        
+        # Animation abspielen
+        frame_delay = 100  # ms pro Frame
+        if frames:
+            for pfad in frames:
+                if os.path.exists(pfad):
+                    try:
+                        char.bild = pygame.image.load(pfad).convert_alpha()
+                        # Versuche _render_and_delay wenn vorhanden
+                        if hasattr(char, '_render_and_delay'):
+                            char._render_and_delay(frame_delay)
+                        else:
+                            # Fallback: Framework rendern und warten
+                            if self.framework:
+                                self.framework.render()
+                            pygame.time.delay(frame_delay)
+                    except Exception as e:
+                        print(f"[Warnung] Fehler beim Laden von {pfad}: {e}")
+        
+        # Stelle ursprünglichen Zustand wieder her
+        try:
+            char.richtung = prev_richtung
+            if hasattr(char, '_update_sprite_richtung'):
+                char._update_sprite_richtung()
+            elif prev_bild is not None:
+                char.bild = prev_bild
+        except Exception:
+            pass
+        
+        # Kurze Pause nach Animation
+        pygame.time.delay(200)
+
+    def setze_besiegt(self, char):
+        """
+        Setzt das Sprite eines Charakters (Held, Knappe, Monster, Bogenschütze) auf
+        die besiegt/KO-Form.
+        
+        WICHTIG: Diese Methode ändert nur das Bild des Charakters, ohne Spiellogik
+        auszuführen. Der Charakter kann danach noch bewegt werden - der Schüler muss
+        selbst dafür sorgen, dass ein besiegter Charakter nicht mehr agiert.
+        
+        Parameter:
+            char: Ein Charakter-Objekt (Held, Knappe, Monster oder Bogenschütze)
+        """
+        try:
+            # Check if character is valid
+            if char is None:
+                print("Fehler: Kein Charakter übergeben!")
+                return
+            
+            # Get character type
+            char_typ = getattr(char, 'typ', '').lower()
+            
+            # Mark character as defeated (tot = True)
+            char.tot = True
+            
+            # Load KO sprite if available
+            sprite_pfad = getattr(char, 'sprite_pfad', None)
+            if sprite_pfad and os.path.exists(sprite_pfad):
+                # Try to load KO sprite using several naming variants
+                basis = os.path.splitext(sprite_pfad)[0]
+                ko_candidates = [f"{basis}_ko.png"]
+                
+                # Also try removing direction suffix (e.g. held_left -> held)
+                try:
+                    tail = basis.rsplit('_', 1)[-1].lower()
+                    if tail in ("up", "down", "left", "right", "n", "s", "w", "o"):
+                        base_without_dir = basis.rsplit('_', 1)[0]
+                        ko_candidates.append(f"{base_without_dir}_ko.png")
+                except Exception:
+                    pass
+                
+                # Try to load the first available KO sprite
+                ko_loaded = False
+                for ko_pfad in ko_candidates:
+                    try:
+                        if os.path.exists(ko_pfad):
+                            import pygame
+                            char.bild = pygame.image.load(ko_pfad).convert_alpha()
+                            try:
+                                char.bild.set_alpha(220)
+                            except Exception:
+                                pass
+                            ko_loaded = True
+                            break
+                    except Exception:
+                        continue
+                
+                # Fallback: Use red rectangle if no KO sprite exists
+                if not ko_loaded:
+                    try:
+                        import pygame
+                        char.bild = pygame.Surface((64, 64), pygame.SRCALPHA)
+                        char.bild.fill((180, 0, 0, 180))
+                    except Exception:
+                        pass
+            
+            # Render the change immediately
+            try:
+                self._render_and_delay(100)
+            except Exception:
+                pass
+                
+        except Exception as e:
+            print(f"Fehler beim Setzen des Besiegt-Status: {e}")
 
     def set_objekt(self, x: int, y: int, obj) -> bool:
         """Platziert `obj` logisch auf Position (x,y) falls das Terrain begehbar ist.
@@ -3974,13 +4311,71 @@ class Spielfeld:
         """Erstellt ein Test-Objekt der Klasse für Validierung."""
         try:
             import importlib
+            import importlib.util
             import sys
+            import ast
             
-            module_name = class_name.lower()
-            if f'klassen.{module_name}' in sys.modules:
-                mod = sys.modules[f'klassen.{module_name}']
+            # Check if load_from_schueler is set - then load from schueler.py instead of klassen/
+            load_from_schueler = req.get('load_from_schueler', False) if req else False
+            
+            if load_from_schueler:
+                # Load class from schueler.py WITHOUT executing top-level code
+                # This is needed because schueler.py contains level.lade() and framework.starten()
+                schueler_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'schueler.py')
+                
+                if not os.path.exists(schueler_path):
+                    print(f"[VICTORY] schueler.py nicht gefunden")
+                    return None
+                
+                # First check if schueler module is already loaded (e.g., running from schueler.py)
+                if 'schueler' in sys.modules:
+                    mod = sys.modules['schueler']
+                elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], class_name):
+                    # Class might be in __main__ if running from schueler.py
+                    mod = sys.modules['__main__']
+                else:
+                    # Parse the file to extract just the class definition
+                    # and create a minimal module with just that class
+                    with open(schueler_path, 'r', encoding='utf-8') as f:
+                        source = f.read()
+                    
+                    tree = ast.parse(source, schueler_path)
+                    
+                    # Find the class definition
+                    class_node = None
+                    import_nodes = []
+                    for node in tree.body:
+                        if isinstance(node, ast.ClassDef) and node.name == class_name:
+                            class_node = node
+                        # Also collect imports that might be needed
+                        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+                            # Skip imports of framework.grundlage (would trigger level loading)
+                            if isinstance(node, ast.ImportFrom):
+                                if node.module and 'framework' in node.module:
+                                    continue
+                            import_nodes.append(node)
+                    
+                    if class_node is None:
+                        print(f"[VICTORY] Klasse '{class_name}' nicht in schueler.py gefunden")
+                        return None
+                    
+                    # Create a new module with just the class
+                    # Build minimal source code with the class definition
+                    new_tree = ast.Module(body=import_nodes + [class_node], type_ignores=[])
+                    ast.fix_missing_locations(new_tree)
+                    
+                    # Compile and execute in a new module
+                    code = compile(new_tree, schueler_path, 'exec')
+                    mod = type(sys)('schueler_test_module')
+                    mod.__file__ = schueler_path
+                    exec(code, mod.__dict__)
             else:
-                mod = importlib.import_module(f'klassen.{module_name}')
+                # Load from klassen/{class_name}.py
+                module_name = class_name.lower()
+                if f'klassen.{module_name}' in sys.modules:
+                    mod = sys.modules[f'klassen.{module_name}']
+                else:
+                    mod = importlib.import_module(f'klassen.{module_name}')
             
             if not hasattr(mod, class_name):
                 return None
@@ -4010,6 +4405,8 @@ class Spielfeld:
                 
         except Exception as e:
             print(f"[VICTORY] Konnte Test-Objekt für '{class_name}' nicht erstellen: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def _validate_classes_at_level_start(self):

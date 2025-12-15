@@ -15,6 +15,15 @@ class Monster(Objekt):
         # Wenn tot → Sprite dauerhaft KO lassen, keine Logik mehr
         if self.tot or not self.framework:
             return
+        
+        # Im classes_present_mode keine automatische Spiellogik ausführen
+        # (Monster greift nicht automatisch an - Schüler muss das selbst implementieren)
+        try:
+            sp = getattr(self.framework, 'spielfeld', None)
+            if sp and getattr(sp, 'classes_present_mode', False):
+                return
+        except Exception:
+            pass
 
         jetzt = pygame.time.get_ticks()
 
@@ -267,6 +276,15 @@ class Bogenschuetze(Monster):
         # If dead or framework missing, nothing to do
         if self.tot or not self.framework:
             return
+
+        # Im classes_present_mode keine automatische Spiellogik ausführen
+        # (Bogenschütze schießt nicht automatisch - Schüler muss das selbst implementieren)
+        try:
+            sp = getattr(self.framework, 'spielfeld', None)
+            if sp and getattr(sp, 'classes_present_mode', False):
+                return
+        except Exception:
+            pass
 
         jetzt = pygame.time.get_ticks()
 

@@ -1,0 +1,100 @@
+{
+  "tiles": [
+    "ttttttt",
+    "tptwwwt",
+    "twtwmct",
+    "twwwmwt",
+    "ttttttt"
+  ],
+  "settings": {
+    "Held": {
+      "public": true
+    },
+    "Knappe": {
+      "public": true
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": true
+    },
+    "Tuer": {
+      "public": true
+    },
+    "Zettel": {
+      "public": true
+    },
+    "Villager": {
+      "public": true
+    },
+    "Hindernis": {
+      "public": true
+    },
+    "Schluessel": {
+      "public": true
+    },
+    "Bogenschuetze": {
+      "public": true
+    },
+    "victory": {
+      "rebuild_mode": false,
+      "collect_hearts": false,
+      "move_to": {
+        "enabled": true,
+        "x": 5,
+        "y": 3
+      },
+      "classes_present": true
+    },
+    "initial_gold": 0,
+    "quest_max_kosten": 0,
+    "quest_mode": "items",
+    "quest_items_needed": 1,
+    "random_door": false,
+    "random_keys": false,
+    "class_requirements": {
+      "Spielobjekt": {
+        "inherits": "None",
+        "methods": [
+          "get_x",
+          "get_y",
+          "get_typ",
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "x",
+          "y",
+          "typ"
+        ],
+        "check_implementation": true
+      },
+      "Charakter": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "geh"
+        ],
+        "attributes": [],
+        "check_implementation": true,
+        "expects_set_level": true
+      },
+      "Held": {
+        "inherits": "Charakter",
+        "load_from_schueler": false,
+        "load_from_klassen": true,
+        "methods": [],
+        "attributes": [],
+        "expects_set_level": true
+      },
+      "Zettel": {
+        "inherits": "Spielobjekt",
+        "methods": [
+          "ist_passierbar"
+        ],
+        "attributes": [
+          "spruch"
+        ]
+      }
+    }
+  }
+}

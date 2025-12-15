@@ -95,15 +95,98 @@ class Held(Objekt):
     def aktiviere_steuerung(self):
         if self.framework is None:
             return  # No framework available (student-created Held)
+        
+        # Prüfe ob classes_present_mode aktiv ist
+        sp = getattr(self.framework, 'spielfeld', None)
+        classes_present = sp and getattr(sp, 'classes_present_mode', False)
+        
+        # Bewegung funktioniert immer über Framework
         self.framework.taste_registrieren(pygame.K_LEFT,  lambda: self.links(0))
         self.framework.taste_registrieren(pygame.K_RIGHT, lambda: self.rechts(0))
         self.framework.taste_registrieren(pygame.K_UP,    lambda: self.geh(0))
-        self.framework.taste_registrieren(pygame.K_DOWN,    lambda: self.zurueck(0))
-        self.framework.taste_registrieren(pygame.K_RETURN,lambda: self.nehme_auf(0))
-        self.framework.taste_registrieren(pygame.K_SPACE, lambda: self.attack(0))
-        self.framework.taste_registrieren(pygame.K_c, lambda: self.lese_code(0))
-        self.framework.taste_registrieren(pygame.K_v, lambda: self.code_eingeben(delay_ms=0))
-        self.framework.taste_registrieren(pygame.K_f, lambda: self.bediene_tor(0))
+        self.framework.taste_registrieren(pygame.K_DOWN,  lambda: self.zurueck(0))
+        
+        if classes_present:
+            # Im classes_present_mode: Rufe Schüler-Methoden auf, keine Framework-Logik
+            # Schüler muss diese Methoden selbst implementieren
+            # Bei MetaHeld: Greife direkt auf _student zu um Framework-Methoden zu umgehen
+            
+            def get_student_obj():
+                """Hole das Schüler-Objekt (falls MetaHeld) oder self (falls direkt Schüler-Held)"""
+                try:
+                    return object.__getattribute__(self, '_student')
+                except AttributeError:
+                    return self
+            
+            def call_student_angriff():
+                stud = get_student_obj()
+                try:
+                    stud.angriff()
+                except AttributeError:
+                    print("[Held] Methode angriff() nicht implementiert!")
+                except Exception as e:
+                    print(f"[Held] Fehler in angriff(): {e}")
+            
+            def call_student_nimm_herz():
+                stud = get_student_obj()
+                try:
+                    stud.nimm_herz()
+                except AttributeError:
+                    print("[Held] Methode nimm_herz() nicht implementiert!")
+                except Exception as e:
+                    print(f"[Held] Fehler in nimm_herz(): {e}")
+            
+            def call_student_lese_spruch():
+                stud = get_student_obj()
+                # Versuche beide Varianten
+                try:
+                    stud.lese_spruch()
+                except AttributeError:
+                    try:
+                        stud.spruch_lesen()
+                    except AttributeError:
+                        print("[Held] Methode lese_spruch() oder spruch_lesen() nicht implementiert!")
+                    except Exception as e:
+                        print(f"[Held] Fehler in spruch_lesen(): {e}")
+                except Exception as e:
+                    print(f"[Held] Fehler in lese_spruch(): {e}")
+            
+            def call_student_sage_spruch():
+                stud = get_student_obj()
+                # Versuche beide Varianten
+                try:
+                    stud.spruch_sagen()
+                except AttributeError:
+                    try:
+                        stud.sage_spruch()
+                    except AttributeError:
+                        print("[Held] Methode spruch_sagen() oder sage_spruch() nicht implementiert!")
+                    except Exception as e:
+                        print(f"[Held] Fehler in sage_spruch(): {e}")
+                except Exception as e:
+                    print(f"[Held] Fehler in spruch_sagen(): {e}")
+            
+            def call_student_bediene_tor():
+                stud = get_student_obj()
+                try:
+                    stud.bediene_tor()
+                except AttributeError:
+                    print("[Held] Methode bediene_tor() nicht implementiert!")
+                except Exception as e:
+                    print(f"[Held] Fehler in bediene_tor(): {e}")
+            
+            self.framework.taste_registrieren(pygame.K_SPACE, call_student_angriff)
+            self.framework.taste_registrieren(pygame.K_RETURN, call_student_nimm_herz)
+            self.framework.taste_registrieren(pygame.K_c, call_student_lese_spruch)
+            self.framework.taste_registrieren(pygame.K_v, call_student_sage_spruch)
+            self.framework.taste_registrieren(pygame.K_f, call_student_bediene_tor)
+        else:
+            # Normaler Modus: Framework-Logik
+            self.framework.taste_registrieren(pygame.K_RETURN,lambda: self.nehme_auf(0))
+            self.framework.taste_registrieren(pygame.K_SPACE, lambda: self.attack(0))
+            self.framework.taste_registrieren(pygame.K_c, lambda: self.lese_code(0))
+            self.framework.taste_registrieren(pygame.K_v, lambda: self.code_eingeben(delay_ms=0))
+            self.framework.taste_registrieren(pygame.K_f, lambda: self.bediene_tor(0))
         
     def gib_knappe(self):
         if len(self.knappen)>0:
@@ -275,24 +358,30 @@ class Held(Objekt):
         self._update_sprite_richtung()
 
         # Angriff auf Monster prüfen (wie bisher)
-        dx, dy = richtung_offset(self.richtung)
-        tx, ty = self.x + dx, self.y + dy
-        monster = self.framework.spielfeld.finde_monster(tx, ty)
-        if monster:
-            # NICHT mehr entfernen:
-            # self.framework.spielfeld.entferne_objekt(monster)
+        # Im classes_present_mode wird nur die Animation abgespielt, aber kein Monster getötet
+        # Der Schüler muss die Kampflogik selbst implementieren
+        sp = getattr(self.framework, 'spielfeld', None)
+        classes_present = sp and getattr(sp, 'classes_present_mode', False)
+        
+        if not classes_present:
+            dx, dy = richtung_offset(self.richtung)
+            tx, ty = self.x + dx, self.y + dy
+            monster = self.framework.spielfeld.finde_monster(tx, ty)
+            if monster:
+                # NICHT mehr entfernen:
+                # self.framework.spielfeld.entferne_objekt(monster)
 
-            monster.tot = True
-            monster._update_sprite_richtung()
-            try:
-                base_m = monster.sprite_pfad.split(".png")[0]
-                ko_m   = f"{base_m}_ko.png"
-                if os.path.exists(ko_m):
-                    monster.bild = pygame.image.load(ko_m).convert_alpha()
-            except Exception as e:
-                print("[Warnung] KO-Sprite Monster:", e)
+                monster.tot = True
+                monster._update_sprite_richtung()
+                try:
+                    base_m = monster.sprite_pfad.split(".png")[0]
+                    ko_m   = f"{base_m}_ko.png"
+                    if os.path.exists(ko_m):
+                        monster.bild = pygame.image.load(ko_m).convert_alpha()
+                except Exception as e:
+                    print("[Warnung] KO-Sprite Monster:", e)
 
-            self._kills += 1
+                self._kills += 1
 
 
         # letzte Frame kurz sichtbar halten
@@ -757,8 +846,54 @@ class MetaHeld(Held):
             # F: Try use methods
             self.framework.taste_registrieren(pygame.K_f, call_student_use())
             
-            # Space: Attack - disabled for now (will implement with animation later)
-            # self.framework.taste_registrieren(pygame.K_SPACE, call_student_movement('attack'))
+            # Space: Attack - ruft angriff() auf der Schülerklasse auf
+            def call_student_angriff():
+                if stud is None:
+                    return
+                try:
+                    stud.angriff()
+                except AttributeError:
+                    print("[Held] Methode angriff() nicht implementiert!")
+                except Exception as e:
+                    print(f"[Held] Fehler in angriff(): {e}")
+            
+            self.framework.taste_registrieren(pygame.K_SPACE, call_student_angriff)
+            
+            # C: Try lese_spruch() or spruch_lesen()
+            def call_student_lese_spruch():
+                if stud is None:
+                    return
+                try:
+                    stud.lese_spruch()
+                except AttributeError:
+                    try:
+                        stud.spruch_lesen()
+                    except AttributeError:
+                        print("[Held] Methode lese_spruch() oder spruch_lesen() nicht implementiert!")
+                    except Exception as e:
+                        print(f"[Held] Fehler in spruch_lesen(): {e}")
+                except Exception as e:
+                    print(f"[Held] Fehler in lese_spruch(): {e}")
+            
+            self.framework.taste_registrieren(pygame.K_c, call_student_lese_spruch)
+            
+            # V: Try spruch_sagen() or sage_spruch()
+            def call_student_sage_spruch():
+                if stud is None:
+                    return
+                try:
+                    stud.spruch_sagen()
+                except AttributeError:
+                    try:
+                        stud.sage_spruch()
+                    except AttributeError:
+                        print("[Held] Methode spruch_sagen() oder sage_spruch() nicht implementiert!")
+                    except Exception as e:
+                        print(f"[Held] Fehler in sage_spruch(): {e}")
+                except Exception as e:
+                    print(f"[Held] Fehler in spruch_sagen(): {e}")
+            
+            self.framework.taste_registrieren(pygame.K_v, call_student_sage_spruch)
         except Exception:
             try:
                 super().aktiviere_steuerung()

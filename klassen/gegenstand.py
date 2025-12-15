@@ -11,3 +11,5 @@ class Gegenstand:
     def ablegen(self):
         """Legt den Gegenstand ab."""
         self.im_inventar = False
+
+

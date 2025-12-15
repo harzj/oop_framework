@@ -6,17 +6,34 @@ class Charakter(Spielobjekt):
         self.richtung = richtung
         self.name = "Namenloser Charakter"
         self.typ = "Charakter"
+        self.level = None
+    
+    def set_level(self,level):
+        self.level = level
     
     def geh(self):
         if self.richtung == "up":
-            self.y -= 1
+            ziel_y = self.y - 1
+            ziel_x = self.x
         elif self.richtung == "down":
-            self.y += 1
+            ziel_y = self.y + 1
+            ziel_x = self.x
         elif self.richtung == "left":
-            self.x -= 1
+            ziel_x = self.x - 1
+            ziel_y = self.y
         elif self.richtung == "right":
-            self.x += 1
-    
+            ziel_x = self.x + 1
+            ziel_y = self.y
+
+        if not self.level.ist_innerhalb(ziel_x,ziel_y):
+            return
+
+        target = self.level.gib_objekt_bei(ziel_x, ziel_y)
+
+        if target == None or target.ist_passierbar():
+            self.x = ziel_x
+            self.y = ziel_y
+            
     def links(self):
         if self.richtung == "up":
             self.richtung = "left"
