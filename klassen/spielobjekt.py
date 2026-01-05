@@ -6,10 +6,8 @@ class Spielobjekt:
         self.x = x
         self.y = y
 
-    
     def get_typ(self):
         return self.typ
-    
     
     def get_x(self):
         return self.x

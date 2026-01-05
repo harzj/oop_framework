@@ -1,11 +1,23 @@
 # Projekt OOPventure
 # Objektorientierte Programmierung spielerisch lernen
 
-Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen der objektorientierten Programmierung in Python. Schülerinnen und Schüler steuern einen Helden durch verschiedene Level, sammeln Herzen und lösen Rätsel – zunächst durch einfache Befehlssequenzen, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
+Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen objektorientierter Konzepte in Python. Schülerinnen und Schüler erstellen Programme und steuern so eine Heldin (oder einen Helden) durch verschiedene Level, um diese zu lösen. Zunächst durch die Verwendung vorgegebener Objekte, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
 
-Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt.
+Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt. Weit
 
 ![Gameplay](docs/gameplay.png)
+
+## 📚 Inhalt
+
+- [Zielsetzung](#-zielsetzung-und-zweck)
+- [Die zwei Phasen](#-die-zwei-phasen)
+- [How-To: So wird programmiert](#-how-to-so-wird-programmiert)
+- [Klassen implementieren](#-klassen-implementieren-phase-2)
+- [Hinweise für Lehrkräfte](#-hinweise-für-lehrkräfte)
+- [Installation](#-installation)
+- [Lizenz](#-lizenz)
+- [Hinweise zu KI-Einsatz](#-hinweise-zu-ki-einsatz)
+
 
 ## 🎯 Zielsetzung und Zweck
 
@@ -290,6 +302,16 @@ CC BY-NC-SA 4.0
 
 Für kommerzielle Anfragen oder spezielle Nutzungsrechte kontaktieren Sie bitte:  
 Johannes Harz - [j.harz@schule.saarland]
+
+---
+
+## 🤖 Hinweise zu KI-Einsatz
+
+Dieses Projekt wurde teilweise mit Unterstützung von KI-Werkzeugen entwickelt:
+
+- **Mit KI erstellt**: Die Grafiken (Sprites, Icons) und große Teile des Framework-Codes wurden mithilfe von KI-Tools generiert und angepasst
+- **Ohne KI erstellt**: Das pädagogische Konzept, die Aufgabenstellungen und das gesamte Lernmaterial wurden ohne KI-Unterstützung entwickelt
+- **Geplante Änderung**: Die aktuellen Grafiken sollen in Zukunft durch Schülerarbeiten ersetzt werden, um das Projekt noch authentischer und schülernäher zu gestalten
 
 ---
 
