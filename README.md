@@ -3,6 +3,8 @@
 
 Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen **objektorientierter Konzepte** in Python. Schülerinnen und Schüler erstellen Programme und steuern so eine Heldin (oder einen Helden) durch verschiedene Level, um diese zu lösen. Zunächst durch die Verwendung vorgegebener Objekte und derer Methoden, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
 
+Klassischerweise werden beim Unterrichten von OOP hauptsächlich Klassen entwickelt und nur testweise Objekte erzeugt. Der Umgang mit Objekten erfolgt dann sehr abstrakt in der Form von Parametern oder Attributen. Mit dem Framework wird diese Vorgehensweise aufgebrochen: Die Schülerinnen und Schüler müssen zuerst mit Objekten und deren Methoden arbeiten, bevor eigene Klassen implementiert werden.
+
 Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt. Weitere Informationen dazu sind weiter [unten](#-hinweise-zu-ki-einsatz) zu finden.
 
 ![Gameplay](docs/gameplay.png)
@@ -17,6 +19,7 @@ Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermög
 - [Installation](#-installation)
 - [Lizenz](#-lizenz)
 - [Hinweise zu KI-Einsatz](#-hinweise-zu-ki-einsatz)
+- [Ausblicke und Weiterentwicklung](#-ausblicke-und-weiterentwicklung)
 
 
 ## 🎯 Zielsetzung und Zweck
@@ -29,6 +32,8 @@ Dieses Framework wurde für den Informatikunterricht in der Oberstufe (Leistungs
 - **Problemlösendes Denken** zu fördern durch immer komplexere Level
 
 Das Framework enthält über 50 Level mit steigendem Schwierigkeitsgrad sowie einen integrierten **Level-Editor** zum Erstellen eigener Aufgaben. Besonderer Wert wurde darauf gelegt, möglichst keinen Overhead zu erzeugen. Zum Einbinden des Frameworks sind nur 4 Zeilen Code notwendig, davon 2 Zeilen nur Importe.
+
+Es bietet sich an, ergänzend zum Material weitere Übungen, insbesondere in Richtung Objektorientiertes Modellieren, anzubieten.
 
 ---
 
@@ -279,6 +284,18 @@ oop_framework/
 
 ---
 
+## 🔮 Ausblicke und Weiterentwicklung
+
+- In der aktuellen Fassung bildet das Framework den saarländischen Lehrplan vollständig ab. Es sind jedoch noch einige Fehler vorhanden, die insbesondere dann auftreten, wenn falsche oder unvollständige Lösungen der Schülerinnen und Schüler vorliegen.
+
+- Die Grafiken sollen vollständig durch handgezeichnete Grafiken ersetzt werden
+
+- Weitere Spielobjekte sollen integriert werden, welche nicht von normalen Spielobjekten abgeleitet werden können, um interessantere und komplexere Aufgabenstellungen zu ermöglichen. Über den Leveleditor sind bereits Dorfbewohner und Questgeber verfügbar, diese sind jedoch noch nicht korrekt implementiert.
+
+- Arbeitsblätter 2 und 3 müssen vollständig überarbeitet werden. Das gesamte Unterrichtsmaterial befindet sich derzeit in Version 1.
+
+---
+
 ## 📝 Lizenz
 
 **Bildungslizenz für OOPventure**
@@ -313,3 +330,4 @@ Dieses Projekt wurde teilweise mit Unterstützung von KI-Werkzeugen entwickelt:
 - **Mit KI erstellt**: Die Grafiken (Sprites, Icons) und große Teile des Framework-Codes wurden mithilfe von KI-Tools generiert und angepasst
 - **Ohne KI erstellt**: Das pädagogische Konzept, die Aufgabenstellungen und das gesamte Lernmaterial wurden ohne KI-Unterstützung entwickelt
 - **Geplante Änderung**: Die aktuellen Grafiken sollen in Zukunft durch Schülerarbeiten ersetzt werden, um das Projekt noch authentischer und schülernäher zu gestalten
+
