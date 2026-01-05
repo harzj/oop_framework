@@ -3,7 +3,7 @@
 
 Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen **objektorientierter Konzepte** in Python. Schülerinnen und Schüler erstellen Programme und steuern so eine Heldin (oder einen Helden) durch verschiedene Level, um diese zu lösen. Zunächst durch die Verwendung vorgegebener Objekte und derer Methoden, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
 
-Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt. Weitere Informationen dazu sind weiter unten zu finden.
+Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt. Weitere Informationen dazu sind weiter [unten](#-hinweise-zu-ki-einsatz) zu finden.
 
 ![Gameplay](docs/gameplay.png)
 
