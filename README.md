@@ -96,11 +96,12 @@ framework.starten()
 | Objekt | Beschreibung |
 |--------|--------------|
 | `held` | Der Spieler-Charakter |
-| `knappe` | Ein Begleiter (in manchen Levels) |
-| `zettel` | Enthält Zaubersprüche |
-| `tuer` | Kann mit Sprüchen oder Schlüsseln geöffnet werden |
-| `tor` | Kann bedient werden |
-| `level` | Das aktuelle Spielfeld |
+| `knappe` | Ein Begleiter des Spielers |
+| `zettel` | Enthält Zaubersprüche  |
+| `tuer` | Kann mit Sprüchen oder farbigen Schlüsseln geöffnet werden |
+| `tor` | Kann immer geöffnet/geschlossen werden |
+| `level` | Das aktuelle Level |
+| `monster` | Gegner, die auch angreifen können |
 
 ### Befehle für den Helden und Knappen
 
