@@ -278,7 +278,7 @@ oop_framework/
 
 ## 🚀 Installation
 
-1. [Framework Distribution](raw.githubusercontent.com/harzj/oop_framework/main/Framwork_Version_1_0_Release.zip) herunterladen (aktuell 1.0) und entpacken
+1. [Framework Distribution](https://raw.githubusercontent.com/harzj/oop_framework/main/Framwork_Version_1_0_Release.zip) herunterladen (aktuell 1.0) und entpacken
 2. `schueler.py` mit beliebiger Python IDE öffnen, bearbeiten und ausführen
 
 **Alternativ**:
