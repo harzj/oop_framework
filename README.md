@@ -5,7 +5,7 @@ Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen **objektor
 
 Klassischerweise werden beim Unterrichten von OOP hauptsächlich Klassen entwickelt und nur testweise Objekte erzeugt. Der Umgang mit Objekten erfolgt dann sehr abstrakt in der Form von Parametern oder Attributen. Mit dem Framework wird diese Vorgehensweise aufgebrochen: Die Schülerinnen und Schüler müssen zuerst mit Objekten und deren Methoden arbeiten, bevor eigene Klassen implementiert werden.
 
-Die .zip-Datei für die Schülerinnen und Schüler oder zum Austesten kann [hier](Framwork_Version_1_0_Release.zip) heruntergeladen werden. Weiteres unter [Installation](#-installation).
+Die .zip-Datei für die Schülerinnen und Schüler oder zum Austesten kann [hier](https://raw.githubusercontent.com/harzj/oop_framework/main/Framwork_Version_1_0_Release.zip) direkt heruntergeladen werden. Weiteres unter [Installation](#-installation).
 
 Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt. Weitere Informationen dazu sind weiter [unten](#-hinweise-zu-ki-einsatz) zu finden.
 
@@ -278,7 +278,7 @@ oop_framework/
 
 ## 🚀 Installation
 
-1. [Framework Distribution](Framwork_Version_1_0_Release.zip) herunterladen (aktuell 1.0) und entpacken
+1. [Framework Distribution](raw.githubusercontent.com/harzj/oop_framework/main/Framwork_Version_1_0_Release.zip) herunterladen (aktuell 1.0) und entpacken
 2. `schueler.py` mit beliebiger Python IDE öffnen, bearbeiten und ausführen
 
 **Alternativ**:
