@@ -17,7 +17,7 @@ Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermög
 - [Die zwei Phasen](#-die-zwei-phasen)
 - [How-To: So wird programmiert](#-how-to-so-wird-programmiert)
 - [Klassen implementieren](#-klassen-implementieren-phase-2)
-- [Hinweise für Lehrkräfte](#-hinweise-fuer-lehrkraefte)
+- [Hinweise für Lehrkräfte](#-hinweise-für-lehrkräfte)
 - [Installation](#-installation)
 - [Lizenz](#-lizenz)
 - [Hinweise zu KI-Einsatz](#-hinweise-zu-ki-einsatz)
