@@ -79,6 +79,12 @@
           "weiblich": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Teste alle Methoden deiner Held-Klasse in diesem Level."
+      ],
+      "code": []
     }
   }
 }

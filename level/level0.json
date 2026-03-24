@@ -7,5 +7,24 @@
     "twwghww",
     "twwmwwm",
     "ttbmmmm"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Willkommen im OOP-Framework! Dieses Level zeigt dir den Aufbau der Spielwelt.",
+        "Nutze geh(), links() und rechts(), um den Helden zu bewegen."
+      ],
+      "code": [
+        "held.geh()",
+        "held.links()",
+        "held.rechts()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

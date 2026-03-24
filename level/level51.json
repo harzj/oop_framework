@@ -115,6 +115,19 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere die Klasse Charakter, die von Spielobjekt erbt.",
+        "Charakter fügt die Attribute richtung und name hinzu sowie Methoden geh(), links(), rechts()."
+      ],
+      "code": [
+        "# Analog: Zwischenklasse erweitert Basisklasse:",
+        "class BankKonto(Konto):",
+        "    def __init__(self, nr, inhaber, iban):",
+        "        super().__init__(nr, inhaber)",
+        "        self.iban = iban"
+      ]
     }
   }
 }

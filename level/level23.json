@@ -5,5 +5,35 @@
     "tpwtttt",
     "twwtwtt",
     "ttttttt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "gib_objekt_vor_dir() gibt dir Zugriff auf das Objekt direkt vor dem Helden.",
+        "Tipp: Nutze es, um mit Toren und Zetteln zu interagieren."
+      ],
+      "code": [
+        "obj = held.gib_objekt_vor_dir()",
+        "print(obj)"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts",
+        "gib_objekt_vor_dir",
+        "gib_knappe",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
+      ]
+    }
+  }
 }

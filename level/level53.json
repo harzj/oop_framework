@@ -143,6 +143,14 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Passe Knappe so an, dass es jetzt von Charakter erbt – analog zu Held."
+      ],
+      "code": [
+        "# Tipp: Analog zur Held-Klasse – Knappe erbt von Charakter."
+      ]
     }
   }
 }

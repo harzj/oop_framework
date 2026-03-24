@@ -70,6 +70,20 @@
           "typ"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Füge dem Helden die Methoden geh(), links(), rechts() und zurueck() hinzu.",
+        "Diese Methoden verändern Position und Richtung des Helden."
+      ],
+      "code": [
+        "# Methoden werden eingerückt in der Klasse definiert:",
+        "class Konto:",
+        "    def einzahlen(self, betrag):",
+        "        self.guthaben += betrag",
+        "    def abheben(self, betrag):",
+        "        self.guthaben -= betrag"
+      ]
     }
   }
 }

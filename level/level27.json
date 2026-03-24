@@ -49,6 +49,18 @@
       "classes_present": false
     },
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Farbige Schlüssel passen zu farbigen Schlössern (Türen).",
+        "Nutze gib_objekt_bei(x, y) auf dem Level, um an den Schlüssel zu gelangen.",
+        "Mit get_farbe() liest du die Farbe des Schlüssels aus."
+      ],
+      "code": [
+        "schluessel = level.gib_objekt_bei(3, 3)",
+        "tuer = level.gib_objekt_bei(2, 1)",
+        "tuer.verwende_schluessel(schluessel)"
+      ]
+    }
   }
 }

@@ -7,5 +7,23 @@
     "wwwmwhw",
     "wwmwhww",
     "bwdhwww"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Plane die Route des Helden sorgfältig, um alle Felder zu erreichen."
+      ],
+      "code": [
+        "held.geh()",
+        "held.rechts()",
+        "held.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

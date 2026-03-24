@@ -4,5 +4,32 @@
     "cwmwtt",
     "tdttbt",
     "wwxphw"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "was_ist_vorn() gibt den Typ des Objekts vor dem Held als Text zurück.",
+        "Mögliche Rückgabewerte: 'Baum', 'Wand', 'Herz', 'Tor', 'Tuer', 'Monster', 'None' (freier Weg).",
+        "Nutze print(held.was_ist_vorn()), um Objekte in der Konsole zu erkunden."
+      ],
+      "code": [
+        "print(held.was_ist_vorn())",
+        "print(knappe.was_ist_links())",
+        "print(knappe.was_ist_rechts())"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts"
+      ]
+    }
+  }
 }

@@ -71,6 +71,17 @@
           "weiblich": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Ergänze links() und rechts() in der Held-Klasse.",
+        "Richtungsfolge links: up → left → down → right → up."
+      ],
+      "code": [
+        "# Tipp: Speichere die Richtungen in einer Liste.",
+        "RICHTUNGEN = ['up', 'right', 'down', 'left']",
+        "# .index() liefert die Position, Modulo (%) dreht im Kreis."
+      ]
     }
   }
 }

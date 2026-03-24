@@ -29,6 +29,22 @@
     },
     "Villager": {
       "public": true
+    },
+    "hints": {
+      "text": [
+        "Nutze alle bisher gelernten Methoden, um dieses Level zu lösen."
+      ],
+      "code": [],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir"
+      ]
     }
   }
 }

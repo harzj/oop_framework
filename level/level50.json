@@ -94,6 +94,20 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "In Python werden private Attribute bei Vererbung mit dem Klassennamen mangled: _Klasse__attribut.",
+        "Um das zu vereinfachen, setze alle Attribute in Spielobjekt öffentlich (ohne Unterstrich).",
+        "Lade die aktualisierten Dateien aus der OSS und löse Level 50."
+      ],
+      "code": [
+        "# In Python: Attribute ohne __ sind öffentlich.",
+        "class Konto:",
+        "    def __init__(self, nr):",
+        "        self.nr = nr        # öffentlich",
+        "        self.__pin = 1234   # privat (Name-Mangling)"
+      ]
     }
   }
 }

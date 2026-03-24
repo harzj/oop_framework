@@ -53,6 +53,17 @@
     "random_door": false,
     "random_keys": false,
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Erzeuge Monster-Objekte und füge sie dem Level hinzu, um das Level zu lösen.",
+        "Schau dir das Klassendiagramm von Monster an: Monster(x, y, richtung)."
+      ],
+      "code": [
+        "from framework.monster import Monster",
+        "m = Monster(4, 2, 'up')",
+        "level.objekt_hinzufuegen(m)"
+      ]
+    }
   }
 }

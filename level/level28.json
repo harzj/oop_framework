@@ -57,6 +57,16 @@
     "random_door": false,
     "random_keys": true,
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Prüfe mit get_farbe(), welche Farbe der Schlüssel hat, und verwende dann den passenden Schlüssel."
+      ],
+      "code": [
+        "schluessel = level.gib_objekt_bei(3, 3)",
+        "farbe = schluessel.get_farbe()",
+        "print(farbe)"
+      ]
+    }
   }
 }

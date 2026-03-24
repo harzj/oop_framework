@@ -51,6 +51,18 @@
     "random_door": false,
     "random_keys": false,
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Du kannst neue Objekte mit ihrem Konstruktor erzeugen und zum Level hinzufügen.",
+        "Beispiel: tor1 = Tor(1, 2, True)  →  level.objekt_hinzufuegen(tor1)",
+        "Stelle Hindernisse vor die Bogenschützen, um den Helden zu schützen."
+      ],
+      "code": [
+        "from framework.tor import Tor",
+        "tor1 = Tor(1, 2, True)",
+        "level.objekt_hinzufuegen(tor1)"
+      ]
+    }
   }
 }

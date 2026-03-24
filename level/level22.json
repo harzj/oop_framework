@@ -5,5 +5,34 @@
     "dtmcm",
     "htmmb",
     "ttmmm"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Nutze gib_objekt_bei(x, y), um Zugriff auf beliebige Objekte im Level zu erhalten."
+      ],
+      "code": [
+        "obj = level.gib_objekt_bei(3, 2)",
+        "print(obj)"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts",
+        "gib_objekt_vor_dir",
+        "gib_knappe",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
+      ]
+    }
+  }
 }

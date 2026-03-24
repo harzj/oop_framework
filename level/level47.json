@@ -65,6 +65,22 @@
         },
         "check_implementation": true
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere die Basisklasse Spielobjekt in spielobjekt.py.",
+        "Spielobjekt hat die Attribute x und y. ist_passierbar() gibt standardmäßig False zurück.",
+        "Das Attribut typ wird auf None gesetzt (kein Typ für ein generisches Spielobjekt)."
+      ],
+      "code": [
+        "# Analog: Einfache Basisklasse mit zwei Koordinaten:",
+        "class Lebewesen:",
+        "    def __init__(self, x, y):",
+        "        self.x = x",
+        "        self.y = y",
+        "    def ist_am_leben(self):",
+        "        return True"
+      ]
     }
   }
 }

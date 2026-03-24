@@ -78,6 +78,14 @@
           "weiblich": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Ergänze zurueck() – dreht den Helden um 180°."
+      ],
+      "code": [
+        "# Tipp: Zweimal links drehen entspricht 180 Grad."
+      ]
     }
   }
 }

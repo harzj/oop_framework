@@ -96,6 +96,16 @@
         ],
         "check_implementation": true
       }
+    },
+    "hints": {
+      "text": [
+        "Füge Held und Knappe jeweils ein Inventar-Attribut (rucksack) hinzu.",
+        "Der Held erzeugt beim Start ein Schwert-Gegenstand und legt es in seinen Rucksack."
+      ],
+      "code": [
+        "# Tipp: Erzeuge das Inventar-Objekt im Konstruktor des Helden.",
+        "# Der Rucksack ist ein Attribut – das ist eine Hat-Beziehung."
+      ]
     }
   }
 }

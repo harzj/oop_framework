@@ -7,5 +7,24 @@
     "wmmmmww",
     "wpwhwhw",
     "twtwwwt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Held und Knappe können unabhängig voneinander gesteuert werden."
+      ],
+      "code": [
+        "for i in range(4):",
+        "    held.geh()",
+        "knappe.links()",
+        "knappe.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

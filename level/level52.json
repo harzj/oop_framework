@@ -132,6 +132,19 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Passe Held so an, dass es jetzt von Charakter erbt.",
+        "Füge die Methode get_weiblich() hinzu."
+      ],
+      "code": [
+        "# Analog: Dritte Ebene in der Vererbungskette:",
+        "class Girokonto(BankKonto):",
+        "    def __init__(self, nr, inhaber, iban):",
+        "        super().__init__(nr, inhaber, iban)",
+        "        self.dispo = 500"
+      ]
     }
   }
 }

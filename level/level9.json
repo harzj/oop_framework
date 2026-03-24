@@ -3,5 +3,27 @@
     "tttttttt",
     "pwhwhhwh",
     "tttttttt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Nutze ist_auf_herz(), um zu prüfen, ob der Held auf einem Herz steht.",
+        "Rufe nehme_auf() auf, wenn du auf einem Herz stehst, um es einzusammeln."
+      ],
+      "code": [
+        "held.geh()",
+        "if held.ist_auf_herz():",
+        "    held.nehme_auf()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen"
+      ]
+    }
+  }
 }

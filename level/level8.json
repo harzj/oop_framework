@@ -5,5 +5,23 @@
     "wwwttttghwwtttt",
     "ttttghwwttttwww",
     "bphwwtttwwwwwww"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Kombiniere Schleifen und Richtungsänderungen für komplexe Pfade."
+      ],
+      "code": [
+        "for i in range(3):",
+        "    held.geh()",
+        "    held.links()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

@@ -6,5 +6,24 @@
     "wwwhw",
     "wwwww",
     "wwwww"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Bewege den Helden mit geh(), links() und rechts() ans Ziel.",
+        "Mit zurueck() dreht sich der Held um 180°."
+      ],
+      "code": [
+        "held.geh()",
+        "held.rechts()",
+        "held.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

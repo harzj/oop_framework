@@ -3,5 +3,31 @@
     "mttmtmttbbmm",
     "mphhwhwhhhhm",
     "tmmtttbmbtbt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Kombiniere verbleibende_herzen() und herzen_vor_mir() für einen flexiblen Herzsammler."
+      ],
+      "code": [
+        "while held.verbleibende_herzen() > 0:",
+        "    if held.ist_auf_herz():",
+        "        held.nehme_auf()",
+        "    elif held.herzen_vor_mir():",
+        "        held.geh()",
+        "    else:",
+        "        held.links()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir"
+      ]
+    }
+  }
 }

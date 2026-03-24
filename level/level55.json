@@ -148,6 +148,18 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere Kollisionsprüfung in geh(): Nutze self.level.gib_objekt_bei(nx, ny).",
+        "Eine Bewegung ist erlaubt, wenn das Zielfeld None ist oder ist_passierbar() True zurückgibt."
+      ],
+      "code": [
+        "# Tipp: Berechne das Zielfeld (nx, ny) anhand der Richtung.",
+        "# Prüfe mit level.gib_objekt_bei(nx, ny):",
+        "#   None                   -> freier Weg, Bewegung erlaubt",
+        "#   obj.ist_passierbar()   -> True = Bewegung erlaubt"
+      ]
     }
   }
 }

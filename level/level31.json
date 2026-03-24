@@ -41,6 +41,16 @@
     "random_door": false,
     "random_keys": false,
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Mit setze_position(x, y) kannst du einen Schlüssel an eine neue Stelle teleportieren.",
+        "Tipp: Finde den richtigen Schlüssel und positioniere ihn so, dass du ihn aufnehmen kannst."
+      ],
+      "code": [
+        "schluessel = level.gib_objekt_bei(5, 2)",
+        "schluessel.setze_position(1, 1)"
+      ]
+    }
   }
 }

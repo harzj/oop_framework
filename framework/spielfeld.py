@@ -969,10 +969,24 @@ class Spielfeld:
                     has_y = has_attribute_or_getter(student_inst, 'y')
                     has_richtung = has_attribute_or_getter(student_inst, 'richtung')
                     has_weiblich = has_attribute_or_getter(student_inst, 'weiblich')
-                    
+
+                    # Determine weiblich for sprite selection:
+                    # 1. Try direct public attribute on student
+                    # 2. Try getter method get_weiblich()
+                    # 3. Fall back to level setting
+                    actual_weiblich = getattr(self.framework, "weiblich", False)
+                    try:
+                        actual_weiblich = student_inst.weiblich
+                    except AttributeError:
+                        if hasattr(student_inst, 'get_weiblich') and callable(getattr(student_inst, 'get_weiblich')):
+                            try:
+                                actual_weiblich = student_inst.get_weiblich()
+                            except Exception:
+                                pass
+
                     # Store student instance wrapped in MetaHeld for framework integration
                     from .held import MetaHeld
-                    self.held = MetaHeld(self.framework, student_inst, x, y, richt, weiblich=getattr(self.framework, "weiblich", False))
+                    self.held = MetaHeld(self.framework, student_inst, x, y, richt, weiblich=actual_weiblich)
                     
                     # Mark the held with information about what's missing/present
                     # This will be used for rendering and victory checking
@@ -1015,12 +1029,18 @@ class Spielfeld:
                             print(f"[WARNUNG] Held ist an Position ({student_x}, {student_y}), "
                                   f"aber Level erwartet ({x}, {y}). Level kann nicht abgeschlossen werden.")
                     
-                    # Check if critical attributes are present for rendering
-                    if has_x and has_y and has_richtung and not has_weiblich:
-                        # Show red question mark sprite instead of hero
-                        setattr(self.held, '_show_error_sprite', True)
-                    elif not (has_x and has_y and has_richtung):
-                        # Some critical attributes missing - don't render at all, but keep in inspector
+                    # Check if critical attributes are present for rendering.
+                    # Rule: if x and y are known, always show *something* so the student
+                    # can see their object on the grid.
+                    # • richtung or weiblich missing  → question mark (can't pick sprite)
+                    # • x or y missing               → nothing (can't determine position)
+                    if has_x and has_y:
+                        if not has_richtung or not has_weiblich:
+                            # Show red question mark – sprite unknown without direction/gender
+                            setattr(self.held, '_show_error_sprite', True)
+                        # else: all present → render normally (no flag set)
+                    else:
+                        # Can't place object without position – don't render
                         setattr(self.held, '_dont_render', True)
                     
                     # Add Level reference via set_level() if configured
@@ -2047,6 +2067,32 @@ class Spielfeld:
             return cls
         except Exception:
             return None
+
+    def _student_class_definition_exists(self, canonical_name: str) -> bool:
+        """Checks ONLY that a class definition with this name is present in an
+        appropriate source file (schueler.py or klassen/<name>.py).
+        Does NOT validate attributes or methods – use this for the
+        'does the class exist at all?' gate in _validate_classes_at_level_start.
+        """
+        import ast as _ast
+        repo_root = os.path.dirname(os.path.dirname(__file__))
+        lower = canonical_name.lower()
+        candidates = [
+            os.path.join(repo_root, 'schueler.py'),
+            os.path.join(repo_root, 'klassen', f'{lower}.py'),
+        ]
+        for path in candidates:
+            try:
+                if not os.path.exists(path):
+                    continue
+                src = open(path, 'r', encoding='utf-8').read()
+                tree = _ast.parse(src, path)
+                for node in tree.body:
+                    if isinstance(node, _ast.ClassDef) and node.name == canonical_name:
+                        return True
+            except Exception:
+                pass
+        return False
 
     def _student_has_class(self, canonical_name: str) -> bool:
         """Check (by filesystem/AST) whether a student-provided class with the
@@ -3106,6 +3152,26 @@ class Spielfeld:
         """Best-effort drawing for objects that don't implement zeichne().
         Uses available object.bild or falls back to canonical sprites by type.
         """
+        # Respect rendering flags set by student-mode spawn logic.
+        # These may live on a MetaHeld wrapper that never reaches Objekt.zeichne()
+        # because __getattribute__ redirects 'zeichne' to the student object first.
+        if getattr(o, '_dont_render', False):
+            return
+
+        if getattr(o, '_show_error_sprite', False):
+            try:
+                ox = int(self._get_attribute_value(o, 'x', 0))
+                oy = int(self._get_attribute_value(o, 'y', 0))
+                error_surface = pygame.Surface((feldgroesse, feldgroesse))
+                error_surface.fill((200, 0, 0))
+                font = pygame.font.Font(None, int(feldgroesse * 0.8))
+                text = font.render('?', True, (255, 255, 255))
+                error_surface.blit(text, text.get_rect(center=(feldgroesse // 2, feldgroesse // 2)))
+                screen.blit(error_surface, (ox * feldgroesse, oy * feldgroesse))
+            except Exception:
+                pass
+            return
+
         try:
             ox = int(self._get_attribute_value(o, 'x', 0))
             oy = int(self._get_attribute_value(o, 'y', 0))
@@ -4325,81 +4391,67 @@ class Spielfeld:
         
         return objects
     
-    def _create_test_object(self, class_name, req):
-        """Erstellt ein Test-Objekt der Klasse für Validierung."""
+    def _get_student_class_for_test(self, class_name, req):
+        """Loads and returns the student class object for testing, or None."""
         try:
             import importlib
-            import importlib.util
             import sys
             import ast
-            
-            # Check if load_from_schueler is set - then load from schueler.py instead of klassen/
+
             load_from_schueler = req.get('load_from_schueler', False) if req else False
-            
+
             if load_from_schueler:
-                # Load class from schueler.py WITHOUT executing top-level code
-                # This is needed because schueler.py contains level.lade() and framework.starten()
                 schueler_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'schueler.py')
-                
                 if not os.path.exists(schueler_path):
-                    print(f"[VICTORY] schueler.py nicht gefunden")
                     return None
-                
-                # First check if schueler module is already loaded (e.g., running from schueler.py)
+
                 if 'schueler' in sys.modules:
                     mod = sys.modules['schueler']
                 elif '__main__' in sys.modules and hasattr(sys.modules['__main__'], class_name):
-                    # Class might be in __main__ if running from schueler.py
                     mod = sys.modules['__main__']
                 else:
-                    # Parse the file to extract just the class definition
-                    # and create a minimal module with just that class
                     with open(schueler_path, 'r', encoding='utf-8') as f:
                         source = f.read()
-                    
                     tree = ast.parse(source, schueler_path)
-                    
-                    # Find the class definition
                     class_node = None
                     import_nodes = []
                     for node in tree.body:
                         if isinstance(node, ast.ClassDef) and node.name == class_name:
                             class_node = node
-                        # Also collect imports that might be needed
                         elif isinstance(node, (ast.Import, ast.ImportFrom)):
-                            # Skip imports of framework.grundlage (would trigger level loading)
                             if isinstance(node, ast.ImportFrom):
                                 if node.module and 'framework' in node.module:
                                     continue
                             import_nodes.append(node)
-                    
                     if class_node is None:
-                        print(f"[VICTORY] Klasse '{class_name}' nicht in schueler.py gefunden")
                         return None
-                    
-                    # Create a new module with just the class
-                    # Build minimal source code with the class definition
                     new_tree = ast.Module(body=import_nodes + [class_node], type_ignores=[])
                     ast.fix_missing_locations(new_tree)
-                    
-                    # Compile and execute in a new module
                     code = compile(new_tree, schueler_path, 'exec')
                     mod = type(sys)('schueler_test_module')
                     mod.__file__ = schueler_path
                     exec(code, mod.__dict__)
             else:
-                # Load from klassen/{class_name}.py
                 module_name = class_name.lower()
                 if f'klassen.{module_name}' in sys.modules:
                     mod = sys.modules[f'klassen.{module_name}']
                 else:
                     mod = importlib.import_module(f'klassen.{module_name}')
-            
-            if not hasattr(mod, class_name):
+
+            return getattr(mod, class_name, None)
+
+        except Exception:
+            return None
+
+    def _create_test_object(self, class_name, req):
+        """Erstellt ein Test-Objekt der Klasse für Validierung."""
+        try:
+            student_class = self._get_student_class_for_test(class_name, req)
+
+            if student_class is None:
+                print(f"[VICTORY] Klasse '{class_name}' nicht in schueler.py / klassen/ gefunden")
                 return None
-            
-            student_class = getattr(mod, class_name)
-            
+
             # Create test instance with default parameters
             if class_name == "Spielobjekt":
                 return student_class(0, 0)
@@ -4420,12 +4472,80 @@ class Spielfeld:
             else:
                 # Try with minimal params
                 return student_class(0, 0)
-                
+
         except Exception as e:
             print(f"[VICTORY] Konnte Test-Objekt für '{class_name}' nicht erstellen: {e}")
             import traceback
             traceback.print_exc()
             return None
+
+    def _check_constructor_params_not_hardcoded(self, class_name, req):
+        """Prüft, dass Konstruktor-Parameter wirklich genutzt werden (nicht hardgecoded).
+
+        Erzeugt Dummy-Objekte mit bekannten Nicht-Null-Werten und vergleicht
+        die Attribute mit den übergebenen Werten.
+        Für boolesche Parameter (weiblich) werden zwei Tests durchgeführt (True und False),
+        um sicherzustellen, dass der Wert auch wirklich vom Parameter abhängt.
+        'name' wird bewusst NICHT geprüft – der Schüler darf den Namen frei wählen."""
+        # Jeder Eintrag ist eine Liste von Tests: [{"args": ..., "checks": ...}, ...]
+        # Für boolesche Parameter wird zweimal getestet (einmal True, einmal False).
+        _DUMMY = {
+            "Spielobjekt": [
+                {"args": (3, 5),              "checks": {"x": 3, "y": 5}},
+            ],
+            "Charakter": [
+                {"args": (6, 4, "down"),       "checks": {"x": 6, "y": 4, "richtung": "down"}},
+            ],
+            "Held": [
+                {"args": (5, 7, "left", True),  "checks": {"x": 5, "y": 7, "richtung": "left", "weiblich": True}},
+                {"args": (5, 7, "left", False), "checks": {"weiblich": False}},
+            ],
+            "Knappe": [
+                {"args": (3, 6, "right"),      "checks": {"x": 3, "y": 6, "richtung": "right"}},
+            ],
+            "Hindernis": [
+                {"args": (4, 8, "Baum"),       "checks": {"x": 4, "y": 8, "typ": "Baum"}},
+            ],
+            "Zettel": [
+                {"args": (2, 9),              "checks": {"x": 2, "y": 9}},
+            ],
+            "Monster": [
+                {"args": (7, 3, "right"),      "checks": {"x": 7, "y": 3, "richtung": "right"}},
+            ],
+        }
+        if class_name not in _DUMMY:
+            return True
+
+        student_class = self._get_student_class_for_test(class_name, req)
+        if student_class is None:
+            return True  # Andere Prüfungen greifen bereits
+
+        for test in _DUMMY[class_name]:
+            try:
+                dummy_obj = student_class(*test["args"])
+            except Exception:
+                return True  # Kann nicht instanziiert werden – andere Checks fangen das ab
+
+            for attr, expected_val in test["checks"].items():
+                # Öffentliches Attribut / Getter
+                actual_val = self._get_attribute_value(dummy_obj, attr, None)
+                # Fallback: private Name-Mangling über die gesamte MRO
+                if actual_val is None:
+                    for cls in type(dummy_obj).__mro__:
+                        mangled = f"_{cls.__name__}__{attr}"
+                        if hasattr(dummy_obj, mangled):
+                            actual_val = getattr(dummy_obj, mangled)
+                            break
+
+                if actual_val != expected_val:
+                    print(
+                        f"[VICTORY] Klasse '{class_name}': Das Attribut '{attr}' scheint fest "
+                        f"programmiert zu sein (gefunden: {actual_val!r}, erwartet: {expected_val!r}). "
+                        f"Nutze den Parameter aus dem Konstruktor, anstatt einen festen Wert zu setzen."
+                    )
+                    return False
+
+        return True
     
     def _validate_classes_at_level_start(self):
         """Validates student classes ONCE at level start.
@@ -4454,9 +4574,19 @@ class Spielfeld:
                 if not self._requires_student_implementation(class_name, req):
                     continue
                 
-                # Check if class exists
-                if not self._student_has_class(class_name):
-                    print(f"[VICTORY] Klasse '{class_name}' nicht gefunden.")
+                # Check if class exists (definition only – no attr/method check here)
+                if not self._student_class_definition_exists(class_name):
+                    # Special case: student may have written 'Heldin' instead of 'Held'
+                    if class_name == "Held" and self._student_class_definition_exists("Heldin"):
+                        print(
+                            "[VICTORY] Du hast eine Klasse 'Heldin' erstellt – das ist kreativ! "
+                            "Leider erwartet das Spiel den Klassennamen 'Held'. "
+                            "Eine Umbenennung in 'Heldin' würde größere Änderungen am Framework erfordern "
+                            "und wird zu einem späteren Zeitpunkt ermöglicht. "
+                            "Bitte benenne deine Klasse vorerst 'Held'."
+                        )
+                    else:
+                        print(f"[VICTORY] Klasse '{class_name}' nicht gefunden.")
                     self._class_validation_passed = False
                     return
                 
@@ -4473,7 +4603,12 @@ class Spielfeld:
                 if not self._check_attributes_new(class_name, test_obj, req):
                     self._class_validation_passed = False
                     return
-                
+
+                # Check that constructor parameters are actually used (not hardcoded)
+                if not self._check_constructor_params_not_hardcoded(class_name, req):
+                    self._class_validation_passed = False
+                    return
+
                 # Check methods (including functional tests)
                 if not self._check_methods_new(class_name, test_obj, req):
                     self._class_validation_passed = False
@@ -4496,22 +4631,52 @@ class Spielfeld:
             self._class_validation_passed = False
     
     def _check_attributes_new(self, class_name, test_obj, req):
-        """Prüft Attribute mit try-except für präzise Fehlermeldungen."""
+        """Prüft Attribute mit try-except für präzise Fehlermeldungen.
+        Alle fehlenden Attribute werden gesammelt und gemeinsam ausgegeben."""
+        errors = []  # collect all problems before returning
+
         # Public attributes
         public_attrs = req.get('attributes', [])
         for attr in public_attrs:
             try:
-                # Try to access attribute directly
                 value = getattr(test_obj, attr)
-                
+
+                # Special validation for 'typ' attribute: value must match the canonical class name
+                if attr == 'typ':
+                    _FIXED_TYPEN = {
+                        'Held':    'Held',
+                        'Knappe':  'Knappe',
+                        'Monster': 'Monster',
+                        'Zettel':  'Zettel',
+                        'Charakter': 'Charakter',
+                        'Spielobjekt': 'Spielobjekt',
+                        # Hindernis is excluded – typ is a constructor parameter there
+                    }
+                    if class_name in _FIXED_TYPEN:
+                        expected_typ = _FIXED_TYPEN[class_name]
+                        if value != expected_typ:
+                            if class_name == 'Held' and value == 'Heldin':
+                                errors.append(
+                                    f"[VICTORY] Klasse 'Held': Das Attribut 'typ' ist auf 'Heldin' gesetzt. "
+                                    f"Das Spiel erwartet den Wert 'Held'. "
+                                    f"Eine Unterstützung für 'Heldin' als Typ würde größere Änderungen am Framework erfordern "
+                                    f"und wird zu einem späteren Zeitpunkt ermöglicht. "
+                                    f"Setze 'self.typ = \"Held\"'."
+                                )
+                            else:
+                                errors.append(
+                                    f"[VICTORY] Klasse '{class_name}': Das Attribut 'typ' hat den falschen Wert "
+                                    f"(gefunden: {value!r}, erwartet: {expected_typ!r}). "
+                                    f"Setze 'self.typ = \"{expected_typ}\"'."
+                                )
+                        continue  # typ is fully checked here
+
                 # Special validation for 'rucksack' attribute (Inventar)
                 if attr == 'rucksack' and value is not None:
-                    # Check if it's an Inventar instance
                     if not hasattr(value, 'items') or not hasattr(value, 'item_hinzufuegen'):
-                        print(f"[VICTORY] Klasse '{class_name}': Attribut 'rucksack' ist kein gültiges Inventar-Objekt.")
-                        return False
-                    
-                    # Held-specific check: must have a Schwert in inventory
+                        errors.append(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber 'rucksack' ist kein gültiges Inventar-Objekt.")
+                        continue
+
                     if class_name == 'Held':
                         has_schwert = False
                         try:
@@ -4521,47 +4686,36 @@ class Spielfeld:
                                     break
                         except Exception:
                             pass
-                        
                         if not has_schwert:
-                            print(f"[VICTORY] Klasse 'Held': Inventar (rucksack) muss ein Schwert enthalten.")
-                            return False
-                    
-                    # Knappe-specific check: inventory must be empty
+                            errors.append(f"[VICTORY] Klasse 'Held' ist vorhanden, aber der Rucksack enthält kein Schwert.")
+
                     elif class_name == 'Knappe':
                         try:
                             if len(value.items) > 0:
-                                print(f"[VICTORY] Klasse 'Knappe': Inventar (rucksack) muss leer sein.")
-                                return False
+                                errors.append(f"[VICTORY] Klasse 'Knappe' ist vorhanden, aber der Rucksack sollte leer sein.")
                         except Exception:
                             pass
-                
-                # Success - attribute is accessible
+
             except AttributeError:
-                print(f"[VICTORY] Klasse '{class_name}': Öffentliches Attribut '{attr}' nicht vorhanden oder nicht erreichbar.")
-                return False
-        
+                errors.append(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber das Attribut '{attr}' ist nicht gesetzt.")
+
         # Private attributes
-        # Note: attributes_private: {x: true} only means "x should be private (__x)"
-        # It does NOT mean "x needs a getter" - getters are checked in methods list
         private_attrs = req.get('attributes_private', {})
         for attr, is_private in private_attrs.items():
-            # Only check if is_private is True (it's just a flag)
             if not is_private:
                 continue
-                
-            # First check: attribute should NOT be directly accessible
             try:
-                value = getattr(test_obj, attr)
-                # If we get here, attribute is public (BAD!)
-                print(f"[VICTORY] Klasse '{class_name}': Attribut '{attr}' sollte privat sein (mit __), ist aber öffentlich zugänglich.")
-                return False
+                getattr(test_obj, attr)
+                # Accessible directly → should have been private
+                errors.append(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber das Attribut '{attr}' sollte privat sein (nutze __ davor, also __{attr}).")
             except AttributeError:
-                # Good - attribute is not directly accessible
-                # Now check if it exists as private attribute via name mangling
                 mangled_name = f"_{class_name}__{attr}"
                 if not hasattr(test_obj, mangled_name):
-                    print(f"[VICTORY] Klasse '{class_name}': Privates Attribut '__{attr}' nicht vorhanden.")
-                    return False
+                    errors.append(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber das private Attribut '__{attr}' fehlt.")
+
+        for msg in errors:
+            print(msg)
+        return len(errors) == 0
         
         return True
     
@@ -4571,12 +4725,12 @@ class Spielfeld:
         public_methods = req.get('methods', [])
         for method_name in public_methods:
             if not hasattr(test_obj, method_name):
-                print(f"[VICTORY] Klasse '{class_name}': Methode '{method_name}()' nicht vorhanden.")
+                print(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber die Methode '{method_name}()' fehlt.")
                 return False
             
             method = getattr(test_obj, method_name)
             if not callable(method):
-                print(f"[VICTORY] Klasse '{class_name}': '{method_name}' ist keine Methode.")
+                print(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber '{method_name}' ist keine aufrufbare Methode.")
                 return False
         
         # Private methods with setters
@@ -4584,7 +4738,7 @@ class Spielfeld:
         for method_name, should_have_setter in private_methods.items():
             # Check if method exists
             if not hasattr(test_obj, method_name):
-                print(f"[VICTORY] Klasse '{class_name}': Methode '{method_name}()' nicht vorhanden.")
+                print(f"[VICTORY] Klasse '{class_name}' ist vorhanden, aber die Methode '{method_name}()' fehlt.")
                 return False
         
         # Functional tests for movement methods

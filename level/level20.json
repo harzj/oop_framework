@@ -6,5 +6,35 @@
     "Dtwt",
     "htCt",
     "tttt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Objekte sind im Speicher, aber du brauchst eine Variable, um auf sie zuzugreifen.",
+        "Nutze die vorhandenen Objekte zettel und tuer, um den Spruch zu lesen und anzuwenden."
+      ],
+      "code": [
+        "spruch = zettel.gib_spruch()",
+        "tuer.spruch_anwenden(spruch)"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts",
+        "gib_objekt_vor_dir",
+        "gib_knappe",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
+      ]
+    }
+  }
 }

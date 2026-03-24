@@ -112,7 +112,7 @@ def main(argv):
     if len(argv) >= 2:
         version = argv[1]
     else:
-        version = input("Versionsnummer (z.B. 6): ").strip()
+        version = input("Versionsnummer (z.B. 1.0.1_3): ").strip()
 
     if not version:
         print("Keine Versionsnummer angegeben. Abbruch.")
@@ -122,7 +122,7 @@ def main(argv):
     dist_dir = ROOT / "dist"
     dist_dir.mkdir(exist_ok=True)
 
-    zipname = f"framework_version_{version}.zip"
+    zipname = f"oopventure_{version}.zip"
     zip_path = dist_dir / zipname
     if zip_path.exists():
         ans = input(f"{zipname} existiert bereits. Überschreiben? [j/N]: ").strip().lower()

@@ -542,8 +542,12 @@ class MetaHeld(Held):
         student_x = get_attr_or_via_getter(student_obj, 'x', x)
         student_y = get_attr_or_via_getter(student_obj, 'y', y)
         student_richtung = get_attr_or_via_getter(student_obj, 'richtung', richtung)
-        
-        super().__init__(framework, student_x, student_y, student_richtung, steuerung_aktiv=False, weiblich=weiblich)
+        # Use student's weiblich if provided (direct attribute or get_weiblich()).  
+        # Fall back to the level's value only if the student has neither.
+        student_weiblich_raw = get_attr_or_via_getter(student_obj, 'weiblich', None)
+        actual_weiblich = student_weiblich_raw if student_weiblich_raw is not None else weiblich
+
+        super().__init__(framework, student_x, student_y, student_richtung, steuerung_aktiv=False, weiblich=actual_weiblich)
         object.__setattr__(self, '_student', student_obj)
         # Initialize allowed getters (will be set by spawning code if class_requirements exist)
         object.__setattr__(self, '_allowed_getters', None)

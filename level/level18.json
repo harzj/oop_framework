@@ -8,5 +8,27 @@
     "mmtwtttht",
     "mmthwwhht",
     "wwttttttt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Knobelaufgabe: Löse das Level nur mit was_ist_vorn() und Schleifen.",
+        "Tipp: Prüfe alle vier Richtungen, bevor du dich bewegst."
+      ],
+      "code": [],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts"
+      ]
+    }
+  }
 }

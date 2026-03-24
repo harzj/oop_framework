@@ -6,5 +6,22 @@
     "wwmmw",
     "wwhww",
     "wwmww"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Nutze eine for-Schleife, um mehrere Schritte effizient zu programmieren."
+      ],
+      "code": [
+        "for i in range(5):",
+        "    held.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

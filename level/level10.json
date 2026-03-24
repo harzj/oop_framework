@@ -7,5 +7,28 @@
     "wwwmthwt",
     "hwhmtwww",
     "wwwtthww"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Auch der Knappe kann mit ist_auf_herz() und nehme_auf() Herzen sammeln.",
+        "Steuere beide Charaktere, um alle Herzen einzusammeln."
+      ],
+      "code": [
+        "if held.ist_auf_herz():",
+        "    held.nehme_auf()",
+        "if knappe.ist_auf_herz():",
+        "    knappe.nehme_auf()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen"
+      ]
+    }
+  }
 }

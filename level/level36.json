@@ -65,6 +65,13 @@
           "typ"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Wenn Level 35 funktioniert, sollte der gleiche Code auch Level 36 direkt lösen.",
+        "Überprüfe, ob alle Attribute korrekt gesetzt sind."
+      ],
+      "code": []
     }
   }
 }

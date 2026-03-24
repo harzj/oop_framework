@@ -4,9 +4,26 @@ import tkinter as tk
 from tkinter import filedialog
 from .spielfeld import Spielfeld
 
+
+def _load_version_banner():
+    """Read version.json from the project root and return a banner string."""
+    try:
+        import json
+        from pathlib import Path
+        from datetime import date
+        vfile = Path(__file__).resolve().parents[1] / 'version.json'
+        v = json.loads(vfile.read_text(encoding='utf-8'))
+        today = date.today().strftime('%d.%m.%Y')
+        return (f"OOPventure Version {v['major']}.{v['minor']}.{v['patch']} "
+                f"Build {v['build']} vom {today}")
+    except Exception:
+        return "OOPventure"
+
+
 class Framework:
     def __init__(self, levelnummer=1, feldgroesse=64, auto_erzeuge_objekte=True, w = False, splash=False):
-        print("(c) 2025 Johannes Harz\nFachkonferenz Informatik\nCusanus Gymnasium St. Wendel")
+        print(_load_version_banner())
+        print("(c) 2025 Johannes Harz | Fachkonferenz Informatik | Cusanus Gymnasium St. Wendel")
         pygame.init()
         self.feldgroesse = feldgroesse
         self._tasten = {}
@@ -434,20 +451,39 @@ class Framework:
             blit_bullet("Erfülle die Siegbedingung des Levels.", colors['col_desc'])
         y += 4
 
+        # ── Level-spezifische Hinweise aus JSON ────────────────────────────
+        hints       = settings.get('hints', {}) or {}
+        hints_text  = hints.get('text', []) or []
+        hints_code  = hints.get('code', []) or []
+
         # ── Tipps ──────────────────────────────────────────────────────────
         section("Tipps:")
-        if not classes_present:
-            blit_bullet("Nutze was_ist_vorn() / was_ist_links() / was_ist_rechts(), um deine Umgebung zu erkunden.", colors['hint_text'])
+        if hints_text:
+            for ht in hints_text:
+                blit_bullet(ht, colors['hint_text'])
+        elif not classes_present:
+            blit_bullet("Bewege den Helden mit geh(), links() und rechts().", colors['hint_text'])
             if collect_hearts:
-                blit_bullet("Gehe auf ein Herz-Feld und rufe nehme_auf() auf, um ein Herz einzusammeln.", colors['hint_text'])
+                blit_bullet("Gehe auf ein Herz-Feld und rufe nehme_auf() auf.", colors['hint_text'])
             if mt and isinstance(mt, dict) and mt.get('enabled'):
                 blit_bullet("Du erreichst das Ziel, wenn der Held exakt auf dem markierten Feld steht.", colors['hint_text'])
-            blit_bullet("Mit gib_objekt_bei(x, y) erhältst du eine Referenz auf das Objekt an dieser Koordinate.", colors['hint_text'])
-            blit_bullet("Mit gib_objekt_vor_dir() erhältst du die Referenz auf das Objekt direkt vor dem Helden.", colors['hint_text'])
         else:
-            blit_bullet("Deine Klasse muss von der richtigen Elternklasse erben und alle Pflichtattribute setzen (x, y, richtung, typ).", colors['hint_text'])
+            blit_bullet("Deine Klasse muss alle Pflichtattribute im __init__ setzen.", colors['hint_text'])
             blit_bullet("Vergiss nicht, super().__init__(...) im Konstruktor aufzurufen.", colors['hint_text'])
-            blit_bullet("Im Objekt-Inspektor (rechts im Spielfenster) siehst du alle Objekte, auf die du zugreifen kannst.", colors['hint_text'])
+            blit_bullet("Nutze das Klassendiagramm im Arbeitsblatt als Vorlage.", colors['hint_text'])
+
+        # ── Codebeispiel ────────────────────────────────────────────────────
+        if hints_code:
+            y += 6
+            section("Codebeispiel:")
+            code_bg = colors.get('code_bg', (22, 28, 48))
+            padding = 8
+            for code_line in hints_code:
+                rw = w - padding * 2
+                pygame.draw.rect(surf, code_bg, (x + padding, y, rw, lh + 2))
+                surf.blit(bf.render(code_line, True, (160, 230, 160)), (x + padding + 4, y + 1))
+                y += lh + 2
+            y += 4
 
         return y
 
@@ -501,6 +537,7 @@ class Framework:
                 'col_desc':     (215, 215, 205),
                 'sep':          (55,  62, 100),
                 'hint_text':    (195, 215, 200),
+                'code_bg':      (22,  28,  48),
             }
             fonts = {
                 'tab':        pygame.font.SysFont("consolas", 15, bold=True),
@@ -552,12 +589,22 @@ class Framework:
             rs = pygame.Surface((CW, render_h))
             rs.fill(C['bg'])
             ry = 6
+            # Methoden-Filter aus Level-Hints lesen
+            level_hints = (getattr(sp, 'settings', {}) or {}).get('hints', {}) or {}
+            methoden_filter = level_hints.get('methoden')  # None = zeige alle
+
+            def _filter_methoden(methoden):
+                if not methoden_filter:
+                    return methoden
+                allowed = set(methoden_filter)
+                return [m for m in methoden if m[0].rstrip('()') in allowed or m[0] in allowed]
+
             if tab == 0:
                 ry = self._render_hilfe_allgemein(rs, fonts, C, 0, ry, CW, sp)
             elif tabs[tab] == "Held":
-                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_held_methoden())
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, _filter_methoden(self._get_held_methoden()))
             elif tabs[tab] == "Knappe":
-                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_knappe_methoden())
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, _filter_methoden(self._get_knappe_methoden()))
             else:
                 ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_monster_methoden())
 

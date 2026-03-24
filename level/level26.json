@@ -26,6 +26,18 @@
     },
     "Villager": {
       "public": true
+    },
+    "hints": {
+      "text": [
+        "Du kannst die Richtung des Helden nicht einfach direkt setzen.",
+        "Nutze stattdessen held.setze_richtung('N'), um den Helden nach Norden zu drehen.",
+        "Gültige Richtungen: 'up' (Norden), 'down' (Süden), 'left' (Westen), 'right' (Osten)."
+      ],
+      "code": [
+        "held.setze_richtung('up')",
+        "held.geh()",
+        "held.nehme_auf()"
+      ]
     }
   }
 }

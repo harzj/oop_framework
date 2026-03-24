@@ -5,5 +5,24 @@
     "whbww",
     "whhww",
     "mwwbb"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Nutze for-Schleifen, um wiederholte Bewegungen zu vereinfachen."
+      ],
+      "code": [
+        "for i in range(3):",
+        "    held.geh()",
+        "held.links()",
+        "held.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

@@ -8,8 +8,44 @@
     "tttt"
   ],
   "settings": {
-    "Held": { "public": false },
-    "Monster": { "public": true },
-    "Herz": { "public": false }
+    "Held": {
+      "public": false
+    },
+    "Monster": {
+      "public": true
+    },
+    "Herz": {
+      "public": false
+    },
+    "hints": {
+      "text": [
+        "Nutze gib_knappe() oder gib_objekt_bei(x, y), um Zugriff auf weitere Objekte zu erhalten.",
+        "Tipp: level.gib_objekt_bei(x, y) liefert das Objekt an einer bestimmten Position."
+      ],
+      "code": [
+        "t = level.gib_objekt_bei(0, 3)",
+        "z = level.gib_objekt_bei(2, 4)",
+        "spruch = z.gib_spruch()",
+        "t.spruch_anwenden(spruch)"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts",
+        "gib_objekt_vor_dir",
+        "gib_knappe",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
+      ]
+    }
   }
 }

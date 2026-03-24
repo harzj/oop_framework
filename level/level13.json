@@ -3,5 +3,30 @@
     "mttmtmtt",
     "mphwhhwt",
     "tmmtttbt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Nutze verbleibende_herzen() als Schleifenbedingung für allgemeinen Code.",
+        "herzen_vor_mir() gibt True zurück, wenn ein Herz direkt vor dem Helden liegt."
+      ],
+      "code": [
+        "while held.verbleibende_herzen() > 0:",
+        "    if held.ist_auf_herz():",
+        "        held.nehme_auf()",
+        "    else:",
+        "        held.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir"
+      ]
+    }
+  }
 }

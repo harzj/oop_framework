@@ -75,6 +75,20 @@
         ],
         "attributes": []
       }
+    },
+    "hints": {
+      "text": [
+        "Lass Hindernis von Spielobjekt erben.",
+        "Rufe im Konstruktor super().__init__(x, y) auf, damit die Basisklasse x und y setzt.",
+        "Für private Attribute der Basisklasse nutze: self._Spielobjekt__typ = art"
+      ],
+      "code": [
+        "# Analog: Unterklasse ruft Basisklassen-Konstruktor auf:",
+        "class Girokonto(Konto):",
+        "    def __init__(self, nummer, inhaber):",
+        "        super().__init__(nummer, inhaber)",
+        "        self.dispo = 500"
+      ]
     }
   }
 }

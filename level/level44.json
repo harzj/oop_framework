@@ -76,6 +76,19 @@
           "typ": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere zusätzlich die Klasse Hindernis.",
+        "Hindernis hat: x, y, typ. Der Konstruktor: __init__(self, x, y, art)."
+      ],
+      "code": [
+        "# Analog: Klasse mit x, y und einem Typ-Attribut:",
+        "class Konto:",
+        "    def __init__(self, nummer, typ):",
+        "        self.nr = nummer",
+        "        self.typ = typ"
+      ]
     }
   }
 }

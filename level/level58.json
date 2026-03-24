@@ -95,6 +95,18 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Polymorphie: Überschreibe ist_passierbar() in Zettel, sodass Zettel betretbar ist.",
+        "Herzen und Zettel sind immer begehbar – gib in ihrer Klasse True zurück."
+      ],
+      "code": [
+        "# Polymorphie – Methode in Unterklasse überschreiben:",
+        "class Girokonto(Konto):",
+        "    def ist_ueberziehbar(self):",
+        "        return True  # überschreibt das Standardverhalten"
+      ]
     }
   }
 }

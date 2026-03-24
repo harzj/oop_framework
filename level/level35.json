@@ -62,6 +62,21 @@
           "typ"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere die Klasse Held in schueler.py, damit der Held im Level erscheint.",
+        "Der Konstruktor bekommt: xp, yp (Position), richtung (str), w (weiblich, bool).",
+        "Setze alle Attribute (x, y, richtung, name, typ, weiblich) im __init__."
+      ],
+      "code": [
+        "# Analog: Klasse mit Attributen aus Parametern befüllen:",
+        "class Konto:",
+        "    def __init__(self, nummer, inhaber):",
+        "        self.nr = nummer     # Parameter wird genutzt!",
+        "        self.inh = inhaber",
+        "        self.guthaben = 0    # fester Startwert"
+      ]
     }
   }
 }

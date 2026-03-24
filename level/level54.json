@@ -144,6 +144,20 @@
           "spruch"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Füge Charakter das Attribut 'level = None' und die Methode set_level(l) hinzu.",
+        "Das Framework setzt das Level automatisch, sobald ein Charakter im Level vorhanden ist."
+      ],
+      "code": [
+        "# Platzhalter-Attribut mit None und Setter:",
+        "class Konto:",
+        "    def __init__(self):",
+        "        self.bank = None  # wird später zugewiesen",
+        "    def set_bank(self, b):",
+        "        self.bank = b"
+      ]
     }
   }
 }

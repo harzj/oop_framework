@@ -9,5 +9,33 @@
     "twtttwtttwt",
     "twwwwwwwtwt",
     "ttttttttttT"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Knobelaufgabe: Kombiniere was_ist_vorn(), was_ist_links() und was_ist_rechts()."
+      ],
+      "code": [
+        "if held.was_ist_links() == 'None':",
+        "    held.links()",
+        "elif held.was_ist_vorn() == 'None':",
+        "    held.geh()",
+        "else:",
+        "    held.rechts()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen",
+        "herzen_vor_mir",
+        "was_ist_vorn",
+        "was_ist_links",
+        "was_ist_rechts"
+      ]
+    }
+  }
 }

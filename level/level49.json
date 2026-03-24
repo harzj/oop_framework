@@ -79,6 +79,21 @@
           "spruch": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Lass Zettel von Spielobjekt erben – analog zu Hindernis.",
+        "Ergänze die Methode gib_spruch() in Zettel."
+      ],
+      "code": [
+        "# Analog: Unterklasse erbt und ergänzt eine Methode:",
+        "class Girokonto(Konto):",
+        "    def __init__(self, nummer, inhaber):",
+        "        super().__init__(nummer, inhaber)",
+        "        self.dispo = 500",
+        "    def get_dispo(self):",
+        "        return self.dispo"
+      ]
     }
   }
 }

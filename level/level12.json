@@ -2,5 +2,27 @@
   "tiles": [
     "mmmmmmmmmmmmt",
     "mphhhhhhhhwmt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Dein Code aus Level 11 sollte auch dieses Level lösen – durch verbleibende_herzen() passt er sich automatisch an."
+      ],
+      "code": [
+        "while held.verbleibende_herzen() > 0:",
+        "    held.geh()",
+        "    if held.ist_auf_herz():",
+        "        held.nehme_auf()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen"
+      ]
+    }
+  }
 }

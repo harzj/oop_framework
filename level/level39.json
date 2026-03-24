@@ -79,6 +79,17 @@
         "y": 2,
         "richtung": "left"
       }
-    ]
+    ],
+    "hints": {
+      "text": [
+        "Erzeuge einen Helden und füge ihn dem Level hinzu.",
+        "Importiere deine eigene Helden-Klasse aus klassen/held.py."
+      ],
+      "code": [
+        "from klassen.held import Held",
+        "h = Held(...)  # Parameter aus Klassendiagramm ablesen",
+        "level.objekt_hinzufuegen(h)"
+      ]
+    }
   }
 }

@@ -2,5 +2,27 @@
   "tiles": [
     "ttttttttt",
     "tphhhhhwt"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Nutze eine while-Schleife mit verbleibende_herzen(), um solange zu laufen, bis alle Herzen gesammelt sind."
+      ],
+      "code": [
+        "while held.verbleibende_herzen() > 0:",
+        "    held.geh()",
+        "    if held.ist_auf_herz():",
+        "        held.nehme_auf()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck",
+        "ist_auf_herz",
+        "nehme_auf",
+        "verbleibende_herzen"
+      ]
+    }
+  }
 }

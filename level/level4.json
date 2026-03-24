@@ -4,5 +4,23 @@
     "wwtX",
     "wpwh",
     "bbbw"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Bewege den Helden vorsichtig – Monster können gefährlich sein!",
+        "Versuche, dem Monster auszuweichen."
+      ],
+      "code": [
+        "held.links()",
+        "held.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

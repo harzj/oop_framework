@@ -57,6 +57,18 @@
     "random_door": true,
     "random_keys": true,
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Du brauchst die Farbe des Schlüssels, um die richtige Tür zu öffnen.",
+        "Vergleiche die Farben mit get_farbe() vom Schlüssel und der Tür."
+      ],
+      "code": [
+        "s = level.gib_objekt_bei(3, 3)",
+        "t = level.gib_objekt_bei(2, 1)",
+        "if s.get_farbe() == t.get_farbe():",
+        "    t.verwende_schluessel(s)"
+      ]
+    }
   }
 }

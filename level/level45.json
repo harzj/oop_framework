@@ -76,6 +76,21 @@
           "spruch": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere die Klasse Zettel.",
+        "Zettel hat: x, y, typ='Zettel', gesammelt=False. Mit gib_spruch() wird der Spruch zurückgegeben."
+      ],
+      "code": [
+        "# Analog: Klasse mit Getter-Methode:",
+        "class Konto:",
+        "    def __init__(self, nummer, inhaber):",
+        "        self.nr = nummer",
+        "        self.inh = inhaber",
+        "    def get_inhaber(self):",
+        "        return self.inh"
+      ]
     }
   }
 }

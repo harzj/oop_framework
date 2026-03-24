@@ -6,5 +6,24 @@
     "hwttww",
     "Pwwmxw",
     "wwbmww"
-  ]
+  ],
+  "settings": {
+    "hints": {
+      "text": [
+        "Auch der Knappe kann sich mit geh(), links() und rechts() bewegen.",
+        "Steuere Held und Knappe abwechselnd."
+      ],
+      "code": [
+        "held.geh()",
+        "knappe.rechts()",
+        "knappe.geh()"
+      ],
+      "methoden": [
+        "geh",
+        "links",
+        "rechts",
+        "zurueck"
+      ]
+    }
+  }
 }

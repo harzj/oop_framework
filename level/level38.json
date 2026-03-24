@@ -70,6 +70,18 @@
           "typ"
         ]
       }
+    },
+    "hints": {
+      "text": [
+        "Lagere die Helden-Klasse in eine eigene Datei klassen/held.py aus.",
+        "Importiere sie dann in schueler.py: from klassen.held import Held"
+      ],
+      "code": [
+        "# Import-Syntax (Beispiel):",
+        "# In klassen/konto.py:  class Konto: ...",
+        "# In schueler.py:",
+        "from klassen.konto import Konto"
+      ]
     }
   }
 }

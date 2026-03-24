@@ -65,6 +65,16 @@
           "weiblich": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Ergänze die Held-Klasse um die Methode geh(), die den Helden einen Schritt bewegt.",
+        "Nutze die Richtung des Helden, um x oder y entsprechend zu verändern."
+      ],
+      "code": [
+        "# Tipp: Passe x oder y je nach Richtung an.",
+        "# Mögliche Richtungen: 'up', 'down', 'left', 'right'"
+      ]
     }
   }
 }

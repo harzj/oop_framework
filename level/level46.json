@@ -81,6 +81,17 @@
           "richtung": true
         }
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere die Klasse Knappe. Sie sieht dem Helden sehr ähnlich.",
+        "Knappe hat: x, y, richtung, name, typ='Knappe'. Konstruktor: __init__(self, x, y, art).",
+        "Tipp: Schaue dir deine Held-Klasse an – viele Methoden kannst du wiederverwenden."
+      ],
+      "code": [
+        "# Tipp: Knappe und Held sind sehr ähnlich.",
+        "# Schaue dir deine Held-Klasse an – viele Teile kannst du übertragen."
+      ]
     }
   }
 }

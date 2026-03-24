@@ -78,6 +78,21 @@
         ],
         "check_implementation": true
       }
+    },
+    "hints": {
+      "text": [
+        "Implementiere Gegenstand und Inventar.",
+        "Gegenstand: art (str), typ='Gegenstand', im_inventar=False. Methode: sammeln().",
+        "Inventar: items=[], kapazitaet=10, gold=0. Methoden: item_hinzufuegen(i), hat_item(art), anzahl_items()."
+      ],
+      "code": [
+        "# Analog: Zwei kooperierende Klassen:",
+        "class Regal:",
+        "    def __init__(self):",
+        "        self.produkte = []",
+        "    def hinzufuegen(self, p):",
+        "        self.produkte.append(p)"
+      ]
     }
   }
 }

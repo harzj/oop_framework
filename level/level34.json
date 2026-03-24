@@ -54,6 +54,17 @@
     "random_door": false,
     "random_keys": false,
     "use_student_module": false,
-    "student_classes_in_subfolder": false
+    "student_classes_in_subfolder": false,
+    "hints": {
+      "text": [
+        "Erzeuge einen passenden Schlüssel mit dem Konstruktor und füge ihn dem Level hinzu.",
+        "Schluessel(x, y) erzeugt einen Schlüssel an der angegebenen Position."
+      ],
+      "code": [
+        "from framework.schluessel import Schluessel",
+        "s = Schluessel(3, 3)",
+        "level.objekt_hinzufuegen(s)"
+      ]
+    }
   }
 }
