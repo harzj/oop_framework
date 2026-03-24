@@ -19,14 +19,13 @@
     },
     "hints": {
       "text": [
-        "Nutze gib_knappe() oder gib_objekt_bei(x, y), um Zugriff auf weitere Objekte zu erhalten.",
-        "Tipp: level.gib_objekt_bei(x, y) liefert das Objekt an einer bestimmten Position."
+        "Nutze gib_objekt_vor_dir(), um das Objekt direkt vor dir zu erhalten.",
+        "Dieses Mal sind die Objekte nicht namentlich bekannt – du musst sie selbst herausfinden.",
+        "Nicht nur der Held, auch der Knappe muss referenziert werden."
       ],
       "code": [
-        "t = level.gib_objekt_bei(0, 3)",
-        "z = level.gib_objekt_bei(2, 4)",
-        "spruch = z.gib_spruch()",
-        "t.spruch_anwenden(spruch)"
+        "tuer = held.gib_objekt_vor_dir()",
+        "knappe = held.gib_knappe()"
       ],
       "methoden": [
         "geh",

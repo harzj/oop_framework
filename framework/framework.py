@@ -46,6 +46,8 @@ class Framework:
         self._help_tab = 1   # 0=Generelle Hilfe, 1=Held, ...
         self._help_scroll = 0
         self._help_tab_rects = []
+        self._help_prev_size = None   # screen size before resize for F1
+        self._help_detach_rect = None  # clickable "own window" button rect
         # Inspector panel minimum width – grows automatically to fit text
         self._inspector_panel_width = 280
 
@@ -487,6 +489,114 @@ class Framework:
 
         return y
 
+    # --- Hilfe-Fenstergröße verwalten ---
+    # Level 0 hat 7×7 Tiles → Spielbreite 7*64 + 280 = 728, Höhe 7*64 = 448.
+    # Das Hilfspanel braucht min. 880×580 plus etwas Rahmen.
+    _HELP_MIN_W = 960   # min. Spielfensterbreite damit F1-Panel gut lesbar ist
+    _HELP_MIN_H = 640   # min. Spielfensterhöhe
+
+    def _ensure_help_window_size(self):
+        """Vergrößert das Fenster temporär, wenn es kleiner als _HELP_MIN_* ist."""
+        try:
+            sw, sh = self.screen.get_size()
+            if sw < self._HELP_MIN_W or sh < self._HELP_MIN_H:
+                self._help_prev_size = (sw, sh)
+                new_w = max(sw, self._HELP_MIN_W)
+                new_h = max(sh, self._HELP_MIN_H)
+                self.screen = pygame.display.set_mode((new_w, new_h))
+        except Exception:
+            pass
+
+    def _restore_help_window_size(self):
+        """Stellt die Fenstergröße vor dem F1-Öffnen wieder her."""
+        try:
+            prev = getattr(self, '_help_prev_size', None)
+            if prev:
+                self.screen = pygame.display.set_mode(prev)
+                self._help_prev_size = None
+        except Exception:
+            pass
+
+    def _open_help_in_own_window(self):
+        """Öffnet die Hilfe in einem eigenständigen Tkinter-Fenster."""
+        import threading
+
+        def _build_text():
+            lines = []
+            sp = getattr(self, 'spielfeld', None)
+            settings = getattr(sp, 'settings', {}) or {}
+            hints = settings.get('hints', {}) or {}
+            hints_text = hints.get('text', []) or []
+            hints_code = hints.get('code', []) or []
+            methoden_filter = hints.get('methoden')
+            allowed = set(methoden_filter) if methoden_filter else None
+
+            if hints_text:
+                lines.append("── Tipps ──────────────────────────────")
+                for t in hints_text:
+                    lines.append(f"  • {t}")
+                lines.append("")
+
+            if hints_code:
+                lines.append("── Beispielcode ────────────────────────")
+                for c in hints_code:
+                    lines.append(f"    {c}")
+                lines.append("")
+
+            def fmt_methoden(methoden):
+                for method, params, desc in methoden:
+                    if allowed and method.rstrip('()') not in allowed and method not in allowed:
+                        continue
+                    lines.append(f"  {method}")
+                    if params and params != "–":
+                        lines.append(f"      Parameter: {params}")
+                    lines.append(f"      {desc}")
+
+            lines.append("── Held – Methoden ─────────────────────")
+            fmt_methoden(self._get_held_methoden())
+            lines.append("")
+
+            has_knappe = False
+            has_monster = False
+            try:
+                tiles_flat = [c for row in sp.level.tiles for c in row]
+                has_knappe  = any(c.lower() == 'k' for c in tiles_flat if isinstance(c, str))
+                has_monster = any(c.lower() in ('x', 'y') for c in tiles_flat if isinstance(c, str))
+            except Exception:
+                pass
+
+            if has_knappe or getattr(sp, 'knappe', None) is not None:
+                lines.append("── Knappe – Methoden ───────────────────")
+                fmt_methoden(self._get_knappe_methoden())
+                lines.append("")
+
+            if has_monster:
+                lines.append("── Monster – Methoden ──────────────────")
+                fmt_methoden(self._get_monster_methoden())
+                lines.append("")
+
+            return "\n".join(lines)
+
+        def _run():
+            import tkinter as _tk
+            from tkinter import scrolledtext as _st
+            root = _tk.Tk()
+            root.title("OOPventure – Hilfe")
+            root.geometry("720x540")
+            root.configure(bg="#12141e")
+
+            txt = _st.ScrolledText(root, wrap=_tk.WORD, font=("Consolas", 12),
+                                   bg="#12141e", fg="#d8dced",
+                                   insertbackground="white", relief="flat",
+                                   padx=10, pady=8)
+            txt.pack(fill="both", expand=True)
+            txt.insert("end", _build_text())
+            txt.configure(state="disabled")
+            root.mainloop()
+
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+
     def _zeichne_hilfe(self):
         """F1-Hilfsfenster: zeigt verfügbare Befehle mit Tab-Navigation."""
         try:
@@ -562,6 +672,18 @@ class Framework:
             screen.blit(fonts['tab'].render(
                 "Hilfe  (F1 schließen  |  \u2190 \u2192 Tabs  |  Mausklick auf Tab)",
                 True, (240, 245, 255)), (px + 10, py + 7))
+
+            # "Eigenes Fenster"-Button (⧉) ganz rechts in der Titelzeile
+            _btn_w, _btn_h = 28, 22
+            _btn_x = px + W - _btn_w - 4
+            _btn_y = py + (TITLE_H - _btn_h) // 2
+            _btn_rect = pygame.Rect(_btn_x, _btn_y, _btn_w, _btn_h)
+            self._help_detach_rect = _btn_rect
+            pygame.draw.rect(screen, (55, 75, 140), _btn_rect, border_radius=3)
+            pygame.draw.rect(screen, (120, 150, 220), _btn_rect, 1, border_radius=3)
+            _btn_lbl = fonts['tab'].render("\u29c9", True, (220, 235, 255))
+            screen.blit(_btn_lbl, (_btn_x + (_btn_w - _btn_lbl.get_width()) // 2,
+                                   _btn_y + (_btn_h - _btn_lbl.get_height()) // 2))
 
             # Tabs
             TAB_H = 28
@@ -1288,8 +1410,13 @@ class Framework:
                 elif event.type == pygame.KEYDOWN:
                     # F1: Hilfsfenster ein-/ausblenden
                     if event.key == pygame.K_F1:
-                        self._help_visible = not getattr(self, '_help_visible', False)
-                        self._help_scroll = 0
+                        if not getattr(self, '_help_visible', False):
+                            self._help_visible = True
+                            self._help_scroll = 0
+                            self._ensure_help_window_size()
+                        else:
+                            self._help_visible = False
+                            self._restore_help_window_size()
                         continue
                     # Navigation im Hilfsfenster (falls sichtbar)
                     if getattr(self, '_help_visible', False):
@@ -1303,6 +1430,7 @@ class Framework:
                             self._help_scroll = 0
                         elif event.key == pygame.K_ESCAPE:
                             self._help_visible = False
+                            self._restore_help_window_size()
                         continue
                     # --- neu: Enter (Return) nimmt alle Gegenstände auf der aktuellen Heldposition auf ---
                     try:
@@ -1357,6 +1485,11 @@ class Framework:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if getattr(self, '_help_visible', False) and event.button == 1:
                         mx, my = event.pos
+                        # Detach-Button: Hilfe in eigenem Fenster öffnen
+                        _detach = getattr(self, '_help_detach_rect', None)
+                        if _detach and _detach.collidepoint(mx, my):
+                            self._open_help_in_own_window()
+                            continue
                         for i, rect in enumerate(getattr(self, '_help_tab_rects', [])):
                             if rect.collidepoint(mx, my):
                                 self._help_tab    = i

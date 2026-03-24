@@ -10,12 +10,12 @@
   "settings": {
     "hints": {
       "text": [
-        "Objekte sind im Speicher, aber du brauchst eine Variable, um auf sie zuzugreifen.",
-        "Nutze die vorhandenen Objekte zettel und tuer, um den Spruch zu lesen und anzuwenden."
+        "Die Objekte haben hier bereits Namen – du kannst sie direkt ansprechen.",
+        "Lies den Spruch aus dem Zettel und wende ihn dann auf die Tür an."
       ],
       "code": [
-        "spruch = zettel.gib_spruch()",
-        "tuer.spruch_anwenden(spruch)"
+        "spruch = zettel.????()",
+        "tuer.????(spruch)"
       ],
       "methoden": [
         "geh",
