@@ -1,0 +1,171 @@
+=== Test Run Started: 2026-03-24 11:47:22 ===
+Selected files: 83
+Delay: 0ms, Timeout: 3s
+
+
+=== Running lsg0_hand.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 0 erfolgreich geladen.
+[Held] Spruch Ventus Silencio notiert.
+[Held] Ventus Silencio!
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg1.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 1 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg10.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 10 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg104.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 104 erfolgreich geladen.
+<Surface(128x128x32 SW)> <Surface(128x128x32 SW)> left
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg11_12.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 12 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg13_14.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 13 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg15.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 15 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg16.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 16 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg17.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 17 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg18.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 18 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg19.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 19 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg2.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 2 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+[STOPPED] Test run stopped by user
+
+--- summary ---
+lsg0_hand.py: OK
+lsg1.py: OK
+lsg10.py: OK
+lsg104.py: OK
+lsg11_12.py: OK
+lsg13_14.py: OK
+lsg15.py: OK
+lsg16.py: OK
+lsg17.py: OK
+lsg18.py: OK
+lsg19.py: OK
+lsg2.py: OK
+
+--- All tests matched expectations (12/12) ---
+
+=== Test Run Finished: 2026-03-24 11:47:38 ===

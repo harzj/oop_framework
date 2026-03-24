@@ -545,13 +545,15 @@ class Objekt:
     def gib_objekt_vor_dir(self):
         """Gibt das erste Objekt auf dem Feld vor diesem Objekt zurück (oder None).
         Verwendet immer self.richtung und self.framework.spielfeld."""
-        sp = getattr(self, "framework", None)
-        sp = getattr(sp, "spielfeld", None) if sp else None
+        fw_ref = getattr(self, "framework", None)
+        sp = getattr(fw_ref, "spielfeld", None) if fw_ref else None
         if not sp:
             try:
                 import framework.grundlage as grundlage
                 fw2 = getattr(grundlage, 'framework', None)
                 sp = getattr(fw2, 'spielfeld', None) if fw2 else None
+                if fw_ref is None:
+                    fw_ref = fw2
             except Exception:
                 sp = None
         if not sp:
@@ -559,7 +561,26 @@ class Objekt:
         richt = getattr(self, "richtung", "down")
         dx, dy = richtung_offset(richt)
         tx, ty = getattr(self, "x", 0) + dx, getattr(self, "y", 0) + dy
-        return sp.objekt_an(tx, ty)
+        obj = sp.objekt_an(tx, ty)
+        # Register inspectable objects so they appear in the right-panel inspector
+        if obj is not None:
+            try:
+                import inspect as _inspect, re as _re
+                _frame = _inspect.currentframe().f_back
+                _ctx = _inspect.getframeinfo(_frame).code_context
+                _varname = None
+                if _ctx:
+                    _match = _re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=', _ctx[0].strip())
+                    if _match:
+                        _varname = _match.group(1)
+                obj_typ = (getattr(obj, 'typ', '') or '').lower()
+                if obj_typ in ('monster', 'knappe', 'bogenschuetze'):
+                    fw = fw_ref or getattr(self, 'framework', None)
+                    if fw and hasattr(fw, '_register_inspector_ref'):
+                        fw._register_inspector_ref(obj, _varname)
+            except Exception:
+                pass
+        return obj
 
     def ist_auf_herz(self):
         """

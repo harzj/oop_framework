@@ -190,7 +190,23 @@ class Held(Objekt):
         
     def gib_knappe(self):
         if len(self.knappen)>0:
-            return self.knappen[0]
+            kn = self.knappen[0]
+            # Register this knappe so it shows up in the inspector
+            try:
+                import inspect as _inspect, re as _re
+                _frame = _inspect.currentframe().f_back
+                _ctx = _inspect.getframeinfo(_frame).code_context
+                _varname = None
+                if _ctx:
+                    _match = _re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=', _ctx[0].strip())
+                    if _match:
+                        _varname = _match.group(1)
+                fw = getattr(self, 'framework', None)
+                if fw and hasattr(fw, '_register_inspector_ref'):
+                    fw._register_inspector_ref(kn, _varname)
+            except Exception:
+                pass
+            return kn
         
     def add_knappe(self,k):
         self.knappen.append(k)

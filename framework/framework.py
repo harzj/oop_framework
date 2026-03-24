@@ -19,6 +19,18 @@ class Framework:
         self.info_scroll = 0  # Scroll-Offset für Infotext
         # transient projectiles (arrows) created by ranged attackers
         self._projectiles = []
+        # Set of object ids that the student has obtained a reference to.
+        # Used by _zeichne_info to decide which objects to display in the inspector.
+        self._inspector_refs = set()
+        # Maps object id → variable name used by the student (e.g. 'm', 'knappe')
+        self._inspector_ref_names = {}
+        # F1 help window state
+        self._help_visible = False
+        self._help_tab = 1   # 0=Generelle Hilfe, 1=Held, ...
+        self._help_scroll = 0
+        self._help_tab_rects = []
+        # Inspector panel minimum width – grows automatically to fit text
+        self._inspector_panel_width = 280
 
 
 
@@ -166,7 +178,408 @@ class Framework:
         """Gibt das Objekt an Position (x, y) zurück oder None."""
         return self.spielfeld.objekt_an(x, y)
 
+    def _register_inspector_ref(self, obj, name=None):
+        """Register obj so it appears in the right-panel inspector.
+        Call this whenever student code obtains a reference to a Knappe, Monster, etc.
+        name: optional variable name the student used (e.g. 'm', 'knappe').
+        """
+        try:
+            if obj is not None:
+                oid = id(obj)
+                self._inspector_refs.add(oid)
+                if name:
+                    self._inspector_ref_names[oid] = name
+        except Exception:
+            pass
 
+    def _ensure_inspector_panel(self):
+        """Measure all inspector text before drawing; expand the window if any
+        string would overflow the panel.  Called once per frame before render."""
+        try:
+            sp = getattr(self, 'spielfeld', None)
+            if sp is None:
+                return
+            refs = getattr(self, '_inspector_refs', set())
+            ref_names = getattr(self, '_inspector_ref_names', {})
+
+            texts = []
+            # Held
+            held = getattr(sp, 'held', None)
+            if held:
+                stud = getattr(held, '_student', None)
+                obj  = stud if stud is not None else held
+                texts.append(f"Name: {getattr(obj, 'name', None) or 'namenloser held'}")
+
+            # Knappe
+            kn = getattr(sp, 'knappe', None)
+            if kn and id(kn) in refs:
+                texts.append(f"Objektname: {ref_names.get(id(kn), getattr(kn, 'typ', 'Knappe'))}")
+                texts.append(f"Name: {getattr(kn, 'name', None) or 'namenloser knappe'}")
+
+            # Monster / Bogenschuetze
+            for o in getattr(sp, 'objekte', []):
+                if getattr(o, 'typ', None) in ('Monster', 'Bogenschuetze') and id(o) in refs:
+                    texts.append(f"Objektname: {ref_names.get(id(o), getattr(o, 'typ', 'Monster'))}")
+                    texts.append(f"Name: {getattr(o, 'name', None) or 'Monster'}")
+
+            if not texts:
+                return
+
+            # 8 = left gap inside panel, 18 = scrollbar + right margin
+            max_text_px = max(self.font.size(t)[0] for t in texts)
+            panel_x     = self.spielfeld.level.breite * self.feldgroesse + 8
+            needed_w    = panel_x + max_text_px + 18
+            if needed_w > self.screen.get_width():
+                game_w  = self.spielfeld.level.breite * self.feldgroesse
+                game_h  = self.spielfeld.level.hoehe  * self.feldgroesse
+                new_panel_w = max(getattr(self, '_inspector_panel_width', 280),
+                                  max_text_px + 30)   # 30 = margins + breathing room
+                self._inspector_panel_width = new_panel_w
+                self.screen = pygame.display.set_mode((game_w + new_panel_w, game_h))
+        except Exception:
+            pass
+
+    # --- Hilfe-Fenster (F1) ---
+
+    def _get_held_methoden(self):
+        return [
+            ("geh()",              "delay (opt.): Pause in ms",                              "Bewegt den Helden einen Schritt in die Richtung, in die er blickt."),
+            ("links()",            "delay (opt.): Pause in ms",                              "Dreht den Helden um 90° nach links (gegen den Uhrzeigersinn)."),
+            ("rechts()",           "delay (opt.): Pause in ms",                              "Dreht den Helden um 90° nach rechts (im Uhrzeigersinn)."),
+            ("zurueck()",          "delay (opt.): Pause in ms",                              "Dreht den Helden um 180°."),
+            ("nehme_auf()",        "delay (opt.): Pause in ms",                              "Hebt den Gegenstand auf der aktuellen Position auf."),
+            ("attack()",           "delay (opt.): Pause in ms",                              "Greift das Objekt direkt vor dem Helden an."),
+            ("was_ist_vorn()",     "–",                                                      "Gibt den Typ des Objekts vor dem Helden als Text zurück."),
+            ("was_ist_links()",    "–",                                                      "Gibt den Typ des Objekts links vom Helden als Text zurück."),
+            ("was_ist_rechts()",   "–",                                                      "Gibt den Typ des Objekts rechts vom Helden als Text zurück."),
+            ("gib_objekt_vor_dir()","–",                                                    "Gibt die Referenz auf das Objekt direkt vor dem Helden zurück."),
+            ("gib_knappe()",       "–",                                                      "Gibt die Referenz auf den Knappe zurück (falls vorhanden)."),
+            ("ist_auf_herz()",     "–",                                                      "Gibt True zurück, wenn der Held auf einem Herz steht."),
+            ("herzen_vor_mir()",   "–",                                                      "Gibt True zurück, wenn ein Herz direkt vor dem Helden liegt."),
+            ("lese_spruch()",      "delay (opt.): Pause in ms",                              "Liest den Spruch auf einem Zettel, der vor dem Helden liegt."),
+            ("sage_spruch()",      "code (opt.): Spruchtext,  delay (opt.): Pause in ms",   "Gibt einen Code oder Spruch ein."),
+            ("bediene_tor()",      "delay (opt.): Pause in ms",                              "Betätigt das Tor, das direkt vor dem Helden steht."),
+        ]
+
+    def _get_knappe_methoden(self):
+        return [
+            ("geh()",               "delay (opt.): Pause in ms",                             "Bewegt den Knappe einen Schritt in die Richtung, in die er blickt."),
+            ("links()",             "delay (opt.): Pause in ms",                             "Dreht den Knappe um 90° nach links."),
+            ("rechts()",            "delay (opt.): Pause in ms",                             "Dreht den Knappe um 90° nach rechts."),
+            ("zurueck()",           "delay (opt.): Pause in ms",                             "Dreht den Knappe um 180°."),
+            ("nehme_auf()",         "delay (opt.): Pause in ms",                             "Hebt einen Gegenstand auf der aktuellen Position auf."),
+            ("attack()",            "delay (opt.): Pause in ms",                             "Greift das Objekt direkt vor dem Knappe an."),
+            ("was_ist_vorn()",      "–",                                                     "Gibt den Typ des Objekts vor dem Knappe als Text zurück."),
+            ("was_ist_links()",     "–",                                                     "Gibt den Typ des Objekts links vom Knappe als Text zurück."),
+            ("was_ist_rechts()",    "–",                                                     "Gibt den Typ des Objekts rechts vom Knappe als Text zurück."),
+            ("gib_objekt_vor_dir()","–",                                                     "Gibt die Referenz auf das Objekt direkt vor dem Knappe zurück."),
+            ("lese_spruch()",       "delay (opt.): Pause in ms",                             "Liest den Spruch auf einem Zettel vor dem Knappe."),
+            ("sage_spruch()",       "code (opt.): Spruchtext,  delay (opt.): Pause in ms",  "Gibt einen Code oder Spruch ein."),
+            ("bediene_tor()",       "delay (opt.): Pause in ms",                             "Betätigt das Tor direkt vor dem Knappe."),
+        ]
+
+    def _get_monster_methoden(self):
+        return [
+            ("geh()",              "–",                                                    "Bewegt das Monster einen Schritt vorwärts."),
+            ("links()",            "–",                                                    "Dreht das Monster um 90° nach links."),
+            ("rechts()",           "–",                                                    "Dreht das Monster um 90° nach rechts."),
+            ("zurueck()",          "–",                                                    "Dreht das Monster um 180°."),
+            ("angriff()",          "opfer (opt.): Zielobjekt,  delay (opt.): Pause in ms","Führt einen Angriff auf das Zielobjekt aus."),
+            ("setze_richtung()",   "r: 'up', 'down', 'left' oder 'right'",                "Setzt die Blickrichtung des Monsters."),
+            ("setze_position()",   "x: X-Koordinate,  y: Y-Koordinate",                   "Teleportiert das Monster zur angegebenen Position."),
+            ("was_ist_vorn()",     "–",                                                    "Gibt den Typ des Objekts vor dem Monster als Text zurück."),
+            ("gib_objekt_vor_dir()","–",                                                  "Gibt die Referenz auf das Objekt direkt vor dem Monster zurück."),
+        ]
+
+    def _wrap_text(self, font, text, max_width):
+        """Bricht text in Zeilen auf, die max_width px nicht überschreiten."""
+        words = text.split(' ')
+        lines, current = [], ''
+        for word in words:
+            test = (current + ' ' + word).strip()
+            if font.size(test)[0] <= max_width:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        return lines if lines else ['']
+
+    def _render_methoden_tabelle(self, surf, fonts, colors, x, y, w, methoden):
+        """Zeichnet eine 3-spaltige Tabelle: Methode | Parameter | Beschreibung."""
+        COL1 = 185
+        COL2 = 210
+        COL3 = w - COL1 - COL2 - 12
+        PAD = 4
+        body = fonts['body']
+        hdr  = fonts['header']
+        lh   = body.get_linesize()
+
+        # Tabellenheader
+        pygame.draw.rect(surf, colors['header_bg'], (x, y, w, lh + PAD * 2))
+        surf.blit(hdr.render("Methode",      True, colors['header_text']), (x + 4,               y + PAD))
+        surf.blit(hdr.render("Parameter",    True, colors['header_text']), (x + COL1 + 4,        y + PAD))
+        surf.blit(hdr.render("Beschreibung", True, colors['header_text']), (x + COL1 + COL2 + 4, y + PAD))
+        y += lh + PAD * 2 + 2
+
+        for i, (method, params, desc) in enumerate(methoden):
+            desc_lines   = self._wrap_text(body, desc,   COL3 - 6)
+            params_lines = self._wrap_text(body, params, COL2 - 8)
+            row_h = max(len(desc_lines), len(params_lines)) * lh + PAD * 2
+
+            pygame.draw.rect(surf, colors['row_even'] if i % 2 == 0 else colors['row_odd'], (x, y, w, row_h))
+            pygame.draw.line(surf, colors['sep'], (x + COL1,        y), (x + COL1,        y + row_h))
+            pygame.draw.line(surf, colors['sep'], (x + COL1 + COL2, y), (x + COL1 + COL2, y + row_h))
+
+            surf.blit(body.render(method, True, colors['col_method']), (x + 4, y + PAD))
+            for li, pl in enumerate(params_lines):
+                surf.blit(body.render(pl, True, colors['col_param']),  (x + COL1 + 4,        y + PAD + li * lh))
+            for li, dl in enumerate(desc_lines):
+                surf.blit(body.render(dl, True, colors['col_desc']),   (x + COL1 + COL2 + 4, y + PAD + li * lh))
+            y += row_h
+
+        return y
+
+    def _render_hilfe_allgemein(self, surf, fonts, colors, x, y, w, sp):
+        """Rendert den 'Generelle Hilfe'-Tab aus den Leveldaten."""
+        bf  = fonts['hint_body']
+        tf  = fonts['hint_title']
+        lh  = bf.get_linesize() + 2
+        tlh = tf.get_linesize() + 4
+
+        def blit_bullet(text, color, indent=8):
+            nonlocal y
+            for ln in self._wrap_text(bf, f"  \u2022 {text}", w - indent - 20):
+                surf.blit(bf.render(ln, True, color), (x + indent, y)); y += lh
+
+        def section(title):
+            nonlocal y
+            pygame.draw.line(surf, colors['sep'], (x, y), (x + w, y)); y += 8
+            surf.blit(tf.render(title, True, colors['header_text']), (x, y)); y += tlh
+
+        if sp is None:
+            surf.blit(bf.render("Kein Level geladen.", True, colors['col_desc']), (x, y))
+            return y + lh
+
+        victory  = getattr(sp, 'victory_settings', {}) or {}
+        settings = getattr(sp, 'settings', {}) or {}
+        classes_present = bool(victory.get('classes_present', False))
+        rebuild         = bool(victory.get('rebuild_mode', False))
+
+        # ── Phase ──────────────────────────────────────────────────────────
+        phase_text  = "Phase 2: Eigene Klassen schreiben" if classes_present else "Phase 1: Helden programmieren"
+        phase_color = (255, 200, 100) if classes_present else (120, 200, 255)
+        surf.blit(tf.render(f"Phase:  {phase_text}", True, phase_color), (x, y)); y += tlh
+
+        # ── Siegbedingungen ────────────────────────────────────────────────
+        section("Siegbedingungen:")
+
+        goals_drawn = 0
+
+        # 1. Herzen sammeln (default True when key absent, matching check_victory logic)
+        collect_hearts = True if 'collect_hearts' not in victory else bool(victory.get('collect_hearts'))
+        if collect_hearts:
+            herzen = [o for o in getattr(sp, 'objekte', [])
+                      if getattr(o, 'typ', '') == 'Herz' and not getattr(o, 'tot', False)]
+            anzahl = len(herzen)
+            if anzahl > 1:
+                blit_bullet(f"Sammle alle {anzahl} Herzen auf dem Spielfeld ein.", colors['col_desc'])
+            else:
+                blit_bullet("Sammle alle Herzen auf dem Spielfeld ein.", colors['col_desc'])
+            goals_drawn += 1
+
+        # 2. Position erreichen
+        mt = victory.get('move_to')
+        if mt and isinstance(mt, dict) and mt.get('enabled'):
+            tx, ty = mt.get('x', '?'), mt.get('y', '?')
+            blit_bullet(f"Bewege den Helden zum Zielfeld an Position ({tx}, {ty}).", colors['col_desc'])
+            goals_drawn += 1
+
+        # 3. Rebuild-Modus
+        if rebuild:
+            blit_bullet("Baue das Spielfeld so nach, wie es in der Vorlage vorgegeben ist.", colors['col_desc'])
+            goals_drawn += 1
+
+        # 4. Klassen implementieren (Phase 2)
+        if classes_present:
+            req = settings.get('class_requirements', {}) or {}
+            if req:
+                for cls_name, cls_info in req.items():
+                    if not isinstance(cls_info, dict):
+                        blit_bullet(f"Schreibe die Klasse '{cls_name}'.", colors['col_desc'])
+                        continue
+                    parts = [f"Implementiere die Klasse '{cls_name}'"]
+                    inherits = cls_info.get('inherits')
+                    if inherits and inherits not in ('None', 'none', None):
+                        parts.append(f"die von '{inherits}' erbt")
+                    methods = cls_info.get('methods', [])
+                    attrs   = cls_info.get('attributes', [])
+                    details = []
+                    if attrs:
+                        details.append(f"Attribute: {', '.join(attrs)}")
+                    if methods:
+                        details.append(f"Methoden: {', '.join(m + '()' for m in methods)}")
+                    line = ' '.join(parts) + '.'
+                    if details:
+                        line += '  (' + '  |  '.join(details) + ')'
+                    blit_bullet(line, colors['col_desc'])
+                goals_drawn += 1
+            else:
+                blit_bullet("Implementiere die geforderten Klassen.", colors['col_desc'])
+                goals_drawn += 1
+
+        if goals_drawn == 0:
+            blit_bullet("Erfülle die Siegbedingung des Levels.", colors['col_desc'])
+        y += 4
+
+        # ── Tipps ──────────────────────────────────────────────────────────
+        section("Tipps:")
+        if not classes_present:
+            blit_bullet("Nutze was_ist_vorn() / was_ist_links() / was_ist_rechts(), um deine Umgebung zu erkunden.", colors['hint_text'])
+            if collect_hearts:
+                blit_bullet("Gehe auf ein Herz-Feld und rufe nehme_auf() auf, um ein Herz einzusammeln.", colors['hint_text'])
+            if mt and isinstance(mt, dict) and mt.get('enabled'):
+                blit_bullet("Du erreichst das Ziel, wenn der Held exakt auf dem markierten Feld steht.", colors['hint_text'])
+            blit_bullet("Mit gib_objekt_bei(x, y) erhältst du eine Referenz auf das Objekt an dieser Koordinate.", colors['hint_text'])
+            blit_bullet("Mit gib_objekt_vor_dir() erhältst du die Referenz auf das Objekt direkt vor dem Helden.", colors['hint_text'])
+        else:
+            blit_bullet("Deine Klasse muss von der richtigen Elternklasse erben und alle Pflichtattribute setzen (x, y, richtung, typ).", colors['hint_text'])
+            blit_bullet("Vergiss nicht, super().__init__(...) im Konstruktor aufzurufen.", colors['hint_text'])
+            blit_bullet("Im Objekt-Inspektor (rechts im Spielfenster) siehst du alle Objekte, auf die du zugreifen kannst.", colors['hint_text'])
+
+        return y
+
+    def _zeichne_hilfe(self):
+        """F1-Hilfsfenster: zeigt verfügbare Befehle mit Tab-Navigation."""
+        try:
+            screen = self.screen
+            sw, sh = screen.get_size()
+
+            sp = getattr(self, 'spielfeld', None)
+            has_knappe  = False
+            has_monster = False
+            if sp:
+                try:
+                    tiles_flat = [c for row in sp.level.tiles for c in row]
+                    has_knappe  = any(c.lower() == 'k'           for c in tiles_flat if isinstance(c, str))
+                    has_monster = any(c.lower() in ('x', 'y')    for c in tiles_flat if isinstance(c, str))
+                except Exception:
+                    pass
+                if not has_knappe and getattr(sp, 'knappe', None) is not None:
+                    has_knappe = True
+                if not has_monster:
+                    has_monster = any(getattr(o, 'typ', '') in ('Monster', 'Bogenschuetze')
+                                      for o in getattr(sp, 'objekte', []))
+
+            tabs = ["Generelle Hilfe", "Held"]
+            if has_knappe:  tabs.append("Knappe")
+            if has_monster: tabs.append("Monster")
+
+            tab = max(0, min(getattr(self, '_help_tab', 1), len(tabs) - 1))
+            self._help_tab = tab
+
+            W  = min(sw - 40, 880)
+            H  = min(sh - 40, 580)
+            px = (sw - W) // 2
+            py = (sh - H) // 2
+
+            C = {
+                'bg':           (18,  20,  35),
+                'border':       (70,  95, 160),
+                'tab_active':   (45,  65, 125),
+                'tab_inactive': (22,  26,  50),
+                'tab_text_on':  (220, 232, 255),
+                'tab_text_off': (130, 145, 185),
+                'header_bg':    (32,  38,  65),
+                'header_text':  (195, 210, 245),
+                'row_even':     (28,  30,  50),
+                'row_odd':      (20,  22,  42),
+                'col_method':   (110, 195, 255),
+                'col_param':    (170, 215, 150),
+                'col_desc':     (215, 215, 205),
+                'sep':          (55,  62, 100),
+                'hint_text':    (195, 215, 200),
+            }
+            fonts = {
+                'tab':        pygame.font.SysFont("consolas", 15, bold=True),
+                'header':     pygame.font.SysFont("consolas", 14, bold=True),
+                'body':       pygame.font.SysFont("consolas", 13),
+                'hint_title': pygame.font.SysFont("consolas", 15, bold=True),
+                'hint_body':  pygame.font.SysFont("consolas", 14),
+            }
+
+            # Dimm-Overlay
+            ov = pygame.Surface((sw, sh), pygame.SRCALPHA)
+            ov.fill((0, 0, 0, 160))
+            screen.blit(ov, (0, 0))
+
+            # Panel
+            pygame.draw.rect(screen, C['bg'],     (px, py, W, H))
+            pygame.draw.rect(screen, C['border'], (px, py, W, H), 2)
+
+            # Titelzeile
+            TITLE_H = 30
+            pygame.draw.rect(screen, C['border'], (px, py, W, TITLE_H))
+            screen.blit(fonts['tab'].render(
+                "Hilfe  (F1 schließen  |  \u2190 \u2192 Tabs  |  Mausklick auf Tab)",
+                True, (240, 245, 255)), (px + 10, py + 7))
+
+            # Tabs
+            TAB_H = 28
+            tab_y = py + TITLE_H
+            tab_w = min(160, W // len(tabs))
+            self._help_tab_rects = []
+            for i, name in enumerate(tabs):
+                tx   = px + i * tab_w
+                active = (i == tab)
+                pygame.draw.rect(screen, C['tab_active'] if active else C['tab_inactive'], (tx, tab_y, tab_w, TAB_H))
+                pygame.draw.rect(screen, C['border'], (tx, tab_y, tab_w, TAB_H), 1)
+                label = fonts['tab'].render(name, True, C['tab_text_on'] if active else C['tab_text_off'])
+                screen.blit(label, (tx + (tab_w - label.get_width()) // 2, tab_y + 5))
+                self._help_tab_rects.append(pygame.Rect(tx, tab_y, tab_w, TAB_H))
+
+            # Content-Bereich
+            CY0  = tab_y + TAB_H + 6
+            CX   = px + 10
+            CW   = W - 20
+            CH   = H - TITLE_H - TAB_H - 12
+            scroll = max(0, getattr(self, '_help_scroll', 0))
+
+            # Auf temporäre Surface rendern (ermöglicht Scrollen)
+            render_h = max(CH, 2400)
+            rs = pygame.Surface((CW, render_h))
+            rs.fill(C['bg'])
+            ry = 6
+            if tab == 0:
+                ry = self._render_hilfe_allgemein(rs, fonts, C, 0, ry, CW, sp)
+            elif tabs[tab] == "Held":
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_held_methoden())
+            elif tabs[tab] == "Knappe":
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_knappe_methoden())
+            else:
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_monster_methoden())
+
+            max_scroll = max(0, ry + 10 - CH)
+            scroll = min(scroll, max_scroll)
+            self._help_scroll = scroll
+            screen.blit(rs, (CX, CY0), (0, scroll, CW, CH))
+
+            # Scrollbalken
+            if max_scroll > 0:
+                total_h = ry + 10
+                bx = px + W - 11
+                indicator_h = max(20, int(CH * CH / total_h))
+                indicator_y = CY0 + int((CH - indicator_h) * scroll / max_scroll)
+                pygame.draw.rect(screen, C['sep'],    (bx, CY0, 7, CH))
+                pygame.draw.rect(screen, C['border'], (bx, indicator_y, 7, indicator_h))
+
+        except Exception as e:
+            try:
+                self.screen.blit(self.font.render(f"Hilfe-Fehler: {e}", True, (255, 100, 100)), (40, 40))
+            except Exception:
+                pass
 
     # --- Render-Hilfen ---
     def _zeichne_info(self):
@@ -191,11 +604,23 @@ class Framework:
                     stud = None
 
                 if stud is not None:
+                    # Register the student Held object in inspector refs
+                    try:
+                        self._inspector_refs.add(id(held))
+                        self._inspector_refs.add(id(stud))
+                    except Exception:
+                        pass
+                    try:
+                        # "Objektname: held" header
+                        hdr = self.font.render("Objektname: held", True, (180, 180, 255))
+                        self.screen.blit(hdr, (panel_x, y)); y += 20
+                    except Exception:
+                        pass
                     try:
                         # name only if student provided it
                         if hasattr(stud, 'name'):
                             name = getattr(stud, 'name')
-                            hdr = self.font.render(f"Name={name}", True, (255,255,255))
+                            hdr = self.font.render(f"Name: {name}", True, (255,255,255))
                             self.screen.blit(hdr, (panel_x, y)); y += 20
                     except Exception:
                         pass
@@ -222,7 +647,7 @@ class Framework:
                         # Try to get and display x
                         try:
                             x_val = get_student_attr(stud, 'x')
-                            x_txt = self.font.render(f"x={x_val}", True, (200,200,200))
+                            x_txt = self.font.render(f"x: {x_val}", True, (200,200,200))
                             self.screen.blit(x_txt, (panel_x, y)); y += 20
                         except AttributeError:
                             pass
@@ -230,7 +655,7 @@ class Framework:
                         # Try to get and display y
                         try:
                             y_val = get_student_attr(stud, 'y')
-                            y_txt = self.font.render(f"y={y_val}", True, (200,200,200))
+                            y_txt = self.font.render(f"y: {y_val}", True, (200,200,200))
                             self.screen.blit(y_txt, (panel_x, y)); y += 20
                         except AttributeError:
                             pass
@@ -239,7 +664,7 @@ class Framework:
                         try:
                             r = get_student_attr(stud, 'richtung')
                             rdisp = dm.get(str(r), str(r))
-                            r_txt = self.font.render(f"richtung={rdisp}", True, (200,200,200))
+                            r_txt = self.font.render(f"richtung: {rdisp}", True, (200,200,200))
                             self.screen.blit(r_txt, (panel_x, y)); y += 20
                         except AttributeError:
                             pass
@@ -310,22 +735,26 @@ class Framework:
                     except Exception:
                         pass
                     y += 4
-                # separator after Held (visual separation)
-                try:
-                    pygame.draw.line(self.screen, (120,120,120), (panel_x, y+6), (self.screen.get_width()-8, y+6), 1)
-                    y += 10
-                except Exception:
-                    pass
-
                 # Only draw the default-held block when there is no student object
                 # (when we showed student-provided attributes above we must not
                 # repeat the generic Held display -- this previously caused the
                 # hero to appear twice in the inspector).
                 if stud is None:
+                    # Register held in inspector_refs (Phase 1 / non-MetaHeld case)
+                    try:
+                        self._inspector_refs.add(id(held))
+                    except Exception:
+                        pass
+                    try:
+                        # "Objektname: held" header
+                        hdr = self.font.render("Objektname: held", True, (180, 180, 255))
+                        self.screen.blit(hdr, (panel_x, y)); y += 20
+                    except Exception:
+                        pass
                     try:
                         # use requested default name if not set
                         name = getattr(held, 'name', None) or 'namenloser held'
-                        hdr = self.font.render(f"Name={name}", True, (255,255,255))
+                        hdr = self.font.render(f"Name: {name}", True, (255,255,255))
                         self.screen.blit(hdr, (panel_x, y)); y += 20
                     except Exception:
                         pass
@@ -337,11 +766,11 @@ class Framework:
                         # map directions for display only
                         dm = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'O', 'N': 'N', 'S': 'S', 'W': 'W', 'O': 'O'}
                         rdisp = dm.get(str(richt), str(richt))
-                        x_txt = self.font.render(f"x={x}", True, (200,200,200))
+                        x_txt = self.font.render(f"x: {x}", True, (200,200,200))
                         self.screen.blit(x_txt, (panel_x, y)); y += 20
-                        y_txt = self.font.render(f"y={yv}", True, (200,200,200))
+                        y_txt = self.font.render(f"y: {yv}", True, (200,200,200))
                         self.screen.blit(y_txt, (panel_x, y)); y += 20
-                        r_txt = self.font.render(f"richtung={rdisp}", True, (200,200,200))
+                        r_txt = self.font.render(f"richtung: {rdisp}", True, (200,200,200))
                         self.screen.blit(r_txt, (panel_x, y)); y += 20
                     except Exception:
                         pass
@@ -445,13 +874,30 @@ class Framework:
                 except Exception:
                     pass
 
-            # Draw Knappe (if present) as a distinct block after Held
+            # Is Phase 2 (classes_present_mode) active?
+            try:
+                classes_present = bool(getattr(sp, 'classes_present_mode', False))
+            except Exception:
+                classes_present = False
+
+            # Separator after Held (drawn here so it always appears after all Held content)
+            draw_sep(y); y += 12
+
+            # Draw Knappe (if present) as a distinct block after Held.
+            # In classes_present_mode only shown after the student obtained a reference.
             kn = getattr(sp, 'knappe', None)
-            if kn is not None:
+            show_knappe = (kn is not None) and (id(kn) in getattr(self, '_inspector_refs', set()))
+            if show_knappe:
                 try:
-                    # header
+                    # "Objektname: <varname>" header
+                    kn_varname = getattr(self, '_inspector_ref_names', {}).get(id(kn), getattr(kn, 'typ', 'Knappe'))
+                    hdr = self.font.render(f"Objektname: {kn_varname}", True, (180, 255, 180))
+                    self.screen.blit(hdr, (panel_x, y)); y += 20
+                except Exception:
+                    pass
+                try:
                     name = getattr(kn, 'name', None) or 'namenloser knappe'
-                    hdr = self.font.render(f"Name={name}", True, (255,255,255))
+                    hdr = self.font.render(f"Name: {name}", True, (255,255,255))
                     self.screen.blit(hdr, (panel_x, y)); y += 20
                 except Exception:
                     pass
@@ -461,11 +907,11 @@ class Framework:
                     richt = getattr(kn, 'richtung', '?')
                     dm = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'O', 'N': 'N', 'S': 'S', 'W': 'W', 'O': 'O'}
                     rdisp = dm.get(str(richt), str(richt))
-                    x_txt = self.font.render(f"x={x}", True, (200,200,200))
+                    x_txt = self.font.render(f"x: {x}", True, (200,200,200))
                     self.screen.blit(x_txt, (panel_x, y)); y += 20
-                    y_txt = self.font.render(f"y={yv}", True, (200,200,200))
+                    y_txt = self.font.render(f"y: {yv}", True, (200,200,200))
                     self.screen.blit(y_txt, (panel_x, y)); y += 20
-                    r_txt = self.font.render(f"richtung={rdisp}", True, (200,200,200))
+                    r_txt = self.font.render(f"richtung: {rdisp}", True, (200,200,200))
                     self.screen.blit(r_txt, (panel_x, y)); y += 20
                 except Exception:
                     pass
@@ -533,50 +979,52 @@ class Framework:
                     pass
                 
                 # separator after knappe
-                draw_sep(y); y += 10
+                draw_sep(y); y += 12
 
-            # Monsters: render each with a separator between
-            monsters = [o for o in self.spielfeld.objekte if getattr(o, 'typ', None) == 'Monster']
+            # Monsters: render each with a separator between.
+            # Only shown when the student has a reference (sichtbar=True at spawn,
+            # or obtained via gib_knappe() / gib_objekt_vor_dir()).
+            monsters = [o for o in self.spielfeld.objekte if getattr(o, 'typ', None) in ('Monster', 'Bogenschuetze')]
             for m in monsters:
+                if id(m) not in getattr(self, '_inspector_refs', set()):
+                    continue
                 try:
-                    name = getattr(m, 'name', None) or 'Monster'
-                    hdr = self.font.render(f"{name} (Monster)", True, (255,255,255))
+                    # "Objektname: <varname>" header
+                    m_varname = getattr(self, '_inspector_ref_names', {}).get(id(m), getattr(m, 'typ', 'Monster'))
+                    hdr = self.font.render(f"Objektname: {m_varname}", True, (255, 180, 180))
                     self.screen.blit(hdr, (panel_x, y)); y += 20
                 except Exception:
                     pass
                 try:
-                    items = m.attribute_als_text()
-                    for k, v in items.items():
-                        try:
-                            val = v
-                            if isinstance(k, str) and 'richt' in k.lower():
-                                dm = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'O', 'N': 'N', 'S': 'S', 'W': 'W', 'O': 'O'}
-                                val = dm.get(str(v), str(v))
-                            txt = f"{k}: {val}"
-                            while self.font.size(txt)[0] > (self.screen.get_width() - panel_x - 20):
-                                txt = txt[:-1]
-                            txt = self.font.render(f"{k}: {val}", True, (240,240,240))
-                            self.screen.blit(txt, (panel_x, y)); y += 20
-                        except Exception:
-                            continue
-                except Exception as ex_attr:
-                    try:
-                        msg = f"Fehler in der Schülerklasse Monster: {ex_attr}"
-                        err = self.font.render(msg, True, (255,100,100))
-                        self.screen.blit(err, (panel_x, y)); y += 20
-                    except Exception:
-                        pass
+                    name = getattr(m, 'name', None) or 'Monster'
+                    hdr = self.font.render(f"Name: {name}", True, (255,255,255))
+                    self.screen.blit(hdr, (panel_x, y)); y += 20
+                except Exception:
+                    pass
+                try:
+                    dm_map = {'up': 'N', 'down': 'S', 'left': 'W', 'right': 'O', 'N': 'N', 'S': 'S', 'W': 'W', 'O': 'O'}
+                    mx = getattr(m, 'x', '?')
+                    my = getattr(m, 'y', '?')
+                    mr = dm_map.get(str(getattr(m, 'richtung', '?')), str(getattr(m, 'richtung', '?')))
+                    self.screen.blit(self.font.render(f"x: {mx}", True, (200,200,200)), (panel_x, y)); y += 20
+                    self.screen.blit(self.font.render(f"y: {my}", True, (200,200,200)), (panel_x, y)); y += 20
+                    self.screen.blit(self.font.render(f"richtung: {mr}", True, (200,200,200)), (panel_x, y)); y += 20
+                except Exception:
+                    pass
                 # separator between monsters
-                draw_sep(y); y += 8
+                draw_sep(y); y += 12
 
             # Finally render remaining objects (excluding Held, Knappe, Monsters, and items)
             # Items to exclude: Zettel, Herz, Tuer, Tor, Schluessel, Hindernis, etc.
-            excluded_types = ['Monster', 'Zettel', 'Herz', 'Tuer', 'Tor', 'Schluessel', 'Baum', 'Berg', 'Busch', 'Hindernis', 'Spruch', '?']
+            excluded_types = ['Monster', 'Bogenschuetze', 'Zettel', 'Herz', 'Tuer', 'Tor', 'Schluessel', 'Baum', 'Berg', 'Busch', 'Hindernis', 'Spruch', '?']
             remaining = [o for o in self.spielfeld.objekte 
                         if o not in ([held] if held else []) 
                         and o is not kn 
                         and getattr(o,'typ',None) not in excluded_types]
             for o in remaining:
+                # In classes_present_mode only show if student has a reference
+                if classes_present and id(o) not in getattr(self, '_inspector_refs', set()):
+                    continue
                 try:
                     try:
                         items = o.attribute_als_text()
@@ -698,6 +1146,7 @@ class Framework:
 
 
     def _render_frame(self):
+        self._ensure_inspector_panel()
         self.screen.fill((0, 0, 0))
 
         # Nur lebende Objekte updaten
@@ -713,6 +1162,8 @@ class Framework:
         self.spielfeld.zeichne(self.screen)
         self._zeichne_info()
         self._zeichne_sieg_overlay()
+        if getattr(self, '_help_visible', False):
+            self._zeichne_hilfe()
 
         pygame.display.flip()
 
@@ -788,6 +1239,24 @@ class Framework:
                 if event.type == pygame.QUIT:
                     self._running = False
                 elif event.type == pygame.KEYDOWN:
+                    # F1: Hilfsfenster ein-/ausblenden
+                    if event.key == pygame.K_F1:
+                        self._help_visible = not getattr(self, '_help_visible', False)
+                        self._help_scroll = 0
+                        continue
+                    # Navigation im Hilfsfenster (falls sichtbar)
+                    if getattr(self, '_help_visible', False):
+                        _tab     = getattr(self, '_help_tab', 1)
+                        _n_tabs  = max(1, len(getattr(self, '_help_tab_rects', [None, None])))
+                        if event.key == pygame.K_LEFT:
+                            self._help_tab   = max(0, _tab - 1)
+                            self._help_scroll = 0
+                        elif event.key == pygame.K_RIGHT:
+                            self._help_tab   = min(_n_tabs - 1, _tab + 1)
+                            self._help_scroll = 0
+                        elif event.key == pygame.K_ESCAPE:
+                            self._help_visible = False
+                        continue
                     # --- neu: Enter (Return) nimmt alle Gegenstände auf der aktuellen Heldposition auf ---
                     try:
                         if event.key == pygame.K_RETURN:
@@ -832,9 +1301,20 @@ class Framework:
                         finally:
                             self._aus_tastatur = False
                 elif event.type == pygame.MOUSEWHEEL:
-                    self.info_scroll += event.y * 20
-                    if self.info_scroll < 0:
-                        self.info_scroll = 0
+                    if getattr(self, '_help_visible', False):
+                        self._help_scroll = max(0, getattr(self, '_help_scroll', 0) - event.y * 20)
+                    else:
+                        self.info_scroll += event.y * 20
+                        if self.info_scroll < 0:
+                            self.info_scroll = 0
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if getattr(self, '_help_visible', False) and event.button == 1:
+                        mx, my = event.pos
+                        for i, rect in enumerate(getattr(self, '_help_tab_rects', [])):
+                            if rect.collidepoint(mx, my):
+                                self._help_tab    = i
+                                self._help_scroll = 0
+                                break
             # Sieg erkennen (kombinierte Bedingungen)
             try:
                 if not self._aktion_blockiert and getattr(self, 'spielfeld', None) and self.spielfeld.check_victory():

@@ -228,7 +228,23 @@ class LevelManager:
                 continue
         
     def gib_objekt_bei(self,x,y):
-        return framework.gib_objekt_an(x,y)
+        obj = framework.gib_objekt_an(x,y)
+        if obj is not None:
+            try:
+                import inspect as _inspect, re as _re
+                _frame = _inspect.currentframe().f_back
+                _ctx = _inspect.getframeinfo(_frame).code_context
+                _varname = None
+                if _ctx:
+                    _match = _re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=', _ctx[0].strip())
+                    if _match:
+                        _varname = _match.group(1)
+                fw = getattr(self, 'framework', None) or framework
+                if fw and hasattr(fw, '_register_inspector_ref'):
+                    fw._register_inspector_ref(obj, _varname)
+            except Exception:
+                pass
+        return obj
 
     def objekt_hinzufuegen(self, obj):
         """Convenience: forward to the active framework instance so students

@@ -1,0 +1,90 @@
+=== Test Run Started: 2026-03-24 09:38:03 ===
+Selected files: 83
+Delay: 0ms, Timeout: 3s
+
+
+=== Running lsg0_hand.py ===
+=> TIMEOUT
+
+=== Running lsg1.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 1 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg10.py ===
+=> TIMEOUT
+
+=== Running lsg104.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 104 erfolgreich geladen.
+<Surface(128x128x32 SW)> <Surface(128x128x32 SW)> left
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg11_12.py ===
+=> TIMEOUT
+
+=== Running lsg13_14.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 13 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg15.py ===
+=> TIMEOUT
+
+=== Running lsg16.py ===
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.11)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[Framework] Verwende system-installiertes pygame 2.6.1
+(c) 2025 Johannes Harz
+Fachkonferenz Informatik
+Cusanus Gymnasium St. Wendel
+Level 16 erfolgreich geladen.
+[VICTORY] Alle Siegbedingungen erfüllt!
+[TEST] Level erfolgreich beendet.
+=> OK
+
+=== Running lsg17.py ===
+=> TIMEOUT
+
+[STOPPED] Test run stopped by user
+
+--- summary ---
+lsg0_hand.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg1.py: OK
+lsg10.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg104.py: OK
+lsg11_12.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg13_14.py: OK
+lsg15.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+lsg16.py: OK
+lsg17.py: FAIL (124) [DEVIATION: Expected PASS, got FAIL]
+
+--- DEVIATIONS (5/9) ---
+lsg0_hand.py: Expected PASS, got FAIL
+lsg10.py: Expected PASS, got FAIL
+lsg11_12.py: Expected PASS, got FAIL
+lsg15.py: Expected PASS, got FAIL
+lsg17.py: Expected PASS, got FAIL
+
+=== Test Run Finished: 2026-03-24 09:38:26 ===

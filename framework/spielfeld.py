@@ -1134,6 +1134,12 @@ class Spielfeld:
                 if sichtbar:
                     import framework.grundlage as grundlage
                     setattr(grundlage, m.typ.lower(), m)
+                    try:
+                        fw = getattr(self, 'framework', None)
+                        if fw and hasattr(fw, '_register_inspector_ref'):
+                            fw._register_inspector_ref(m, m.typ.lower())
+                    except Exception:
+                        pass
 
             elif t == "y":
                 # Bogenschuetze (ranged monster)
@@ -1183,6 +1189,12 @@ class Spielfeld:
                 if sichtbar:
                     import framework.grundlage as grundlage
                     setattr(grundlage, "bogenschuetze", m)
+                    try:
+                        fw = getattr(self, 'framework', None)
+                        if fw and hasattr(fw, '_register_inspector_ref'):
+                            fw._register_inspector_ref(m, "bogenschuetze")
+                    except Exception:
+                        pass
 
             elif t == "c":
                 # Check if Zettel class is configured, otherwise use Code
@@ -1614,6 +1626,12 @@ class Spielfeld:
                     if sichtbar:
                         import framework.grundlage as grundlage
                         setattr(grundlage, "knappe", self.knappe)
+                        try:
+                            fw = getattr(self, 'framework', None)
+                            if fw and hasattr(fw, '_register_inspector_ref'):
+                                fw._register_inspector_ref(self.knappe, "knappe")
+                        except Exception:
+                            pass
                     # If a hero was already spawned, attach this Knappe to the hero immediately.
                     try:
                         if getattr(self, 'held', None) is not None:

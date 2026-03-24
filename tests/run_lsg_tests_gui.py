@@ -722,7 +722,7 @@ class RunLsgGui:
             
             env = os.environ.copy()
             env["OOP_TEST"] = "1"
-            env["PYTHONPATH"] = ROOT
+            env["PYTHONPATH"] = ROOT + os.pathsep + os.path.join(ROOT, 'scripts')
             env["RUN_LSG_DELAY_MS"] = str(delay_ms)
 
             proc = subprocess.Popen(
