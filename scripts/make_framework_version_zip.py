@@ -140,6 +140,10 @@ def main(argv):
         else:
             print("Warnung: framework/ Verzeichnis nicht gefunden.")
 
+        # Versionsinfo direkt in framework/_version.py schreiben (kein extra Root-File)
+        zf.writestr('framework/_version.py', f'__version__ = "{version}"\n')
+        print("OK: framework/_version.py (eingebettete Versionsinfo)")
+
         # sprites folder (full)
         if SPRITES_DIR.exists():
             for fpath, arc in gather_sprites(SPRITES_DIR):

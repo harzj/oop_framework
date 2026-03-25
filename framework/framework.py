@@ -17,13 +17,22 @@ def _load_version_banner():
         return (f"OOPventure Version {v['major']}.{v['minor']}.{v['patch']} "
                 f"Build {v['build']} vom {today}")
     except Exception:
+        pass
+    try:
+        # Fallback: _version.py bundled inside the distribution ZIP
+        from pathlib import Path
+        vf = Path(__file__).resolve().parent / '_version.py'
+        ns = {}
+        exec(vf.read_text(encoding='utf-8'), ns)  # noqa: S102
+        return f"OOPventure Version {ns.get('__version__', '?')}"
+    except Exception:
         return "OOPventure"
 
 
 class Framework:
     def __init__(self, levelnummer=1, feldgroesse=64, auto_erzeuge_objekte=True, w = False, splash=False):
         print(_load_version_banner())
-        print("(c) 2025 Johannes Harz | Fachkonferenz Informatik | Cusanus Gymnasium St. Wendel")
+        print("(c) 2025 - 2026 Johannes Harz | Fachkonferenz Informatik | Cusanus Gymnasium St. Wendel")
         pygame.init()
         self.feldgroesse = feldgroesse
         self._tasten = {}
