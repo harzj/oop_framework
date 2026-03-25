@@ -96,7 +96,7 @@ def main():
     from datetime import date
     today = date.today().strftime("%d.%m.%Y")
     print(f"\nNeue Version     : OOPventure Version {_fmt_display(new_v)} vom {today}")
-    print(f"Dateiname        : oopventure_{_fmt_filename(new_v)}.zip")
+    print(f"Dateiname        : OOPventure_{_fmt_filename(new_v)}.zip")
     confirm = input("Bestätigen und ZIP erstellen? [J/n]: ").strip().lower()
     if confirm == 'n':
         print("Abgebrochen.")

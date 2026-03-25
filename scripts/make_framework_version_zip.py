@@ -122,7 +122,7 @@ def main(argv):
     dist_dir = ROOT / "dist"
     dist_dir.mkdir(exist_ok=True)
 
-    zipname = f"oopventure_{version}.zip"
+    zipname = f"OOPventure_{version}.zip"
     zip_path = dist_dir / zipname
     if zip_path.exists():
         ans = input(f"{zipname} existiert bereits. Überschreiben? [j/N]: ").strip().lower()
@@ -192,7 +192,7 @@ def main(argv):
     print(f"Die Schüler müssen pygame nicht mehr separat installieren!")
 
     # Kopiere als oopventure_newest.zip ins Root-Verzeichnis
-    newest_path = ROOT / "oopventure_newest.zip"
+    newest_path = ROOT / "OOPventure_newest.zip"
     if newest_path.exists():
         newest_path.unlink()
     shutil.copy2(zip_path, newest_path)
