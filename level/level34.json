@@ -57,13 +57,14 @@
     "student_classes_in_subfolder": false,
     "hints": {
       "text": [
-        "Erzeuge einen passenden Schlüssel mit dem Konstruktor und füge ihn dem Level hinzu.",
-        "Schluessel(x, y) erzeugt einen Schlüssel an der angegebenen Position."
+        "Erzeuge einen passenden Schlüssel und füge ihn mit level.objekt_hinzufuegen(obj) ein.",
+        "Schau dir den Konstruktoren-Tab in der Hilfe an, um den benötigten Import und die Parameter zu sehen.",
+        "Der Held muss den erzeugten Schlüssel nicht aufsammeln  schau dir die Befehlsliste der Tür an."
       ],
       "code": [
-        "from framework.schluessel import Schluessel",
-        "s = Schluessel(3, 3)",
-        "level.objekt_hinzufuegen(s)"
+        "from schueler import Person",
+        "p = Person('Anna', 25)",
+        "konto.set_inhaber(p)"
       ]
     }
   }

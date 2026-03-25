@@ -114,6 +114,10 @@ class LevelEditor:
         # Format: {"Held": {"methods": ["geh", "links"], "attributes": ["hp"], "inherits": "Charakter", "use_student": True}, ...}
         self.class_requirements = {}
 
+        # Hints / level help (F5)
+        # Stores editable hint fields: text (list), code (list), phase (str), + preserved flags
+        self.hints = {}
+
         # Sprites
         self.sprites = self._load_all_sprites()
         # Monster variant index (0 = default Monster 'x', 1 = Bogenschuetze 'y')
@@ -387,6 +391,9 @@ class LevelEditor:
             color = (180, 60, 60) if v else (100, 180, 100)
             self._text(self.small, f"{k}: {'privat' if v else 'öffentlich'}", color, x0, y)
             y += 18
+        y += 10
+        self._text(self.small, "F1=Privacy  F2=Einstellungen  F3=Sieg", (160, 160, 160), x0, y); y += 18
+        self._text(self.small, "F4=Klassen  F5=Hilfe/Tipps", (160, 160, 160), x0, y); y += 18
 
     def _text(self, font, text, color, x, y):
         surf = font.render(text, True, color)
@@ -621,6 +628,104 @@ class LevelEditor:
 
         ttk.Button(frm, text='OK', command=ok).grid(row=7, column=1, pady=8)
         ttk.Button(frm, text='Abbrechen', command=cancel).grid(row=7, column=2, pady=8)
+        root.mainloop()
+
+    # -----------------------------
+    # Hilfe / Tipps bearbeiten (F5)
+    # -----------------------------
+    def open_hints_dialog(self):
+        """Dialog (F5) zum Bearbeiten der Level-Hilfe: Phase-Text, Tipps und Codebeispiel."""
+        root = tk.Tk()
+        root.title("Hilfe / Tipps bearbeiten (F5)")
+        root.geometry("680x560")
+        root.configure(bg="#f0f0f0")
+
+        frm = ttk.Frame(root, padding=12)
+        frm.pack(fill='both', expand=True)
+        frm.columnconfigure(0, weight=1)
+        frm.rowconfigure(3, weight=2)
+        frm.rowconfigure(5, weight=1)
+
+        # ── Phase-Text ──────────────────────────────────────────────────────
+        ttk.Label(frm, text="Phase-Text (leer \u2192 automatisch aus Siegbedingung):").grid(
+            row=0, column=0, sticky='w', pady=(0, 2))
+        phase_var = tk.StringVar(value=self.hints.get('phase', ''))
+        ttk.Entry(frm, textvariable=phase_var, width=70).grid(
+            row=1, column=0, sticky='ew', pady=(0, 14))
+
+        # ── Tipps ────────────────────────────────────────────────────────────
+        tip_header = ttk.Frame(frm)
+        tip_header.grid(row=2, column=0, sticky='ew')
+        ttk.Label(tip_header, text="Tipps (pro Zeile ein Tipp \u2013 wird als Bulletpoint angezeigt):").pack(side='left')
+
+        def add_tipp():
+            tips_text.insert('end', '\n')
+            tips_text.see('end')
+            tips_text.focus_set()
+
+        ttk.Button(tip_header, text="\u2013 Tipp hinzuf\u00fcgen", command=add_tipp).pack(side='right')
+
+        tips_frame = ttk.Frame(frm)
+        tips_frame.grid(row=3, column=0, sticky='nsew', pady=(4, 0))
+        tips_frame.columnconfigure(0, weight=1)
+        tips_frame.rowconfigure(0, weight=1)
+        tips_text = tk.Text(tips_frame, height=8, font=("Consolas", 11), wrap='word',
+                            relief='solid', borderwidth=1)
+        tips_text.grid(row=0, column=0, sticky='nsew')
+        tips_sb = ttk.Scrollbar(tips_frame, command=tips_text.yview)
+        tips_sb.grid(row=0, column=1, sticky='ns')
+        tips_text['yscrollcommand'] = tips_sb.set
+        existing_tips = self.hints.get('text', [])
+        tips_text.insert('1.0', '\n'.join(existing_tips))
+
+        # ── Codebeispiel ─────────────────────────────────────────────────────
+        ttk.Label(frm, text="Codebeispiel (pro Zeile eine Code-Zeile):").grid(
+            row=4, column=0, sticky='w', pady=(12, 4))
+        code_frame = ttk.Frame(frm)
+        code_frame.grid(row=5, column=0, sticky='nsew')
+        code_frame.columnconfigure(0, weight=1)
+        code_frame.rowconfigure(0, weight=1)
+        code_text = tk.Text(code_frame, height=6, font=("Consolas", 11), wrap='none',
+                            relief='solid', borderwidth=1)
+        code_text.grid(row=0, column=0, sticky='nsew')
+        code_sb_y = ttk.Scrollbar(code_frame, command=code_text.yview)
+        code_sb_y.grid(row=0, column=1, sticky='ns')
+        code_sb_x = ttk.Scrollbar(code_frame, orient='horizontal', command=code_text.xview)
+        code_sb_x.grid(row=1, column=0, sticky='ew')
+        code_text['yscrollcommand'] = code_sb_y.set
+        code_text['xscrollcommand'] = code_sb_x.set
+        existing_code = self.hints.get('code', [])
+        code_text.insert('1.0', '\n'.join(existing_code))
+
+        # ── Buttons ──────────────────────────────────────────────────────────
+        def ok():
+            phase = phase_var.get().strip()
+            tips = [t.strip() for t in tips_text.get('1.0', 'end').splitlines() if t.strip()]
+            code = [c.rstrip() for c in code_text.get('1.0', 'end').splitlines() if c.rstrip()]
+
+            # Preserve all existing hint flags; only update the three editable fields
+            if phase:
+                self.hints['phase'] = phase
+            else:
+                self.hints.pop('phase', None)
+            if tips:
+                self.hints['text'] = tips
+            else:
+                self.hints.pop('text', None)
+            if code:
+                self.hints['code'] = code
+            else:
+                self.hints.pop('code', None)
+
+            root.destroy()
+
+        def cancel():
+            root.destroy()
+
+        btn_frm = ttk.Frame(frm)
+        btn_frm.grid(row=6, column=0, pady=10, sticky='e')
+        ttk.Button(btn_frm, text="OK", command=ok).pack(side='left', padx=6)
+        ttk.Button(btn_frm, text="Abbrechen", command=cancel).pack(side='left')
         root.mainloop()
 
     # -----------------------------
@@ -1165,6 +1270,9 @@ class LevelEditor:
         # Ensure victory settings present (backwards compatibility)
         self.level_settings.setdefault('victory', {"collect_hearts": True, "move_to": None, "classes_present": False})
 
+        # Load hints (F5 configuration)
+        self.hints = dict(settings.get('hints', {}) or {})
+
         self._recalc_window()
         self.screen = pygame.display.set_mode((self.win_w, self.win_h))
 
@@ -1202,6 +1310,13 @@ class LevelEditor:
         try:
             if hasattr(self, 'class_requirements') and self.class_requirements:
                 data["settings"]["class_requirements"] = self.class_requirements
+        except Exception:
+            pass
+
+        # Export hints (F5 configuration)
+        try:
+            if hasattr(self, 'hints') and self.hints:
+                data["settings"]["hints"] = self.hints
         except Exception:
             pass
         
@@ -1296,6 +1411,8 @@ class LevelEditor:
                         self.open_victory_dialog()
                     elif event.key == pygame.K_F4:
                         self.open_class_requirements_dialog()
+                    elif event.key == pygame.K_F5:
+                        self.open_hints_dialog()
                     elif event.key == pygame.K_s:
                         self.speicher_dialog()
                     elif event.key == pygame.K_o:

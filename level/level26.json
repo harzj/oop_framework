@@ -36,7 +36,7 @@
       "code": [
         "held.setze_richtung('up')",
         "held.geh()",
-        "held.nehme_auf()"
+        "held.nimm_herz()"
       ]
     }
   }

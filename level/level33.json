@@ -56,12 +56,12 @@
     "student_classes_in_subfolder": false,
     "hints": {
       "text": [
-        "Erzeuge Monster-Objekte und füge sie dem Level hinzu, um das Level zu lösen.",
-        "Schau dir das Klassendiagramm von Monster an: Monster(x, y, richtung)."
+        "Erzeuge Objekte mit ihrem Konstruktor und f\u00fcge sie mit level.objekt_hinzufuegen(obj) ein.",
+        "Schau dir den Konstruktoren-Tab in der Hilfe an, um die ben\u00f6tigten Parameter zu sehen."
       ],
       "code": [
         "from framework.monster import Monster",
-        "m = Monster(4, 2, 'up')",
+        "m = Monster(x, y, r)",
         "level.objekt_hinzufuegen(m)"
       ]
     }

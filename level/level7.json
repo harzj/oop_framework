@@ -11,6 +11,8 @@
   "settings": {
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Plane die Route des Helden sorgfältig, um alle Felder zu erreichen."
       ],
       "code": [
@@ -22,7 +24,11 @@
         "geh",
         "links",
         "rechts",
-        "zurueck"
+        "zurueck",
+        "nimm_herz",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }

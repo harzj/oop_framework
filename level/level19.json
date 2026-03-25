@@ -13,6 +13,8 @@
   "settings": {
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Knobelaufgabe: Kombiniere was_ist_vorn(), was_ist_links() und was_ist_rechts()."
       ],
       "code": [
@@ -29,12 +31,15 @@
         "rechts",
         "zurueck",
         "ist_auf_herz",
-        "nehme_auf",
+        "nimm_herz",
         "verbleibende_herzen",
         "herzen_vor_mir",
         "was_ist_vorn",
         "was_ist_links",
-        "was_ist_rechts"
+        "was_ist_rechts",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }

@@ -9,6 +9,8 @@
   "settings": {
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Kombiniere Schleifen und Richtungsänderungen für komplexe Pfade."
       ],
       "code": [
@@ -20,7 +22,11 @@
         "geh",
         "links",
         "rechts",
-        "zurueck"
+        "zurueck",
+        "nimm_herz",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }

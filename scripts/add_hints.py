@@ -1,4 +1,4 @@
-"""
+﻿"""
 Fügt Hinweise (hints) und Methoden-Filter zu den Level-JSON-Dateien 0-58 hinzu.
 Führt nur Änderungen durch, wenn noch kein 'hints'-Eintrag in 'settings' vorhanden ist.
 """
@@ -11,7 +11,7 @@ LEVEL_DIR = Path(__file__).parent.parent / "level"
 # Methoden-Gruppen (Schlüssel = Methodenname im Held-Tab ohne "()")
 # ---------------------------------------------------------------------------
 M_BASIC       = ["geh", "links", "rechts", "zurueck"]
-M_HERZ        = M_BASIC + ["ist_auf_herz", "nehme_auf", "verbleibende_herzen"]
+M_HERZ        = M_BASIC + ["ist_auf_herz", "nimm_herz", "verbleibende_herzen"]
 M_HERZ_PLUS   = M_HERZ + ["herzen_vor_mir"]
 M_SEHEN       = M_HERZ_PLUS + ["was_ist_vorn", "was_ist_links", "was_ist_rechts"]
 M_OBJEKTE     = M_SEHEN + ["gib_objekt_vor_dir", "gib_knappe", "lese_spruch", "sage_spruch", "bediene_tor"]
@@ -131,25 +131,25 @@ HINTS = {
     9: {
         "text": [
             "Nutze ist_auf_herz(), um zu prüfen, ob der Held auf einem Herz steht.",
-            "Rufe nehme_auf() auf, wenn du auf einem Herz stehst, um es einzusammeln.",
+            "Rufe nimm_herz() auf, wenn du auf einem Herz stehst, um es einzusammeln.",
         ],
         "code": [
             "held.geh()",
             "if held.ist_auf_herz():",
-            "    held.nehme_auf()",
+            "    held.nimm_herz()",
         ],
         "methoden": M_HERZ,
     },
     10: {
         "text": [
-            "Auch der Knappe kann mit ist_auf_herz() und nehme_auf() Herzen sammeln.",
+            "Auch der Knappe kann mit ist_auf_herz() und nimm_herz() Herzen sammeln.",
             "Steuere beide Charaktere, um alle Herzen einzusammeln.",
         ],
         "code": [
             "if held.ist_auf_herz():",
-            "    held.nehme_auf()",
+            "    held.nimm_herz()",
             "if knappe.ist_auf_herz():",
-            "    knappe.nehme_auf()",
+            "    knappe.nimm_herz()",
         ],
         "methoden": M_HERZ,
     },
@@ -161,7 +161,7 @@ HINTS = {
             "while held.verbleibende_herzen() > 0:",
             "    held.geh()",
             "    if held.ist_auf_herz():",
-            "        held.nehme_auf()",
+            "        held.nimm_herz()",
         ],
         "methoden": M_HERZ,
     },
@@ -173,7 +173,7 @@ HINTS = {
             "while held.verbleibende_herzen() > 0:",
             "    held.geh()",
             "    if held.ist_auf_herz():",
-            "        held.nehme_auf()",
+            "        held.nimm_herz()",
         ],
         "methoden": M_HERZ,
     },
@@ -185,7 +185,7 @@ HINTS = {
         "code": [
             "while held.verbleibende_herzen() > 0:",
             "    if held.ist_auf_herz():",
-            "        held.nehme_auf()",
+            "        held.nimm_herz()",
             "    else:",
             "        held.geh()",
         ],
@@ -198,7 +198,7 @@ HINTS = {
         "code": [
             "while held.verbleibende_herzen() > 0:",
             "    if held.ist_auf_herz():",
-            "        held.nehme_auf()",
+            "        held.nimm_herz()",
             "    elif held.herzen_vor_mir():",
             "        held.geh()",
             "    else:",
@@ -240,7 +240,7 @@ HINTS = {
             "    else:",
             "        held.geh()",
             "        if held.ist_auf_herz():",
-            "            held.nehme_auf()",
+            "            held.nimm_herz()",
         ],
         "methoden": M_SEHEN,
     },
@@ -341,7 +341,7 @@ HINTS = {
         "code": [
             "held.setze_richtung('up')",
             "held.geh()",
-            "held.nehme_auf()",
+            "held.nimm_herz()",
         ],
         "methoden": M_ALLE,
     },

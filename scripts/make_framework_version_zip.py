@@ -190,6 +190,14 @@ def main(argv):
     print(f"\nFertig: {zip_path}")
     print(f"\nHinweis: pygame ist im 'lib/' Ordner enthalten.")
     print(f"Die Schüler müssen pygame nicht mehr separat installieren!")
+
+    # Kopiere als oopventure_newest.zip ins Root-Verzeichnis
+    newest_path = ROOT / "oopventure_newest.zip"
+    if newest_path.exists():
+        newest_path.unlink()
+    shutil.copy2(zip_path, newest_path)
+    print(f"Kopiert als: {newest_path}")
+
     return 0
 
 

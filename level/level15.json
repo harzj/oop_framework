@@ -32,6 +32,8 @@
     },
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Nutze alle bisher gelernten Methoden, um dieses Level zu lösen."
       ],
       "code": [],
@@ -41,9 +43,12 @@
         "rechts",
         "zurueck",
         "ist_auf_herz",
-        "nehme_auf",
+        "nimm_herz",
         "verbleibende_herzen",
-        "herzen_vor_mir"
+        "herzen_vor_mir",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }

@@ -21,11 +21,13 @@
       "text": [
         "Nutze gib_objekt_vor_dir(), um das Objekt direkt vor dir zu erhalten.",
         "Dieses Mal sind die Objekte nicht namentlich bekannt – du musst sie selbst herausfinden.",
-        "Nicht nur der Held, auch der Knappe muss referenziert werden."
+        "Nicht nur der Held, auch der Knappe muss referenziert werden.",
+        "Betrachte nochmal die Befehlsliste der Tür: finde die passende Methode, um sie zu öffnen und was sie als Parameter erwartet.",
+        "Schau dann bei Zettel nach, wie du an die Information gelangen könntest."
       ],
       "code": [
-        "tuer = held.gib_objekt_vor_dir()",
-        "knappe = held.gib_knappe()"
+        "objekt = held.gib_objekt_vor_dir()",
+        "objekt.spruch_ausgeben()"
       ],
       "methoden": [
         "geh",
@@ -33,7 +35,7 @@
         "rechts",
         "zurueck",
         "ist_auf_herz",
-        "nehme_auf",
+        "nimm_herz",
         "verbleibende_herzen",
         "herzen_vor_mir",
         "was_ist_vorn",

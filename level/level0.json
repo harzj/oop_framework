@@ -12,19 +12,20 @@
     "hints": {
       "text": [
         "Willkommen im OOP-Framework! Dieses Level zeigt dir den Aufbau der Spielwelt.",
-        "Nutze geh(), links() und rechts(), um den Helden zu bewegen."
-      ],
-      "code": [
-        "held.geh()",
-        "held.links()",
-        "held.rechts()"
+        "Nutze die Pfeiltasten (↑ ↓ ← →), um die Heldenfigur zu steuern.",
+        "Teste die Tasten Enter, Leertaste, C, F und V an verschiedenen Spielobjekten aus, um mit diesen zu interagieren."
       ],
       "methoden": [
         "geh",
         "links",
         "rechts",
         "zurueck"
-      ]
+      ],
+      "default_tab": 0,
+      "no_monster_tab": true,
+      "no_zettel_tab": true,
+      "no_tuer_tab": true,
+      "held_keyboard_overview": true
     }
   }
 }

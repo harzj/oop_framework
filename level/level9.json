@@ -7,13 +7,14 @@
   "settings": {
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Nutze ist_auf_herz(), um zu prüfen, ob der Held auf einem Herz steht.",
-        "Rufe nehme_auf() auf, wenn du auf einem Herz stehst, um es einzusammeln."
+        "Rufe nimm_herz() auf, wenn du auf einem Herz stehst, um es einzusammeln."
       ],
       "code": [
-        "held.geh()",
-        "if held.ist_auf_herz():",
-        "    held.nehme_auf()"
+        "if not held.ist_auf_herz():",
+        "    # mache etwas"
       ],
       "methoden": [
         "geh",
@@ -21,8 +22,11 @@
         "rechts",
         "zurueck",
         "ist_auf_herz",
-        "nehme_auf",
-        "verbleibende_herzen"
+        "nimm_herz",
+        "verbleibende_herzen",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }

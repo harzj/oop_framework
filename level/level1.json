@@ -10,8 +10,9 @@
   "settings": {
     "hints": {
       "text": [
-        "Bewege den Helden mit geh(), links() und rechts() ans Ziel.",
-        "Mit zurueck() dreht sich der Held um 180°."
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
+        "Bewege den Helden mit geh(), links() und rechts() ans Ziel."
       ],
       "code": [
         "held.geh()",
@@ -22,7 +23,8 @@
         "geh",
         "links",
         "rechts",
-        "zurueck"
+        "zurueck",
+        "nimm_herz"
       ]
     }
   }

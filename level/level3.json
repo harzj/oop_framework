@@ -10,6 +10,8 @@
   "settings": {
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Auch der Knappe kann sich mit geh(), links() und rechts() bewegen.",
         "Steuere Held und Knappe abwechselnd."
       ],
@@ -22,7 +24,8 @@
         "geh",
         "links",
         "rechts",
-        "zurueck"
+        "zurueck",
+        "nimm_herz"
       ]
     }
   }

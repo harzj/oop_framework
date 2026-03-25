@@ -265,8 +265,8 @@ class Framework:
             ("geh()",              "delay (opt.): Pause in ms",                              "Bewegt den Helden einen Schritt in die Richtung, in die er blickt."),
             ("links()",            "delay (opt.): Pause in ms",                              "Dreht den Helden um 90° nach links (gegen den Uhrzeigersinn)."),
             ("rechts()",           "delay (opt.): Pause in ms",                              "Dreht den Helden um 90° nach rechts (im Uhrzeigersinn)."),
-            ("zurueck()",          "delay (opt.): Pause in ms",                              "Dreht den Helden um 180°."),
-            ("nehme_auf()",        "delay (opt.): Pause in ms",                              "Hebt den Gegenstand auf der aktuellen Position auf."),
+            ("zurueck()",          "delay (opt.): Pause in ms",                              "Bewegt den Helden einen Schritt rückwärts (ohne Drehung)."),
+            ("nimm_herz()",          "delay (opt.): Pause in ms",                              "Hebt den Gegenstand auf der aktuellen Position auf."  ),  # früher nehme_auf()
             ("attack()",           "delay (opt.): Pause in ms",                              "Greift das Objekt direkt vor dem Helden an."),
             ("was_ist_vorn()",     "–",                                                      "Gibt den Typ des Objekts vor dem Helden als Text zurück."),
             ("was_ist_links()",    "–",                                                      "Gibt den Typ des Objekts links vom Helden als Text zurück."),
@@ -274,9 +274,9 @@ class Framework:
             ("gib_objekt_vor_dir()","–",                                                    "Gibt die Referenz auf das Objekt direkt vor dem Helden zurück."),
             ("gib_knappe()",       "–",                                                      "Gibt die Referenz auf den Knappe zurück (falls vorhanden)."),
             ("ist_auf_herz()",     "–",                                                      "Gibt True zurück, wenn der Held auf einem Herz steht."),
-            ("herzen_vor_mir()",   "–",                                                      "Gibt True zurück, wenn ein Herz direkt vor dem Helden liegt."),
-            ("lese_spruch()",      "delay (opt.): Pause in ms",                              "Liest den Spruch auf einem Zettel, der vor dem Helden liegt."),
-            ("sage_spruch()",      "code (opt.): Spruchtext,  delay (opt.): Pause in ms",   "Gibt einen Code oder Spruch ein."),
+            ("herzen_vor_mir()",   "–",                                                      "Gibt die Anzahl der Herzen in direkter Sichtlinie zurück. Hindernisse blockieren die Sicht."),
+            ("lese_spruch()",      "delay (opt.): Pause in ms",                              "Liest und merkt sich den Spruch auf einem Zettel, wenn der Held auf diesem steht."),
+            ("sage_spruch()",      "code (opt.): Spruchtext,  delay (opt.): Pause in ms",   "Sagt den gemerkten Spruch (falls vorhanden), um eine Tür damit zu öffnen."),
             ("bediene_tor()",      "delay (opt.): Pause in ms",                              "Betätigt das Tor, das direkt vor dem Helden steht."),
         ]
 
@@ -285,15 +285,15 @@ class Framework:
             ("geh()",               "delay (opt.): Pause in ms",                             "Bewegt den Knappe einen Schritt in die Richtung, in die er blickt."),
             ("links()",             "delay (opt.): Pause in ms",                             "Dreht den Knappe um 90° nach links."),
             ("rechts()",            "delay (opt.): Pause in ms",                             "Dreht den Knappe um 90° nach rechts."),
-            ("zurueck()",           "delay (opt.): Pause in ms",                             "Dreht den Knappe um 180°."),
-            ("nehme_auf()",         "delay (opt.): Pause in ms",                             "Hebt einen Gegenstand auf der aktuellen Position auf."),
+            ("zurueck()",           "delay (opt.): Pause in ms",                             "Bewegt den Knappe einen Schritt rückwärts (ohne Drehung)."),
+            ("nimm_herz()",           "delay (opt.): Pause in ms",                             "Hebt einen Gegenstand auf der aktuellen Position auf."  ),  # früher nehme_auf()
             ("attack()",            "delay (opt.): Pause in ms",                             "Greift das Objekt direkt vor dem Knappe an."),
             ("was_ist_vorn()",      "–",                                                     "Gibt den Typ des Objekts vor dem Knappe als Text zurück."),
             ("was_ist_links()",     "–",                                                     "Gibt den Typ des Objekts links vom Knappe als Text zurück."),
             ("was_ist_rechts()",    "–",                                                     "Gibt den Typ des Objekts rechts vom Knappe als Text zurück."),
             ("gib_objekt_vor_dir()","–",                                                     "Gibt die Referenz auf das Objekt direkt vor dem Knappe zurück."),
-            ("lese_spruch()",       "delay (opt.): Pause in ms",                             "Liest den Spruch auf einem Zettel vor dem Knappe."),
-            ("sage_spruch()",       "code (opt.): Spruchtext,  delay (opt.): Pause in ms",  "Gibt einen Code oder Spruch ein."),
+            ("lese_spruch()",       "delay (opt.): Pause in ms",                             "Liest und merkt sich den Spruch auf einem Zettel, wenn der Knappe auf diesem steht."),
+            ("sage_spruch()",       "code (opt.): Spruchtext,  delay (opt.): Pause in ms",  "Sagt den gemerkten Spruch (falls vorhanden), um eine Tür damit zu öffnen."),
             ("bediene_tor()",       "delay (opt.): Pause in ms",                             "Betätigt das Tor direkt vor dem Knappe."),
         ]
 
@@ -302,13 +302,154 @@ class Framework:
             ("geh()",              "–",                                                    "Bewegt das Monster einen Schritt vorwärts."),
             ("links()",            "–",                                                    "Dreht das Monster um 90° nach links."),
             ("rechts()",           "–",                                                    "Dreht das Monster um 90° nach rechts."),
-            ("zurueck()",          "–",                                                    "Dreht das Monster um 180°."),
+            ("zurueck()",          "–",                                                    "Bewegt das Monster einen Schritt rückwärts (ohne Drehung)."),
             ("angriff()",          "opfer (opt.): Zielobjekt,  delay (opt.): Pause in ms","Führt einen Angriff auf das Zielobjekt aus."),
-            ("setze_richtung()",   "r: 'up', 'down', 'left' oder 'right'",                "Setzt die Blickrichtung des Monsters."),
-            ("setze_position()",   "x: X-Koordinate,  y: Y-Koordinate",                   "Teleportiert das Monster zur angegebenen Position."),
             ("was_ist_vorn()",     "–",                                                    "Gibt den Typ des Objekts vor dem Monster als Text zurück."),
             ("gib_objekt_vor_dir()","–",                                                  "Gibt die Referenz auf das Objekt direkt vor dem Monster zurück."),
         ]
+
+    def _get_zettel_methoden(self):
+        return [
+            ("gib_spruch()",      "–",                     "Gibt den Spruch auf dem Zettel als String zurück."),
+            ("spruch_ausgeben()", "–",                     "Gibt den Spruch des Zettels auf der Konsole aus."),
+        ]
+
+    def _get_tuer_methoden(self):
+        return [
+            ("ist_passierbar()",   "–",                     "Gibt True zurück, wenn die Tür geöffnet / passierbar ist."),
+            ("spruch_anwenden()",  "s: str – der Spruch",   "Versucht, die Tür mit dem übergebenen Spruch zu öffnen."),
+        ]
+
+    def _get_tuer_farbig_methoden(self):
+        return [
+            ("ist_passierbar()",          "–",                          "Gibt True zurück, wenn die Tür geöffnet / passierbar ist."),
+            ("schluessel_verwenden(k)",   "k: Schluessel",              "Öffnet die Tür, wenn die Farbe des Schlüssels mit der Türfarbe übereinstimmt."),
+            ("get_farbe()",               "–",                          "Gibt die Farbe der Tür zurück: 'blue', 'golden', 'green', 'red', 'violet'."),
+            ("get_offen()",               "–",                          "Gibt True zurück, wenn die Tür geöffnet ist."),
+        ]
+
+    def _get_schluessel_methoden(self):
+        return [
+            ("get_farbe()",         "–",              "Gibt die Farbe des Schlüssels zurück: 'blue', 'golden', 'green', 'red', 'violet'."),
+            ("set_farbe(f)",        "f: str",         "Setzt die Farbe des Schlüssels auf die angegebene Farbe: 'blue', 'golden', 'green', 'red', 'violet'."),
+            ("setze_position(x, y)", "x, y: int",     "Setzt den Schlüssel auf die angegebene Position (muss frei sein)."),
+        ]
+
+    def _get_impl_methoden(self, klasse, required_methods):
+        """
+        Für Implementierungs-Level (35–58): liefert Methodenliste für eine
+        vom Schüler zu implementierende Klasse.
+        Erste Zeile: Konstruktor, danach nur die geforderten Methoden.
+        """
+        # Lookup aller bekannten Methoden (stripped name → Tabelleneintrag)
+        _all = {}
+        for src in [
+            self._get_held_methoden(),
+            self._get_knappe_methoden(),
+            self._get_monster_methoden(),
+            self._get_zettel_methoden(),
+            self._get_tuer_methoden(),
+            self._get_tuer_farbig_methoden(),
+            self._get_schluessel_methoden(),
+        ]:
+            for entry in src:
+                key = entry[0].split('(')[0]
+                if key not in _all:
+                    _all[key] = entry
+
+        # Ergänzung: Methoden, die typisch für Impl-Klassen gefordert werden
+        _extra = {
+            "get_x":            ("get_x()",              "–",                   "Gibt die x-Position des Objekts zurück."),
+            "get_y":            ("get_y()",              "–",                   "Gibt die y-Position des Objekts zurück."),
+            "get_typ":          ("get_typ()",            "–",                   "Gibt den Typ des Objekts als String zurück."),
+            "get_richtung":     ("get_richtung()",       "–",                   "Gibt die aktuelle Blickrichtung zurück ('up','down','left','right')."),
+            "set_richtung":     ("set_richtung(r)",      "r: str",              "Setzt die Blickrichtung ('up','down','left','right')."),
+            "get_spruch":       ("get_spruch()",         "–",                   "Gibt den Spruch des Zettels als String zurück."),
+            "set_spruch":       ("set_spruch(s)",        "s: str",              "Setzt den Spruch des Zettels auf den übergebenen Wert."),
+            "get_weiblich":     ("get_weiblich()",       "–",                   "Gibt True zurück, wenn der Held weiblich ist."),
+            "item_hinzufuegen": ("item_hinzufuegen(item)", "item: Gegenstand",  "Fügt einen Gegenstand dem Inventar hinzu."),
+            "hat_item":         ("hat_item(item)",       "item: Gegenstand",    "Gibt True zurück, wenn der Gegenstand im Inventar ist."),
+            "anzahl_items":     ("anzahl_items()",       "–",                   "Gibt die Anzahl der Items im Inventar zurück."),
+            "gib_item_nummer":  ("gib_item_nummer(n)",  "n: int",              "Gibt das Item mit dem angegebenen Index zurück (0-basiert)."),
+            "gold_sammeln":     ("gold_sammeln(menge)",  "menge: int",          "Fügt die angegebene Goldmenge zum Inventar hinzu."),
+            "ist_voll":         ("ist_voll()",           "–",                   "Gibt True zurück, wenn das Inventar voll ist."),
+            "sammeln":          ("sammeln(inventar)",    "inventar: Inventar",  "Legt den Gegenstand in das übergebene Inventar."),
+        }
+        for key, entry in _extra.items():
+            if key not in _all:
+                _all[key] = entry
+
+        # Konstruktor-Zeile als erste Zeile
+        konstr_row = ("__init__(self, ...)", "–", f"Konstruktor der Klasse {klasse}.")
+        result = [konstr_row]
+        for m in required_methods:
+            if m in _all:
+                result.append(_all[m])
+            else:
+                result.append((f"{m}()", "–", "Muss von dir implementiert werden."))
+        return result
+
+    def _get_konstruktoren(self):
+        """Gibt eine Liste von (Klasse, Signatur, Beschreibung) für den Konstruktoren-Tab zurück."""
+        return [
+            ("Held",       "x, y: int,  r: str,  weiblich: bool",
+             "from framework.held import Held\nr = 'up','down','left','right'  |  weiblich = True (Heldin) / False (Held)"),
+            ("Knappe",     "x, y: int,  r: str",
+             "from framework.knappe import Knappe\nr = 'up', 'down', 'left' oder 'right'"),
+            ("Hindernis",  "art: str,  x, y: int",
+             "from framework.hindernis import Hindernis\nart = 'Baum', 'Busch' oder 'Berg'"),
+            ("Herz",       "x, y: int",
+             "from framework.herz import Herz\nPlatziert ein Herz auf dem Spielfeld."),
+            ("Schluessel", "x, y: int",
+             "from framework.schluessel import Schluessel\nStandardfarbe: 'green'. Weitere Farben: 'blue', 'golden', 'red', 'violet'."),
+            ("Tor",        "x, y: int,  offen: bool",
+             "from framework.tor import Tor\noffen = True (Tor geöffnet) oder False (Tor geschlossen)"),
+            ("Tuer",       "x, y: int,  farbe: str",
+             "from framework.tuer import Tuer\nFarbige Tür: farbe = 'blue','golden','green','red','violet'"),
+            ("Tuer",       "x, y: int",
+             "from framework.tuer import Tuer\nTür ohne Farbe → wird mit Zauberspruch geöffnet"),
+        ]
+
+    def _render_konstruktoren_tab(self, surf, fonts, colors, x, y, w):
+        """Zeichnet den Konstruktoren-Tab: 3-spaltige Tabelle (Klasse | Signatur | Hinweis)."""
+        COL1 = 120
+        COL2 = 260
+        COL3 = w - COL1 - COL2 - 12
+        PAD  = 4
+        body = fonts['body']
+        hdr  = fonts['header']
+        lh   = body.get_linesize()
+
+        # Header
+        pygame.draw.rect(surf, colors['header_bg'], (x, y, w, lh + PAD * 2))
+        surf.blit(hdr.render("Klasse",     True, colors['header_text']), (x + 4,               y + PAD))
+        surf.blit(hdr.render("Parameter",  True, colors['header_text']), (x + COL1 + 4,        y + PAD))
+        surf.blit(hdr.render("Hinweis",    True, colors['header_text']), (x + COL1 + COL2 + 4, y + PAD))
+        y += lh + PAD * 2 + 2
+
+        for i, (klasse, sig, hinweis) in enumerate(self._get_konstruktoren()):
+            hinweis_parts = hinweis.split('\n')
+            sig_lines     = self._wrap_text(body, sig,             COL2 - 8)
+            hinweis_lines = []
+            for part in hinweis_parts:
+                hinweis_lines.extend(self._wrap_text(body, part, COL3 - 6))
+            row_h = max(len(sig_lines), len(hinweis_lines)) * lh + PAD * 2
+
+            pygame.draw.rect(surf, colors['row_even'] if i % 2 == 0 else colors['row_odd'],
+                             (x, y, w, row_h))
+            pygame.draw.line(surf, colors['sep'], (x + COL1,        y), (x + COL1,        y + row_h))
+            pygame.draw.line(surf, colors['sep'], (x + COL1 + COL2, y), (x + COL1 + COL2, y + row_h))
+
+            surf.blit(body.render(klasse, True, colors['col_method']), (x + 4, y + PAD))
+            for li, sl in enumerate(sig_lines):
+                surf.blit(body.render(sl, True, colors['col_param']),
+                          (x + COL1 + 4, y + PAD + li * lh))
+            for li, hl in enumerate(hinweis_lines):
+                surf.blit(body.render(hl, True, colors['col_desc']),
+                          (x + COL1 + COL2 + 4, y + PAD + li * lh))
+            y += row_h
+
+        return y + 8
 
     def _wrap_text(self, font, text, max_width):
         """Bricht text in Zeilen auf, die max_width px nicht überschreiten."""
@@ -384,12 +525,18 @@ class Framework:
 
         victory  = getattr(sp, 'victory_settings', {}) or {}
         settings = getattr(sp, 'settings', {}) or {}
+        hints    = settings.get('hints', {}) or {}
         classes_present = bool(victory.get('classes_present', False))
         rebuild         = bool(victory.get('rebuild_mode', False))
 
         # ── Phase ──────────────────────────────────────────────────────────
-        phase_text  = "Phase 2: Eigene Klassen schreiben" if classes_present else "Phase 1: Helden programmieren"
-        phase_color = (255, 200, 100) if classes_present else (120, 200, 255)
+        phase_custom = hints.get('phase', '').strip() if isinstance(hints.get('phase'), str) else ''
+        if phase_custom:
+            phase_text  = phase_custom
+            phase_color = (255, 200, 100)
+        else:
+            phase_text  = "Phase 2: Eigene Klassen schreiben" if classes_present else "Phase 1: Helden programmieren"
+            phase_color = (255, 200, 100) if classes_present else (120, 200, 255)
         surf.blit(tf.render(f"Phase:  {phase_text}", True, phase_color), (x, y)); y += tlh
 
         # ── Siegbedingungen ────────────────────────────────────────────────
@@ -454,7 +601,6 @@ class Framework:
         y += 4
 
         # ── Level-spezifische Hinweise aus JSON ────────────────────────────
-        hints       = settings.get('hints', {}) or {}
         hints_text  = hints.get('text', []) or []
         hints_code  = hints.get('code', []) or []
 
@@ -466,7 +612,7 @@ class Framework:
         elif not classes_present:
             blit_bullet("Bewege den Helden mit geh(), links() und rechts().", colors['hint_text'])
             if collect_hearts:
-                blit_bullet("Gehe auf ein Herz-Feld und rufe nehme_auf() auf.", colors['hint_text'])
+                blit_bullet("Gehe auf ein Herz-Feld und rufe nimm_herz() auf.", colors['hint_text'])
             if mt and isinstance(mt, dict) and mt.get('enabled'):
                 blit_bullet("Du erreichst das Ziel, wenn der Held exakt auf dem markierten Feld steht.", colors['hint_text'])
         else:
@@ -552,28 +698,96 @@ class Framework:
                         lines.append(f"      Parameter: {params}")
                     lines.append(f"      {desc}")
 
-            lines.append("── Held – Methoden ─────────────────────")
-            fmt_methoden(self._get_held_methoden())
-            lines.append("")
-
-            has_knappe = False
-            has_monster = False
             try:
-                tiles_flat = [c for row in sp.level.tiles for c in row]
-                has_knappe  = any(c.lower() == 'k' for c in tiles_flat if isinstance(c, str))
-                has_monster = any(c.lower() in ('x', 'y') for c in tiles_flat if isinstance(c, str))
-            except Exception:
-                pass
+                _lnr = int(''.join(filter(str.isdigit, getattr(self, 'levelfile', '') or '')))
+            except (ValueError, TypeError):
+                _lnr = 0
 
-            if has_knappe or getattr(sp, 'knappe', None) is not None:
-                lines.append("── Knappe – Methoden ───────────────────")
-                fmt_methoden(self._get_knappe_methoden())
+            # Implementierungs-Modus für Level 35–58
+            _impl_klassen_txt = {}
+            if 35 <= _lnr <= 58:
+                cr = (getattr(sp, 'settings', {}) or {}).get('class_requirements', {})
+                if cr:
+                    for _cls, _req in cr.items():
+                        _impl_klassen_txt[_cls] = _req.get('methods', [])
+
+            if _impl_klassen_txt:
+                for cls_name, req_methods in _impl_klassen_txt.items():
+                    lines.append(f"── {cls_name} – zu implementieren ──────────")
+                    fmt_methoden(self._get_impl_methoden(cls_name, req_methods))
+                    lines.append("")
+            else:
+                lines.append("── Held – Methoden ─────────────────────")
+                fmt_methoden(self._get_held_methoden())
                 lines.append("")
 
-            if has_monster:
-                lines.append("── Monster – Methoden ──────────────────")
-                fmt_methoden(self._get_monster_methoden())
-                lines.append("")
+                has_knappe = False
+                has_monster = False
+                try:
+                    tiles_flat = [c for row in sp.level.tiles for c in row]
+                    has_knappe  = any(c.lower() == 'k' for c in tiles_flat if isinstance(c, str))
+                    has_monster = any(c.lower() in ('x', 'y') for c in tiles_flat if isinstance(c, str))
+                except Exception:
+                    pass
+
+                if has_knappe or getattr(sp, 'knappe', None) is not None:
+                    lines.append("── Knappe – Methoden ───────────────────")
+                    fmt_methoden(self._get_knappe_methoden())
+                    lines.append("")
+
+                if has_monster:
+                    lines.append("── Monster – Methoden ──────────────────")
+                    fmt_methoden(self._get_monster_methoden())
+                    lines.append("")
+
+                has_zettel_txt      = False
+                has_tuer_spruch_txt = False
+                has_tuer_farbig_txt = False
+                has_schluessel_txt  = False
+                try:
+                    _ZETTEL_TYPEN = ('Zettel', 'Code', 'Spruch')
+                    has_zettel_txt = any(
+                        getattr(o, 'typ', '') in _ZETTEL_TYPEN
+                        or type(o).__name__ in ('Code', 'Zettel')
+                        for o in getattr(sp, 'objekte', []))
+                    for _o in getattr(sp, 'objekte', []):
+                        if getattr(_o, 'typ', '') == 'Tuer':
+                            if getattr(_o, 'farbe', None) is not None:
+                                has_tuer_farbig_txt = True
+                            else:
+                                has_tuer_spruch_txt = True
+                        if getattr(_o, 'typ', '') == 'Schluessel':
+                            has_schluessel_txt = True
+                except Exception:
+                    pass
+
+                if has_zettel_txt:
+                    lines.append("── Zettel – Methoden ───────────────────")
+                    fmt_methoden(self._get_zettel_methoden())
+                    lines.append("")
+
+                if has_tuer_spruch_txt:
+                    lines.append("── Tür – Methoden ──────────────────────")
+                    fmt_methoden(self._get_tuer_methoden())
+                    lines.append("")
+
+                if has_tuer_farbig_txt:
+                    lines.append("── Tür (farbig) – Methoden ─────────────")
+                    fmt_methoden(self._get_tuer_farbig_methoden())
+                    lines.append("")
+
+                if has_schluessel_txt:
+                    lines.append("── Schlüssel – Methoden ────────────────")
+                    fmt_methoden(self._get_schluessel_methoden())
+                    lines.append("")
+
+                if bool(hints.get('konstruktoren_tab', False)) or (32 <= _lnr <= 34):
+                    lines.append("── Konstruktoren ────────────────────────")
+                    for klasse, sig, hinweis in self._get_konstruktoren():
+                        lines.append(f"  {klasse}({sig})")
+                        for part in hinweis.split('\n'):
+                            lines.append(f"      {part}")
+                    lines.append("")
 
             return "\n".join(lines)
 
@@ -597,6 +811,44 @@ class Framework:
         t = threading.Thread(target=_run, daemon=True)
         t.start()
 
+    def _render_tastatur_uebersicht(self, surf, fonts, colors, x, y, w):
+        """Rendert eine Tastaturübersicht anstelle der Methoden-Tabelle (für Level 0)."""
+        KEYS = [
+            # (Taste, Beschreibung)
+            ("↑",          "Vorwärts gehen (in Blickrichtung)"),
+            ("↓",          "Umdrehen (180°)"),
+            ("←",          "90° nach links drehen"),
+            ("→",          "90° nach rechts drehen"),
+            ("Enter",      "Gegenstand / Herz aufnehmen"),
+            ("Leertaste",  "Angreifen"),
+            ("C",          "Zettel lesen (Spruch / Code anzeigen)"),
+            ("V",          "Spruch / Code eingeben oder anwenden"),
+            ("F",          "Tor oder Tür bedienen"),
+            ("F1",         "Dieses Hilfefenster öffnen / schließen"),
+            ("ESC",        "Spiel beenden"),
+        ]
+        PAD = 4
+        COL1 = 110
+        body   = fonts['body']
+        header = fonts['header']
+        lh     = body.get_linesize()
+
+        # Tabellenheader
+        pygame.draw.rect(surf, colors['header_bg'], (x, y, w, lh + PAD * 2))
+        surf.blit(header.render("Taste",        True, colors['header_text']), (x + 4,        y + PAD))
+        surf.blit(header.render("Aktion",       True, colors['header_text']), (x + COL1 + 4, y + PAD))
+        y += lh + PAD * 2 + 2
+
+        for i, (key, desc) in enumerate(KEYS):
+            row_h = lh + PAD * 2
+            pygame.draw.rect(surf, colors['row_even'] if i % 2 == 0 else colors['row_odd'], (x, y, w, row_h))
+            pygame.draw.line(surf, colors['sep'], (x + COL1, y), (x + COL1, y + row_h))
+            surf.blit(body.render(key,  True, colors['col_method']), (x + 4,        y + PAD))
+            surf.blit(body.render(desc, True, colors['col_desc']),   (x + COL1 + 4, y + PAD))
+            y += row_h
+
+        return y + 8
+
     def _zeichne_hilfe(self):
         """F1-Hilfsfenster: zeigt verfügbare Befehle mit Tab-Navigation."""
         try:
@@ -604,6 +856,13 @@ class Framework:
             sw, sh = screen.get_size()
 
             sp = getattr(self, 'spielfeld', None)
+            level_hints = (getattr(sp, 'settings', {}) or {}).get('hints', {}) or {}
+            no_monster_tab       = bool(level_hints.get('no_monster_tab', False))
+            no_zettel_tab        = bool(level_hints.get('no_zettel_tab',  False))
+            no_tuer_tab          = bool(level_hints.get('no_tuer_tab',    False))
+            held_keyboard_mode   = bool(level_hints.get('held_keyboard_overview', False))
+            default_tab          = level_hints.get('default_tab', None)  # None = use stored tab
+
             has_knappe  = False
             has_monster = False
             if sp:
@@ -619,11 +878,79 @@ class Framework:
                     has_monster = any(getattr(o, 'typ', '') in ('Monster', 'Bogenschuetze')
                                       for o in getattr(sp, 'objekte', []))
 
-            tabs = ["Generelle Hilfe", "Held"]
-            if has_knappe:  tabs.append("Knappe")
-            if has_monster: tabs.append("Monster")
+            # Level-Nummer (wird für Impl-Modus und Konstruktoren benötigt)
+            try:
+                _level_nr = int(''.join(filter(str.isdigit, getattr(self, 'levelfile', '') or '')))
+            except (ValueError, TypeError):
+                _level_nr = 0
 
-            tab = max(0, min(getattr(self, '_help_tab', 1), len(tabs) - 1))
+            # Implementierungs-Modus für Level 35–58: Tabs aus class_requirements
+            _impl_mode = 35 <= _level_nr <= 58
+            _impl_klassen = {}  # class_name → required_methods list
+            if _impl_mode:
+                cr = (getattr(sp, 'settings', {}) or {}).get('class_requirements', {})
+                if cr:
+                    for _cls, _req in cr.items():
+                        _impl_klassen[_cls] = _req.get('methods', [])
+
+            if _impl_mode and _impl_klassen:
+                tabs = ["Generelle Hilfe"] + list(_impl_klassen.keys())
+            else:
+                has_zettel      = False
+                has_tuer_spruch = False
+                has_tuer_farbig = False
+                has_schluessel  = False
+                if sp:
+                    try:
+                        _ZETTEL_TYPEN = ('Zettel', 'Code', 'Spruch')
+                        has_zettel = any(
+                            getattr(o, 'typ', '') in _ZETTEL_TYPEN
+                            or type(o).__name__ in ('Code', 'Zettel')
+                            for o in getattr(sp, 'objekte', []))
+                        for _o in getattr(sp, 'objekte', []):
+                            if getattr(_o, 'typ', '') == 'Tuer':
+                                if getattr(_o, 'farbe', None) is not None:
+                                    has_tuer_farbig = True
+                                else:
+                                    has_tuer_spruch = True
+                            if getattr(_o, 'typ', '') == 'Schluessel':
+                                has_schluessel = True
+                    except Exception:
+                        pass
+
+                if no_monster_tab:
+                    has_monster = False
+                if no_zettel_tab:
+                    has_zettel = False
+                if no_tuer_tab:
+                    has_tuer_spruch = False
+                    has_tuer_farbig = False
+                    has_schluessel  = False
+
+                self._help_tuer_farbig = has_tuer_farbig
+                has_tuer = has_tuer_spruch or has_tuer_farbig
+
+                tabs = ["Generelle Hilfe", "Held"]
+                if has_knappe:     tabs.append("Knappe")
+                if has_monster:    tabs.append("Monster")
+                if has_zettel:     tabs.append("Zettel")
+                if has_tuer:       tabs.append("Tür")
+                if has_schluessel: tabs.append("Schlüssel")
+
+                show_konstruktoren = (
+                    bool(level_hints.get('konstruktoren_tab', False))
+                    or (32 <= _level_nr <= 34)
+                )
+                if show_konstruktoren:
+                    tabs.append("Konstruktoren")
+
+            # default_tab from hints: only apply once when the window is first opened
+            _stored_tab = getattr(self, '_help_tab', None)
+            if default_tab is not None and getattr(self, '_help_just_opened', False):
+                tab = max(0, min(default_tab, len(tabs) - 1))
+                self._help_just_opened = False
+            else:
+                tab = max(0, min(_stored_tab if _stored_tab is not None else 1, len(tabs) - 1))
             self._help_tab = tab
 
             W  = min(sw - 40, 880)
@@ -712,7 +1039,6 @@ class Framework:
             rs.fill(C['bg'])
             ry = 6
             # Methoden-Filter aus Level-Hints lesen
-            level_hints = (getattr(sp, 'settings', {}) or {}).get('hints', {}) or {}
             methoden_filter = level_hints.get('methoden')  # None = zeige alle
 
             def _filter_methoden(methoden):
@@ -723,10 +1049,29 @@ class Framework:
 
             if tab == 0:
                 ry = self._render_hilfe_allgemein(rs, fonts, C, 0, ry, CW, sp)
+            elif _impl_mode and tabs[tab] in _impl_klassen:
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW,
+                    self._get_impl_methoden(tabs[tab], _impl_klassen[tabs[tab]]))
             elif tabs[tab] == "Held":
-                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, _filter_methoden(self._get_held_methoden()))
+                if held_keyboard_mode:
+                    ry = self._render_tastatur_uebersicht(rs, fonts, C, 0, ry, CW)
+                else:
+                    ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, _filter_methoden(self._get_held_methoden()))
             elif tabs[tab] == "Knappe":
                 ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, _filter_methoden(self._get_knappe_methoden()))
+            elif tabs[tab] == "Monster":
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_monster_methoden())
+            elif tabs[tab] == "Zettel":
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_zettel_methoden())
+            elif tabs[tab] == "Tür":
+                if getattr(self, '_help_tuer_farbig', False):
+                    ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_tuer_farbig_methoden())
+                else:
+                    ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_tuer_methoden())
+            elif tabs[tab] == "Schlüssel":
+                ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_schluessel_methoden())
+            elif tabs[tab] == "Konstruktoren":
+                ry = self._render_konstruktoren_tab(rs, fonts, C, 0, ry, CW)
             else:
                 ry = self._render_methoden_tabelle(rs, fonts, C, 0, ry, CW, self._get_monster_methoden())
 
@@ -1413,6 +1758,7 @@ class Framework:
                         if not getattr(self, '_help_visible', False):
                             self._help_visible = True
                             self._help_scroll = 0
+                            self._help_just_opened = True
                             self._ensure_help_window_size()
                         else:
                             self._help_visible = False

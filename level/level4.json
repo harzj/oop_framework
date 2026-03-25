@@ -8,6 +8,8 @@
   "settings": {
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Bewege den Helden vorsichtig – Monster können gefährlich sein!",
         "Versuche, dem Monster auszuweichen."
       ],
@@ -19,7 +21,8 @@
         "geh",
         "links",
         "rechts",
-        "zurueck"
+        "zurueck",
+        "nimm_herz"
       ]
     }
   }

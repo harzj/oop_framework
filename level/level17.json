@@ -14,6 +14,8 @@
     },
     "hints": {
       "text": [
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
         "Prüfe mit was_ist_vorn(), ob ein Baum im Weg steht, und drehe dich dann links.",
         "Sammle alle Herzen ein, solange noch welche übrig sind."
       ],
@@ -24,7 +26,7 @@
         "    else:",
         "        held.geh()",
         "        if held.ist_auf_herz():",
-        "            held.nehme_auf()"
+        "            held.nimm_herz()"
       ],
       "methoden": [
         "geh",
@@ -32,12 +34,15 @@
         "rechts",
         "zurueck",
         "ist_auf_herz",
-        "nehme_auf",
+        "nimm_herz",
         "verbleibende_herzen",
         "herzen_vor_mir",
         "was_ist_vorn",
         "was_ist_links",
-        "was_ist_rechts"
+        "was_ist_rechts",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }

@@ -53,6 +53,18 @@
     "quest_items_needed": 1,
     "random_door": false,
     "random_keys": false,
+    "hints": {
+      "text": [
+        "Baue das Spielfeld exakt nach der Vorlage nach.",
+        "Nutze den Konstruktoren-Tab in der Hilfe für Import-Befehle und Parameter.",
+        "Tipp: Alle Objekte werden mit level.objekt_hinzufuegen(obj) ins Spiel eingefügt."
+      ],
+      "code": [
+        "from framework.hindernis import Hindernis",
+        "h = Hindernis('Baum', x, y)",
+        "level.objekt_hinzufuegen(h)"
+      ]
+    },
     "template_objects": [
       {
         "typ": "Hindernis",

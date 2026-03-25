@@ -7,12 +7,14 @@
   "settings": {
     "hints": {
       "text": [
-        "Kombiniere verbleibende_herzen() und herzen_vor_mir() für einen flexiblen Herzsammler."
+        "Löse die Level ab sofort mit Code.",
+        "Du kannst alle Programmierkonzepte von Python nutzen: Schleifen, Verzweigungen, Variablen und Unterprogramme.",
+        "Kombiniere verbleibende_herzen() und herzen_vor_mir() für einen flexiblen Herzsammler. herzen_vor_mir() liefert die Anzahl der Herzen in Sichtlinie (Hindernisse blockieren)."
       ],
       "code": [
         "while held.verbleibende_herzen() > 0:",
         "    if held.ist_auf_herz():",
-        "        held.nehme_auf()",
+        "        held.nimm_herz()",
         "    elif held.herzen_vor_mir():",
         "        held.geh()",
         "    else:",
@@ -24,9 +26,12 @@
         "rechts",
         "zurueck",
         "ist_auf_herz",
-        "nehme_auf",
+        "nimm_herz",
         "verbleibende_herzen",
-        "herzen_vor_mir"
+        "herzen_vor_mir",
+        "lese_spruch",
+        "sage_spruch",
+        "bediene_tor"
       ]
     }
   }
