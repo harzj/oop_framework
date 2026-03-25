@@ -78,7 +78,7 @@ In dieser Phase implementieren die Schüler eigene Klassen:
 
 ### Grundstruktur der `schueler.py`
 
-In der `schueler.py` lösen die Schülerinnen und Schüler die Level 0 bis 34. Über die Leveldateien wird gesteuert, auf welche Objekte sie Zugriff erhalten und ob deren Attribute privat oder öffentlich sind. 
+In der `schueler.py` lösen die Schülerinnen und Schüler die Level 0 bis 34. Über die Leveldateien wird gesteuert, auf welche Objekte sie Zugriff erhalten und ob deren Attribute privat oder öffentlich sind. Ein Hilfefenster mit weiteren Informationen kann über die F1-Taste aufgerufen werden.
 
 ```python
 from framework.grundlage import level
@@ -160,7 +160,7 @@ while not held.ist_auf_herz():
 
 ## 🏗️ Klassen implementieren (Phase 2)
 
-Ab Level 35 müssen eigene Klassen erstellt (zunächst innerhalb der `schueler.py`) und ab Level 38 im Ordner `klassen/` in eigene Dateien ausgelagert werden. Ab diesen Leveln wird automatisch die Schülerklasse verwendet, wobei das Rendering und Teile der Spiellogik (z.B. Tastatursteuerung) weiterhin vom Framework übernommen werden. In den Leveldateien ist festgelegt, wie die Klassen zu implementieren sind. Um ein Level zu lösen, muss die Implementierung nach den Vorgaben erfolgen.
+Ab Level 35 müssen eigene Klassen erstellt (zunächst innerhalb der `schueler.py`) und ab Level 38 im Ordner `klassen/` in eigene Dateien ausgelagert werden. Ab diesen Leveln wird automatisch die Schülerklasse verwendet, wobei das Rendering und Teile der Spiellogik (z.B. Tastatursteuerung) weiterhin vom Framework übernommen werden. In den Leveldateien ist festgelegt, wie die Klassen zu implementieren sind. Um ein Level zu lösen, muss die Implementierung nach den Vorgaben erfolgen. Auch hier gibt es über die F1-Taste weitere Hilfen.
 
 ### Beispiel: Einfache Held-Klasse (Level 38)
 
@@ -280,6 +280,7 @@ oop_framework/
 
 1. [Framework Distribution](https://raw.githubusercontent.com/harzj/oop_framework/main/Framwork_Version_1_0_Release.zip) herunterladen (aktuell 1.0) und entpacken
 2. `schueler.py` mit beliebiger Python IDE öffnen, bearbeiten und ausführen
+3. Ggf. Hilfe über F1-Taste einholen.
 
 **Alternativ**:
 1. Repository herunterladen und anpassen
@@ -303,7 +304,7 @@ oop_framework/
 
 **Bildungslizenz für OOPventure**
 
-Copyright © 2025 Johannes Harz, Cusanus Gymnasium St. Wendel
+Copyright © 2025-2026 Johannes Harz, Cusanus Gymnasium St. Wendel
 CC BY-NC-SA 4.0
 
 ### Erlaubnisse:
