@@ -5,7 +5,7 @@ Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen **objektor
 
 Klassischerweise werden beim Unterrichten von OOP hauptsächlich Klassen entwickelt und nur testweise Objekte erzeugt. Der Umgang mit Objekten erfolgt dann sehr abstrakt in der Form von Parametern oder Attributen. Mit dem Framework wird diese Vorgehensweise aufgebrochen: Die Schülerinnen und Schüler müssen zuerst mit Objekten und deren Methoden arbeiten, bevor eigene Klassen implementiert werden.
 
-Die .zip-Datei für die Schülerinnen und Schüler oder zum Austesten kann [hier](https://raw.githubusercontent.com/harzj/oop_framework/main/Framwork_Version_1_0_Release.zip) direkt heruntergeladen werden. Das Unterrichtsmaterial ist unter ![Material](https://github.com/harzj/oop_framework/tree/main/Material) zu finden. Weitere Informationen unter [Installation](#-installation).
+Die .zip-Datei für die Schülerinnen und Schüler oder zum Austesten kann [hier](https://raw.githubusercontent.com/harzj/oop_framework/main/oopventure_newest.zip) direkt heruntergeladen werden. Das Unterrichtsmaterial ist unter ![Material](https://github.com/harzj/oop_framework/tree/main/Material) zu finden. Weitere Informationen unter [Installation](#-installation).
 
 Wichtiger Hinweis: Dieses Projekt wurde mit dem Einsatz von KI-Werkzeugen ermöglicht und umgesetzt. Weitere Informationen dazu sind weiter [unten](#-hinweise-zu-ki-einsatz) zu finden.
 
