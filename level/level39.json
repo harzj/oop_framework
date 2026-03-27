@@ -47,8 +47,8 @@
       "classes_present": false
     },
     "initial_gold": 0,
-    "quest_mode": "items",
     "quest_max_kosten": 0,
+    "quest_mode": "items",
     "quest_items_needed": 1,
     "random_door": false,
     "random_keys": false,
@@ -72,6 +72,19 @@
         ]
       }
     },
+    "hints": {
+      "text": [
+        "Importiere zuerst deine eigene Helden-Klasse aus klassen/held.py.",
+        "Erzeuge einen Helden und füge ihn dem Level hinzu.",
+        "Der Held erwartet die Parameter x,y,richtung und weiblich",
+        "richtung kann up, down, left oder right sein"
+      ],
+      "code": [
+        "from klassen.konto import Konto",
+        "konto1 = Konto(\"Max Mustermann\",1234)  # Parameter aus Klassendiagramm ablesen",
+        "bank.konto_eroeffnen(konto1)"
+      ]
+    },
     "template_objects": [
       {
         "typ": "Held",
@@ -79,17 +92,6 @@
         "y": 2,
         "richtung": "left"
       }
-    ],
-    "hints": {
-      "text": [
-        "Erzeuge einen Helden und füge ihn dem Level hinzu.",
-        "Importiere deine eigene Helden-Klasse aus klassen/held.py."
-      ],
-      "code": [
-        "from klassen.held import Held",
-        "h = Held(...)  # Parameter aus Klassendiagramm ablesen",
-        "level.objekt_hinzufuegen(h)"
-      ]
-    }
+    ]
   }
 }

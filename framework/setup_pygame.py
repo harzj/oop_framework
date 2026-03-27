@@ -14,6 +14,49 @@ import sys
 import os
 from pathlib import Path
 
+def _zeige_pygame_fehler():
+    """Zeigt ein nutzerfreundliches Fehlerfenster, wenn pygame nicht gefunden wird."""
+    import sys
+    import platform
+
+    nachricht = (
+        "pygame wurde nicht gefunden!\n\n"
+        "Bitte installiere pygame:\n\n"
+    )
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        nachricht += (
+            "macOS – Thonny:\n"
+            "  Extras → Pakete verwalten → 'pygame' suchen → Installieren\n\n"
+            "macOS – Terminal:\n"
+            "  pip3 install pygame\n\n"
+            "Hinweis: Bei Apple-Silicon-Macs (M1/M2/M3) ggf.:\n"
+            "  pip3 install pygame --pre"
+        )
+    elif system == "Windows":
+        nachricht += (
+            "Windows – Thonny:\n"
+            "  Extras → Pakete verwalten → 'pygame' suchen → Installieren\n\n"
+            "Windows – Eingabeaufforderung:\n"
+            "  pip install pygame"
+        )
+    else:
+        nachricht += "  pip install pygame"
+
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror("Framework – pygame fehlt", nachricht)
+        root.destroy()
+    except Exception:
+        print("[Framework] FEHLER:", nachricht)
+
+    sys.exit(1)
+
+
 def setup_local_pygame():
     """Versucht erst system-pygame, dann lokales lib/ Verzeichnis als Fallback."""
     # Prüfe zuerst, ob pygame bereits im System installiert ist
@@ -22,7 +65,7 @@ def setup_local_pygame():
         # pygame ist bereits verfügbar - verwende System-Installation
         print(f"[Framework] Verwende system-installiertes pygame {_pygame_test.version.ver}")
         return True
-    except ImportError:
+    except Exception:
         pass
     
     # pygame nicht gefunden - versuche lokales lib/ Verzeichnis als Fallback
@@ -39,7 +82,7 @@ def setup_local_pygame():
             print(f"[Framework] System-pygame nicht gefunden - verwende gebündeltes pygame aus: {lib_dir}")
             return True
     
-    print("[Framework] Warnung: Weder system-pygame noch gebündeltes pygame gefunden!")
+    _zeige_pygame_fehler()
     return False
 
 # Automatisch beim Import ausführen

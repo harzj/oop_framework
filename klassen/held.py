@@ -3,17 +3,41 @@ from charakter import Charakter
 from inventar import Inventar
 from gegenstand import Gegenstand
 
-class Held(Charakter):
+class Held():
     def __init__(self, x, y, richtung, weiblich):
-        super().__init__(x, y, richtung)
+        self.x = x
+        self.y = y
+        self.richtung = richtung
         self.weiblich = weiblich
         self.name = "Namenloser Held"
         self.typ = "Held"
-        # Komposition: Held hat ein Inventar
-        self.rucksack = Inventar()
-        # Held startet mit einem Schwert
-        schwert = Gegenstand("Schwert")
-        self.rucksack.item_hinzufuegen(schwert)
-        
-    def get_weiblich(self):
-        return self.weiblich
+
+    def geh(self):
+        if self.richtung == "up":
+            self.y -= 1
+        elif self.richtung == "down":
+            self.y += 1
+        elif self.richtung == "left":
+            self.x -= 1
+        elif self.richtung == "right":
+            self.x += 1
+
+    def links(self):
+        if self.richtung == "up":
+            self.richtung = "left"
+        elif self.richtung == "down":
+            self.richtung = "right"
+        elif self.richtung == "left":
+            self.richtung = "down"
+        elif self.richtung == "right":
+            self.richtung = "up"
+
+    def rechts(self):
+        if self.richtung == "up":
+            self.richtung = "right"
+        elif self.richtung == "down":
+            self.richtung = "left"
+        elif self.richtung == "left":
+            self.richtung = "up"
+        elif self.richtung == "right":
+            self.richtung = "down"
