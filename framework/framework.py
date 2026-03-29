@@ -861,6 +861,7 @@ class Framework:
     def _zeichne_hilfe(self):
         """F1-Hilfsfenster: zeigt verfügbare Befehle mit Tab-Navigation."""
         try:
+            import framework.grundlage as grundlage
             screen = self.screen
             sw, sh = screen.get_size()
 
@@ -872,20 +873,20 @@ class Framework:
             held_keyboard_mode   = bool(level_hints.get('held_keyboard_overview', False))
             default_tab          = level_hints.get('default_tab', None)  # None = use stored tab
 
-            has_knappe  = False
-            has_monster = False
+            has_public_knappe  = False
+            has_public_monster = False
             if sp:
                 try:
                     tiles_flat = [c for row in sp.level.tiles for c in row]
-                    has_knappe  = any(c.lower() == 'k'           for c in tiles_flat if isinstance(c, str))
-                    has_monster = any(c.lower() in ('x', 'y')    for c in tiles_flat if isinstance(c, str))
+                    has_public_knappe  = any(c == 'K'           for c in tiles_flat if isinstance(c, str))
+                    has_public_monster = any(c in ('X', 'Y')    for c in tiles_flat if isinstance(c, str))
                 except Exception:
                     pass
-                if not has_knappe and getattr(sp, 'knappe', None) is not None:
-                    has_knappe = True
-                if not has_monster:
-                    has_monster = any(getattr(o, 'typ', '') in ('Monster', 'Bogenschuetze')
-                                      for o in getattr(sp, 'objekte', []))
+                if not has_public_knappe and getattr(grundlage, 'knappe', None) is not None:
+                    has_public_knappe = True
+                if not has_public_monster:
+                    has_public_monster = (getattr(grundlage, 'monster', None) is not None
+                                          or getattr(grundlage, 'bogenschuetze', None) is not None)
 
             # Level-Nummer (wird für Impl-Modus und Konstruktoren benötigt)
             try:
@@ -928,7 +929,7 @@ class Framework:
                         pass
 
                 if no_monster_tab:
-                    has_monster = False
+                    has_public_monster = False
                 if no_zettel_tab:
                     has_zettel = False
                 if no_tuer_tab:
@@ -940,8 +941,8 @@ class Framework:
                 has_tuer = has_tuer_spruch or has_tuer_farbig
 
                 tabs = ["Generelle Hilfe", "Held"]
-                if has_knappe:     tabs.append("Knappe")
-                if has_monster:    tabs.append("Monster")
+                if has_public_knappe:     tabs.append("Knappe")
+                if has_public_monster:    tabs.append("Monster")
                 if has_zettel:     tabs.append("Zettel")
                 if has_tuer:       tabs.append("Tür")
                 if has_schluessel: tabs.append("Schlüssel")
