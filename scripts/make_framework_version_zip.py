@@ -76,8 +76,9 @@ def gather_pygame_library():
     try:
         import pygame
         pygame_path = Path(pygame.__file__).parent
+        site_packages = pygame_path.parent
         
-        # Yield all pygame files
+        # 1. Yield all pygame files
         for dirpath, dirnames, filenames in os.walk(pygame_path):
             # Skip __pycache__ and tests
             dirnames[:] = [d for d in dirnames if d not in ('__pycache__', 'tests', 'docs')]
@@ -89,12 +90,22 @@ def gather_pygame_library():
                     
                 fpath = Path(dirpath) / fname
                 # Create archive name: lib/pygame/...
-                rel_path = fpath.relative_to(pygame_path.parent)
+                rel_path = fpath.relative_to(site_packages)
                 arcname = f"lib/{rel_path}"
                 yield fpath, str(arcname).replace('\\', '/')
+
+        # 2. Yield pygame.libs files (CRITICAL FOR LINUX)
+        # Finds folders like pygame.libs or pygame-<version>.libs
+        for libs_dir in site_packages.glob('pygame*.libs'):
+            if libs_dir.is_dir():
+                for dirpath, dirnames, filenames in os.walk(libs_dir):
+                    for fname in filenames:
+                        fpath = Path(dirpath) / fname
+                        rel_path = fpath.relative_to(site_packages)
+                        arcname = f"lib/{rel_path}"
+                        yield fpath, str(arcname).replace('\\', '/')
                 
-        # Also include pygame metadata (for version info, etc.)
-        site_packages = pygame_path.parent
+        # 3. Also include pygame metadata (for version info, etc.)
         for item in site_packages.glob('pygame-*.dist-info'):
             if item.is_dir():
                 for fpath in item.rglob('*'):
@@ -185,11 +196,14 @@ def main(argv):
         # pygame library (bundled)
         print("\nBündle pygame Bibliothek...")
         pygame_count = 0
-        for fpath, arc in gather_pygame_library():
-            add_file_to_zip(zf, fpath, arc)
-            pygame_count += 1
-        if pygame_count > 0:
-            print(f"✓ {pygame_count} pygame Dateien hinzugefügt")
+        try:
+            for fpath, arc in gather_pygame_library():
+                add_file_to_zip(zf, fpath, arc)
+                pygame_count += 1
+            if pygame_count > 0:
+                print(f"✓ {pygame_count} pygame Dateien hinzugefügt")
+        except TypeError:
+            pass # Failsafe if gather_pygame_library yields nothing due to missing pygame
 
     print(f"\nFertig: {zip_path}")
     print(f"\nHinweis: pygame ist im 'lib/' Ordner enthalten.")
