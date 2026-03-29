@@ -322,6 +322,7 @@ class Held(Objekt):
                 # Code/Zettel
                 if hasattr(obj, 'gib_code'):
                     self.geheimer_code = obj.gib_code()
+                    print(f"[Held] Spruch {self.geheimer_code} notiert.")
                     sp.entferne_objekt(obj)
                     continue
                 
