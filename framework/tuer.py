@@ -27,6 +27,11 @@ class Tuer(Objekt):
 
     def code_eingeben(self, code):
         """Öffnet die Tür, wenn der Code stimmt."""
+
+        # Prevent the door from being opened with a code of None
+        if code is None:
+            return False
+
         if str(code) == str(self._richtiger_code):
             if self.offen:
                 print("[Tür] War bereits offen")

@@ -462,12 +462,6 @@ class Held(Objekt):
             return
         if code is None and hasattr(self, "geheimer_code"):
             code = self.geheimer_code
-        dx, dy = self.framework.spielfeld.level.texturen["w"].get_size()  # irrelevant
-        dx, dy = 0, 0
-        dx, dy = self.framework.spielfeld.level.texturen["w"].get_size()
-        dx, dy = self.framework.spielfeld.level.texturen["w"].get_size()
-        dx, dy = 0, 0
-        # Korrekt:
         from .utils import richtung_offset
         dx, dy = richtung_offset(self.richtung)
         tx, ty = self.x + dx, self.y + dy
