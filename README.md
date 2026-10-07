@@ -1,6 +1,8 @@
 # Projekt OOPventure
 # Objektorientierte Programmierung spielerisch lernen
 
+**Wichtiges Update:** OOPventure kann jetzt direkt im Browser benutzt werden und benötigt somit keine Downloads oder Python-fähige Geräte mehr. Unter diesem Link kann es ausprobiert werden: [OOPventure beta](https://informatik-buch.info/oopventure/). Eine Optimierung für Tablets und kleinere Bildschirme ist noch in Arbeit. Die Veröffentlichung als eigenständiges Paket zum selbst hosten ist ebenfalls geplant.
+
 Ein interaktives Lernframework **inkl. Arbeitsmaterial** zum Erlernen **objektorientierter Konzepte** in Python. Schülerinnen und Schüler erstellen Programme und steuern so eine Heldin (oder einen Helden) durch verschiedene Level, um diese zu lösen. Zunächst durch die Verwendung vorgegebener Objekte und derer Methoden, später durch die Implementierung eigener Klassen. Die Programmierung erfolgt in einer beliebigen Python IDE und benötigt keinerlei weitere Installationen oder Bibliotheken.
 
 Klassischerweise werden beim Unterrichten von OOP hauptsächlich Klassen entwickelt und nur testweise Objekte erzeugt. Der Umgang mit Objekten erfolgt dann sehr abstrakt in der Form von Parametern oder Attributen. Mit dem Framework wird diese Vorgehensweise aufgebrochen: Die Schülerinnen und Schüler müssen zuerst mit Objekten und deren Methoden arbeiten, bevor eigene Klassen implementiert werden.
