@@ -1,7 +1,7 @@
 # Projekt OOPventure
 # Objektorientierte Programmierung spielerisch lernen
 
-**Wichtiges Update:** OOPventure kann jetzt direkt im Browser benutzt werden und benötigt somit keine Downloads oder Python-fähige Geräte mehr. Unter diesem Link kann es ausprobiert werden: [OOPventure beta](https://informatik-buch.info/oopventure/). Eine Optimierung für Tablets und kleinere Bildschirme ist noch in Arbeit. Die Veröffentlichung als eigenständiges Paket zum selbst hosten ist ebenfalls geplant.
+**Wichtiges Update:** OOPventure kann jetzt direkt im Browser benutzt werden und benötigt somit keine Downloads oder Python-fähige Geräte mehr. Unter diesem Link kann es ausprobiert werden: [OOPventure beta](https://informatik-buch.info/oopventure/). Eine Optimierung für Tablets und kleinere Bildschirme ist noch in Arbeit. Die Veröffentlichung als eigenständiges Paket zum selbst hosten ist ebenfalls geplant. Bei Interesse an einem vollen Zugang bitte eine Mail an die Adresse ganz unten schicken.
 
 ![Browserbasierte Version (beta)](docs/oopventure.png)
 
